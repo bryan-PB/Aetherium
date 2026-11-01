@@ -1,25 +1,24 @@
 # Aetherium
 
-Mod de contenido para Minecraft **1.16.5** usando **Minecraft Forge 36.2.42**.
+Proyecto de mod de contenido para Minecraft **1.16.5** con **Minecraft Forge 36.2.42**.
 
-## Estado del proyecto
+## Estado del repositorio
 
-Esta instantánea contiene el código fuente, recursos y documentación reunidos durante las seis entregas. **No es un JAR compilado**: la compilación real debe comprobarse en un equipo con JDK 8 de 64 bits y Gradle descargado por el wrapper.
+Este repositorio está creado como **público**. Por ahora contiene esta documentación inicial; el paquete completo de código fuente y recursos todavía no se ha subido. No descargues ni intentes compilar este repositorio esperando encontrar ya todos los archivos del mod.
 
-## Obtener el código fuente
+El proyecto preparado durante las seis entregas está disponible como paquete ZIP en la conversación de ChatGPT, pero aún debe transferirse a este repositorio.
 
-Descarga `Aetherium-source.tar.xz` desde este repositorio y extrae el archivo. En Windows puedes usar 7-Zip; en Linux:
+## Requisitos previstos
 
-```bash
-tar -xf Aetherium-source.tar.xz
-cd Aetherium
-```
+- Minecraft 1.16.5.
+- Minecraft Forge 36.2.42.
+- JDK 8 de 64 bits.
+- Curios API opcional para accesorios.
+- Rubidium y FerriteCore opcionales para optimización.
 
-La extracción crea la carpeta `Aetherium/` con `build.gradle`, `gradlew` y `src/`.
+## Compilación
 
-## Compilar
-
-Requisito: **JDK 8 de 64 bits**.
+Cuando el código fuente esté cargado, desde la carpeta raíz del proyecto:
 
 Windows:
 
@@ -34,19 +33,12 @@ chmod +x gradlew
 ./gradlew build
 ```
 
-El artefacto esperado estará en `build/libs/`.
-
-## Compatibilidad
-
-- Minecraft 1.16.5 / Forge 36.2.42.
-- Java 8.
-- Curios API es opcional para los accesorios; el mod debe poder funcionar sin Curios.
-- Rubidium y FerriteCore son optimizaciones opcionales, no dependencias obligatorias.
+El JAR, si la compilación termina correctamente, aparecerá en `build/libs/`.
 
 ## Rendimiento
 
-Consulta [OPTIMIZATION.md](Aetherium/OPTIMIZATION.md) después de extraer el archivo fuente.
+El objetivo es mantener bajo el consumo de CPU, memoria y partículas para equipos modestos. La configuración definitiva debe probarse dentro del juego.
 
-## Licencia
+## Aviso
 
-Consulta el archivo `LICENSE` incluido en el paquete fuente.
+No existe todavía un JAR compilado y probado publicado en este repositorio.
