@@ -12,20 +12,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v6
-
-      - name: Detectar si el código fuente ya está en la raíz
-        id: detect-source
-        shell: bash
-        run: |
-          if [[ -f build.gradle && -d src/main/java ]]; then
-            echo "source_in_repo=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "source_in_repo=false" >> "$GITHUB_OUTPUT"
-          fi
 
       - name: Configurar Java 8
         uses: actions/setup-java@v5
@@ -33,101 +22,137 @@ jobs:
           distribution: temurin
           java-version: '8'
 
-      - name: Preparar Gradle 7.6.4
+      - name: Instalar Gradle 7.6.4
         uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: '7.6.4'
 
-      - name: Reconstruir el código fuente
-        if: steps.detect-source.outputs.source_in_repo == 'false'
+      - name: Expandir y preparar el proyecto
         shell: bash
         run: |
           set -euo pipefail
 
-          cat Aetherium-source.tar.xz.part{001..009} > "$RUNNER_TEMP/Aetherium-source.tar.xz"
+          if [[ -f build.gradle && -d src/main/java ]]; then
+            PROJECT_DIR="$GITHUB_WORKSPACE"
+          else
+            cat Aetherium-source.tar.xz.part{001..009} > "$RUNNER_TEMP/Aetherium-source.tar.xz"
+            tar -tJf "$RUNNER_TEMP/Aetherium-source.tar.xz" >/dev/null
+            mkdir -p "$RUNNER_TEMP/aetherium-source"
+            tar -xJf "$RUNNER_TEMP/Aetherium-source.tar.xz" -C "$RUNNER_TEMP/aetherium-source"
 
-          # Verifica que las nueve partes formen un archivo XZ/TAR válido.
-          tar -tJf "$RUNNER_TEMP/Aetherium-source.tar.xz" > /dev/null
+            PROJECT_DIR="$(find "$RUNNER_TEMP/aetherium-source" -type f -name build.gradle -print -quit | xargs -r dirname)"
+            if [[ -z "$PROJECT_DIR" ]]; then
+              echo "::error::No se encontró build.gradle en el archivo fuente."
+              exit 1
+            fi
 
-          mkdir -p "$RUNNER_TEMP/aetherium-source"
-          tar -xJf "$RUNNER_TEMP/Aetherium-source.tar.xz" -C "$RUNNER_TEMP/aetherium-source"
+            rsync -a --exclude='.git/' --exclude='.github/' --exclude='README.md' "$PROJECT_DIR/" "$GITHUB_WORKSPACE/"
 
-          wrapper="$(find "$RUNNER_TEMP/aetherium-source" -type f -name gradlew -print -quit)"
-          if [[ -z "$wrapper" ]]; then
-            echo "::error::No se encontró gradlew dentro del paquete fuente."
-            exit 1
+            git rm -f --ignore-unmatch Aetherium-source.tar.xz.part001 Aetherium-source.tar.xz.part002 Aetherium-source.tar.xz.part003 Aetherium-source.tar.xz.part004 Aetherium-source.tar.xz.part005 Aetherium-source.tar.xz.part006 Aetherium-source.tar.xz.part007 Aetherium-source.tar.xz.part008 Aetherium-source.tar.xz.part009
+
+            PROJECT_DIR="$GITHUB_WORKSPACE"
           fi
 
-          project_dir="$(dirname "$wrapper")"
-          echo "AETHERIUM_PROJECT_DIR=$project_dir" >> "$GITHUB_ENV"
+          echo "AETHERIUM_PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
-      - name: Usar fuentes del repositorio
-        if: steps.detect-source.outputs.source_in_repo == 'true'
-        shell: bash
-        run: |
-          echo "AETHERIUM_PROJECT_DIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
-
-      - name: Publicar las fuentes como archivos normales
-        if: ${{ hashFiles('build.gradle') == '' }}
+      - name: Corregir mappings y compatibilidad Forge 1.16.5
         shell: bash
         run: |
           set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
 
-          test -f "$AETHERIUM_PROJECT_DIR/build.gradle"
-          test -d "$AETHERIUM_PROJECT_DIR/src/main/java"
+          root = Path.cwd()
 
-          rsync -a --exclude README.md "$AETHERIUM_PROJECT_DIR/" "$GITHUB_WORKSPACE/"
+          build = root / "build.gradle"
+          text = build.read_text(encoding="utf-8")
+          text = text.replace(
+              "mappings channel: 'official', version: '1.16.5'",
+              "mappings channel: 'snapshot', version: '20210309-1.16.5'"
+          )
+          build.write_text(text, encoding="utf-8")
 
-          if [[ -f gradle/wrapper/gradle-wrapper.properties ]]; then
-            sed -i 's#gradle-[0-9.]*-bin.zip#gradle-7.6.4-bin.zip#' gradle/wrapper/gradle-wrapper.properties
-          fi
+          for path in (root / "src/main/java").rglob("*.java"):
+              text = path.read_text(encoding="utf-8")
+              text = text.replace(
+                  "import net.minecraftforge.registries.RegistryObject;",
+                  "import net.minecraftforge.fml.RegistryObject;"
+              )
+              text = text.replace(
+                  "import net.minecraft.entity.ai.goal.RandomLookAroundGoal;",
+                  "import net.minecraft.entity.ai.goal.LookRandomlyGoal;"
+              )
+              text = text.replace("new RandomLookAroundGoal(", "new LookRandomlyGoal(")
+              text = text.replace(
+                  "import net.minecraft.entity.boss.BossInfo;",
+                  "import net.minecraft.world.BossInfo;"
+              )
+              text = text.replace(".getAbilities().instabuild", ".abilities.instabuild")
 
-          cat > README.md <<'EOF'
-# Aetherium
+              if path.name == "AetheriumAccessoryItem.java":
+                  text = text.replace("import net.minecraft.entity.LivingEntity;\n", "")
+                  text = text.replace("import net.minecraftforge.fml.common.Optional;\n", "")
+                  text = text.replace("import top.theillusivec4.curios.api.SlotContext;\n", "")
+                  text = text.replace("import top.theillusivec4.curios.api.type.capability.ICurioItem;\n", "")
+                  text = text.replace(
+                      '@Optional.Interface(iface = "top.theillusivec4.curios.api.type.capability.ICurioItem", modid = "curios")\n',
+                      ""
+                  )
+                  text = text.replace(" extends Item implements ICurioItem", " extends Item")
+                  text = re.sub(
+                      r"\n    /\*\* Allows Curios to equip.*?(?=\n    /\*\* Fallback ability)",
+                      "",
+                      text,
+                      flags=re.S
+                  )
+                  text = re.sub(r"\n    private static Object getSlotEntity\(.*\n\}", "\n}", text, flags=re.S)
 
-Mod de contenido para **Minecraft 1.16.5** con **Minecraft Forge 36.2.42**.
+              path.write_text(text, encoding="utf-8")
 
-## Compilar
+          tags = root / "src/main/resources/data/curios/tags/items"
+          tags.mkdir(parents=True, exist_ok=True)
+          (tags / "necklace.json").write_text(
+              '{\n  "replace": false,\n  "values": ["aetherium:aetherium_amulet"]\n}\n',
+              encoding="utf-8"
+          )
+          (tags / "ring.json").write_text(
+              '{\n  "replace": false,\n  "values": ["aetherium:aetherium_ring"]\n}\n',
+              encoding="utf-8"
+          )
 
-Requiere JDK 8 de 64 bits.
+          wrapper_properties = root / "gradle/wrapper/gradle-wrapper.properties"
+          if wrapper_properties.exists():
+              wrapper_text = wrapper_properties.read_text(encoding="utf-8")
+              wrapper_text = re.sub(
+                  r"gradle-[0-9.]+-(?:bin|all)\.zip",
+                  "gradle-7.6.4-bin.zip",
+                  wrapper_text
+              )
+              wrapper_properties.write_text(wrapper_text, encoding="utf-8")
 
-Windows:
-
-```bat
-gradlew.bat build
-```
-
-Linux/macOS:
-
-```bash
-chmod +x gradlew
-./gradlew build
-```
-
-El archivo JAR se genera en `build/libs/`.
-
-La compilación automática se ejecuta desde **GitHub Actions** en cada push a `main` y se puede iniciar manualmente desde la pestaña Actions.
-
-## Compatibilidad
-
-- Minecraft 1.16.5 / Forge 36.2.42.
-- Java 8.
-- Curios es una integración opcional; las funciones que no requieren Curios deben seguir disponibles sin instalarlo.
-
-## Estado
-
-El código se está adaptando y validando con la compilación automática. No considerar el JAR listo para jugar hasta que GitHub Actions termine correctamente y se hagan pruebas dentro del juego.
-EOF
-
-          git rm -f Aetherium-source.tar.xz.part001 Aetherium-source.tar.xz.part002 Aetherium-source.tar.xz.part003 Aetherium-source.tar.xz.part004 Aetherium-source.tar.xz.part005 Aetherium-source.tar.xz.part006 Aetherium-source.tar.xz.part007 Aetherium-source.tar.xz.part008 Aetherium-source.tar.xz.part009
+          (root / "README.md").write_text(
+              "# Aetherium\n\n"
+              "Mod para Minecraft 1.16.5 con Forge 36.2.42.\n\n"
+              "Requiere JDK 8. Compilar con `gradlew build` (Windows: `gradlew.bat build`). "
+              "El JAR se genera en `build/libs/`.\n\n"
+              "Curios es opcional; los accesorios pueden equiparse en los slots Necklace y Ring "
+              "cuando Curios está instalado. Las habilidades de uso directo funcionan sin Curios.\n\n"
+              "Estado: compilación automática en validación; no considerar estable hasta completar "
+              "la compilación y pruebas dentro del juego.\n",
+              encoding="utf-8"
+          )
+          PY
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Expandir el código fuente del mod en el repositorio"
-          git push origin HEAD:main
+          if ! git diff --cached --quiet; then
+            git commit -m "Expandir fuentes y corregir compatibilidad Forge 1.16.5"
+            git push origin HEAD:main
+          fi
 
-      - name: Compilar mod con Gradle 7.6.4
+      - name: Compilar mod
         shell: bash
         run: |
           set -euo pipefail
@@ -135,7 +160,7 @@ EOF
           gradle --version
           gradle build --no-daemon
 
-      - name: Publicar JAR
+      - name: Subir JAR compilado
         uses: actions/upload-artifact@v7
         with:
           name: Aetherium-jar
