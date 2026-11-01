@@ -5,67 +5,114 @@ import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.util.math.MathHelper;
 
-/** Broad, angular guardian silhouette built from a small number of cuboids. */
+/** Heavy, plated colossus. Layered armor and a visible core give the Guardian a true boss silhouette. */
 public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
-    private final ModelRenderer head;
-    private final ModelRenderer body;
-    private final ModelRenderer leftArm;
-    private final ModelRenderer rightArm;
-    private final ModelRenderer leftLeg;
-    private final ModelRenderer rightLeg;
-    private final ModelRenderer leftHorn;
-    private final ModelRenderer rightHorn;
+    private final ModelRenderer head, body, chestPlate, core, jaw;
+    private final ModelRenderer leftArm, rightArm, leftShoulder, rightShoulder;
+    private final ModelRenderer leftGauntlet, rightGauntlet, leftLeg, rightLeg;
+    private final ModelRenderer leftGreave, rightGreave, leftHorn, rightHorn;
+    private final ModelRenderer backSpikes;
 
     public RiftGuardianModel() {
         this.texWidth = 64;
         this.texHeight = 64;
-        this.head = new ModelRenderer(this, 0, 0);
-        this.head.setPos(0.0F, 2.0F, 0.0F);
-        this.head.addBox(-4.5F, -4.0F, -4.0F, 9.0F, 8.0F, 8.0F);
 
-        this.leftHorn = new ModelRenderer(this, 0, 18);
-        this.leftHorn.setPos(-3.0F, -2.0F, 0.0F);
-        this.leftHorn.addBox(-1.0F, -5.0F, -1.0F, 2.0F, 5.0F, 2.0F);
-        this.head.addChild(this.leftHorn);
-        this.rightHorn = new ModelRenderer(this, 8, 18);
-        this.rightHorn.setPos(3.0F, -2.0F, 0.0F);
-        this.rightHorn.addBox(-1.0F, -5.0F, -1.0F, 2.0F, 5.0F, 2.0F);
-        this.head.addChild(this.rightHorn);
+        head = new ModelRenderer(this, 0, 0);
+        head.setPos(0.0F, 4.0F, 0.0F);
+        head.addBox(-6.0F, -7.0F, -5.5F, 12.0F, 12.0F, 11.0F);
+        jaw = new ModelRenderer(this, 32, 0);
+        jaw.setPos(0.0F, 2.0F, -3.8F);
+        jaw.addBox(-3.5F, -0.3F, -2.0F, 7.0F, 2.5F, 2.5F);
+        head.addChild(jaw);
 
-        this.body = new ModelRenderer(this, 0, 28);
-        this.body.setPos(0.0F, 11.0F, 0.0F);
-        this.body.addBox(-6.0F, -7.0F, -3.5F, 12.0F, 14.0F, 7.0F);
+        leftHorn = new ModelRenderer(this, 0, 18);
+        leftHorn.setPos(-4.2F, -4.5F, 0.0F);
+        leftHorn.addBox(-1.5F, -7.0F, -1.5F, 3.0F, 7.0F, 3.0F);
+        head.addChild(leftHorn);
+        rightHorn = new ModelRenderer(this, 12, 18);
+        rightHorn.setPos(4.2F, -4.5F, 0.0F);
+        rightHorn.addBox(-1.5F, -7.0F, -1.5F, 3.0F, 7.0F, 3.0F);
+        head.addChild(rightHorn);
 
-        this.leftArm = new ModelRenderer(this, 38, 0);
-        this.leftArm.setPos(7.0F, 7.0F, 0.0F);
-        this.leftArm.addBox(-2.0F, -1.0F, -2.0F, 4.0F, 13.0F, 4.0F);
-        this.rightArm = new ModelRenderer(this, 38, 18);
-        this.rightArm.setPos(-7.0F, 7.0F, 0.0F);
-        this.rightArm.addBox(-2.0F, -1.0F, -2.0F, 4.0F, 13.0F, 4.0F);
+        body = new ModelRenderer(this, 0, 28);
+        body.setPos(0.0F, 16.0F, 0.0F);
+        body.addBox(-8.0F, -7.0F, -5.0F, 16.0F, 18.0F, 10.0F);
+        chestPlate = new ModelRenderer(this, 32, 28);
+        chestPlate.setPos(0.0F, -3.0F, -5.1F);
+        chestPlate.addBox(-5.5F, -2.0F, -0.7F, 11.0F, 9.0F, 1.2F);
+        body.addChild(chestPlate);
+        core = new ModelRenderer(this, 48, 28);
+        core.setPos(0.0F, 1.5F, -6.0F);
+        core.addBox(-2.0F, -2.0F, -0.4F, 4.0F, 4.0F, 1.0F);
+        body.addChild(core);
 
-        this.leftLeg = new ModelRenderer(this, 0, 48);
-        this.leftLeg.setPos(3.0F, 18.0F, 0.0F);
-        this.leftLeg.addBox(-2.0F, 0.0F, -2.0F, 4.0F, 8.0F, 4.0F);
-        this.rightLeg = new ModelRenderer(this, 16, 48);
-        this.rightLeg.setPos(-3.0F, 18.0F, 0.0F);
-        this.rightLeg.addBox(-2.0F, 0.0F, -2.0F, 4.0F, 8.0F, 4.0F);
+        leftShoulder = new ModelRenderer(this, 0, 48);
+        leftShoulder.setPos(8.0F, 10.0F, 0.0F);
+        leftShoulder.addBox(-1.0F, -3.0F, -3.0F, 5.5F, 6.0F, 6.0F);
+        rightShoulder = new ModelRenderer(this, 24, 48);
+        rightShoulder.setPos(-8.0F, 10.0F, 0.0F);
+        rightShoulder.addBox(-4.5F, -3.0F, -3.0F, 5.5F, 6.0F, 6.0F);
+
+        leftArm = new ModelRenderer(this, 0, 60);
+        leftArm.setPos(9.0F, 11.0F, 0.0F);
+        leftArm.addBox(-2.0F, -1.0F, -2.5F, 4.5F, 15.0F, 5.0F);
+        rightArm = new ModelRenderer(this, 20, 60);
+        rightArm.setPos(-9.0F, 11.0F, 0.0F);
+        rightArm.addBox(-2.5F, -1.0F, -2.5F, 4.5F, 15.0F, 5.0F);
+        leftGauntlet = new ModelRenderer(this, 38, 48);
+        leftGauntlet.setPos(0.0F, 11.0F, -0.2F);
+        leftGauntlet.addBox(-2.2F, 0.0F, -2.8F, 4.8F, 4.0F, 5.6F);
+        leftArm.addChild(leftGauntlet);
+        rightGauntlet = new ModelRenderer(this, 38, 48);
+        rightGauntlet.setPos(0.0F, 11.0F, -0.2F);
+        rightGauntlet.addBox(-2.6F, 0.0F, -2.8F, 4.8F, 4.0F, 5.6F);
+        rightArm.addChild(rightGauntlet);
+
+        leftLeg = new ModelRenderer(this, 0, 0);
+        leftLeg.setPos(4.2F, 27.0F, 0.0F);
+        leftLeg.addBox(-2.8F, 0.0F, -2.8F, 5.6F, 13.0F, 5.6F);
+        rightLeg = new ModelRenderer(this, 24, 0);
+        rightLeg.setPos(-4.2F, 27.0F, 0.0F);
+        rightLeg.addBox(-2.8F, 0.0F, -2.8F, 5.6F, 13.0F, 5.6F);
+        leftGreave = new ModelRenderer(this, 0, 18);
+        leftGreave.setPos(0.0F, 5.0F, -2.9F);
+        leftGreave.addBox(-2.4F, -1.0F, -0.5F, 4.8F, 7.0F, 1.0F);
+        leftLeg.addChild(leftGreave);
+        rightGreave = new ModelRenderer(this, 16, 18);
+        rightGreave.setPos(0.0F, 5.0F, -2.9F);
+        rightGreave.addBox(-2.4F, -1.0F, -0.5F, 4.8F, 7.0F, 1.0F);
+        rightLeg.addChild(rightGreave);
+
+        backSpikes = new ModelRenderer(this, 40, 0);
+        backSpikes.setPos(0.0F, -3.5F, 4.7F);
+        backSpikes.addBox(-6.0F, -3.0F, 0.0F, 12.0F, 7.0F, 2.0F);
+        body.addChild(backSpikes);
     }
 
     @Override
     public void setupAnim(RiftGuardianEntity entity, float limbSwing, float limbSwingAmount,
                           float ageInTicks, float netHeadYaw, float headPitch) {
-        this.head.yRot = netHeadYaw * ((float) Math.PI / 180.0F);
-        this.head.xRot = headPitch * ((float) Math.PI / 180.0F);
-        float swing = MathHelper.cos(limbSwing * 0.55F) * 0.75F * limbSwingAmount;
-        this.leftLeg.xRot = swing;
-        this.rightLeg.xRot = -swing;
-        this.leftArm.xRot = -swing * 0.45F;
-        this.rightArm.xRot = swing * 0.45F;
-        this.leftHorn.zRot = 0.04F + MathHelper.sin(ageInTicks * 0.035F) * 0.035F;
-        this.rightHorn.zRot = -this.leftHorn.zRot;
+        float walk = Math.min(1.0F, limbSwingAmount);
+        float gait = limbSwing * 0.55F;
+        float idle = MathHelper.sin(ageInTicks * 0.07F);
+        float slam = entity.getSlamAnimationTicks() / 14.0F;
+        float attack = MathHelper.sin(entity.getAttackAnim(0.0F) * (float)Math.PI);
+        head.yRot = netHeadYaw * ((float)Math.PI / 180.0F);
+        head.xRot = headPitch * ((float)Math.PI / 180.0F) - slam * 0.18F;
+        body.y = 16.0F + idle * 0.12F;
+        body.xRot = slam * 0.24F + idle * 0.018F;
+        leftLeg.xRot = MathHelper.cos(gait) * 0.62F * walk - slam * 0.18F;
+        rightLeg.xRot = MathHelper.cos(gait + (float)Math.PI) * 0.62F * walk - slam * 0.18F;
+        leftArm.xRot = -MathHelper.cos(gait) * 0.38F * walk - attack * 0.45F - slam * 1.05F;
+        rightArm.xRot = MathHelper.cos(gait) * 0.38F * walk - attack * 0.45F - slam * 1.05F;
+        leftShoulder.xRot = leftArm.xRot * 0.3F;
+        rightShoulder.xRot = rightArm.xRot * 0.3F;
+        leftHorn.zRot = 0.035F + idle * 0.02F;
+        rightHorn.zRot = -leftHorn.zRot;
+        core.y = 1.5F + MathHelper.sin(ageInTicks * 0.18F) * 0.35F;
         if (entity.getPhase() == 2) {
-            this.leftArm.xRot -= 0.12F;
-            this.rightArm.xRot -= 0.12F;
+            leftArm.xRot -= 0.12F;
+            rightArm.xRot -= 0.12F;
         }
     }
 
@@ -74,11 +121,13 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
                                com.mojang.blaze3d.vertex.IVertexBuilder buffer,
                                int packedLight, int packedOverlay,
                                float red, float green, float blue, float alpha) {
-        this.head.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        this.body.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        this.leftArm.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        this.rightArm.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        this.leftLeg.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        this.rightLeg.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        head.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        body.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        leftShoulder.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        rightShoulder.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        leftArm.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        rightArm.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        leftLeg.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        rightLeg.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
     }
 }
