@@ -50,6 +50,25 @@ jobs:
           project_dir="$(dirname "$wrapper")"
           echo "AETHERIUM_PROJECT_DIR=$project_dir" >> "$GITHUB_ENV"
 
+      - name: Diagnosticar configuración y fuentes Java
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$AETHERIUM_PROJECT_DIR"
+          echo "===== build.gradle ====="
+          sed -n '1,220p' build.gradle
+          echo "===== gradle.properties ====="
+          if [[ -f gradle.properties ]]; then cat gradle.properties; fi
+          for f in \
+            src/main/java/com/aetherium/aetherium/registry/RegistryHandler.java \
+            src/main/java/com/aetherium/aetherium/content/item/AetheriumAccessoryItem.java \
+            src/main/java/com/aetherium/aetherium/content/entity/RiftStalkerEntity.java \
+            src/main/java/com/aetherium/aetherium/content/boss/RiftGuardianEntity.java \
+            src/main/java/com/aetherium/aetherium/client/model/RiftStalkerModel.java; do
+            echo "===== $f ====="
+            sed -n '1,240p' "$f"
+          done
+
       - name: Compilar mod con Gradle 7.6.4
         shell: bash
         run: |
