@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ADA",
+    "IEI",
+    "ADA"
+  ],
+  "key": {
+    "A": {
+      "item": "aetherium:aetherium_ingot"
+    },
+    "D": {
+      "item": "aetherium:aether_dust"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    }
+  },
+  "result": {
+    "item": "aetherium:rift_sigil",
+    "count": 1
+  }
+}

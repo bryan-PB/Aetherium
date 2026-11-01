@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " G ",
+    "DND",
+    " G "
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glowstone_dust"
+    },
+    "D": {
+      "item": "aetherium:aether_dust"
+    },
+    "N": {
+      "item": "aetherium:aetherium_nugget"
+    }
+  },
+  "result": {
+    "item": "aetherium:aetherium_flare",
+    "count": 2
+  }
+}

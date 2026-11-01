@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "RFR",
+    "EHE",
+    "RFR"
+  ],
+  "key": {
+    "R": {
+      "item": "aetherium:rift_fragment"
+    },
+    "F": {
+      "item": "aetherium:aetherium_ingot"
+    },
+    "E": {
+      "item": "minecraft:ender_pearl"
+    },
+    "H": {
+      "item": "aetherium:rift_core"
+    }
+  },
+  "result": {
+    "item": "aetherium:astral_seal",
+    "count": 1
+  }
+}

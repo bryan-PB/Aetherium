@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "A A",
+    "AAA",
+    "AAA"
+  ],
+  "key": {
+    "A": {
+      "item": "aetherium:aetherium_ingot"
+    }
+  },
+  "result": {
+    "item": "aetherium:aetherium_chestplate"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "aetherium:aetherium_ingot"
+    }
+  ],
+  "result": {
+    "item": "aetherium:aetherium_nugget",
+    "count": 9
+  }
+}

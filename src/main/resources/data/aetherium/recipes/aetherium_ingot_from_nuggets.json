@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "NNN",
+    "NNN",
+    "NNN"
+  ],
+  "key": {
+    "N": {
+      "item": "aetherium:aetherium_nugget"
+    }
+  },
+  "result": {
+    "item": "aetherium:aetherium_ingot",
+    "count": 1
+  }
+}

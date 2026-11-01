@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:blasting",
+  "ingredient": {
+    "item": "aetherium:raw_aetherium"
+  },
+  "result": "aetherium:aetherium_ingot",
+  "experience": 1.0,
+  "cookingtime": 100
+}

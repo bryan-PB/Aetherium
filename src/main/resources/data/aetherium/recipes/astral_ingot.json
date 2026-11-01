@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "aetherium:astral_heart"
+    },
+    {
+      "item": "aetherium:astral_fragment"
+    },
+    {
+      "item": "aetherium:astral_fragment"
+    },
+    {
+      "item": "aetherium:astral_fragment"
+    },
+    {
+      "item": "aetherium:astral_fragment"
+    },
+    {
+      "item": "aetherium:aetherium_ingot"
+    },
+    {
+      "item": "aetherium:aetherium_ingot"
+    },
+    {
+      "item": "aetherium:aetherium_ingot"
+    },
+    {
+      "item": "aetherium:aetherium_ingot"
+    }
+  ],
+  "result": {
+    "item": "aetherium:astral_ingot",
+    "count": 4
+  }
+}

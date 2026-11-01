@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " N ",
+    "ADA",
+    " N "
+  ],
+  "key": {
+    "N": {
+      "item": "aetherium:aetherium_nugget"
+    },
+    "A": {
+      "item": "aetherium:aetherium_ingot"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    }
+  },
+  "result": {
+    "item": "aetherium:aetherium_amulet"
+  }
+}

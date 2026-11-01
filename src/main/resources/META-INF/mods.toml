@@ -1,0 +1,31 @@
+modLoader="javafml"
+loaderVersion="[36,)"
+license="MIT"
+
+[[mods]]
+modId="aetherium"
+version="${file.jarVersion}"
+displayName="Aetherium"
+authors="Aetherium Team"
+description="""A fantasy content mod for Minecraft 1.16.5. Explore deep Aetherium deposits, forge powerful equipment, and challenge unique rift bosses."""
+
+[[dependencies.aetherium]]
+    modId="forge"
+    mandatory=true
+    versionRange="[36.2.42,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.aetherium]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.5,1.17)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.aetherium]]
+    modId="curios"
+    mandatory=false
+    versionRange="[1.16.5-4.1.0.0,)"
+    ordering="AFTER"
+    side="BOTH"
