@@ -1,0 +1,64 @@
+name: Compilar Aetherium
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '8'
+
+      - name: Preparar Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Reconstruir el código fuente
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cat Aetherium-source.tar.xz.part{001..009} > "$RUNNER_TEMP/Aetherium-source.tar.xz"
+
+          # Comprueba que las nueve partes formen un archivo XZ/TAR válido.
+          tar -tJf "$RUNNER_TEMP/Aetherium-source.tar.xz" > /dev/null
+
+          mkdir -p "$RUNNER_TEMP/aetherium-source"
+          tar -xJf "$RUNNER_TEMP/Aetherium-source.tar.xz" -C "$RUNNER_TEMP/aetherium-source"
+
+          wrapper="$(find "$RUNNER_TEMP/aetherium-source" -type f -name gradlew -print -quit)"
+          if [[ -z "$wrapper" ]]; then
+            echo "::error::No se encontró gradlew dentro del paquete fuente."
+            exit 1
+          fi
+
+          project_dir="$(dirname "$wrapper")"
+          chmod +x "$wrapper"
+          echo "AETHERIUM_PROJECT_DIR=$project_dir" >> "$GITHUB_ENV"
+
+      - name: Compilar mod
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$AETHERIUM_PROJECT_DIR"
+          ./gradlew build --no-daemon
+
+      - name: Publicar JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: Aetherium-jar
+          path: ${{ env.AETHERIUM_PROJECT_DIR }}/build/libs/*.jar
+          if-no-files-found: error
