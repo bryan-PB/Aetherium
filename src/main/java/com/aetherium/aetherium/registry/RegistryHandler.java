@@ -8,6 +8,8 @@ import com.aetherium.aetherium.content.item.AetheriumItemTier;
 import com.aetherium.aetherium.content.item.AstralItemTier;
 import com.aetherium.aetherium.content.item.AetheriumMagnetItem;
 import com.aetherium.aetherium.content.item.AetheriumFlareItem;
+import com.aetherium.aetherium.content.item.AetheriumSwordItem;
+import com.aetherium.aetherium.content.item.AstralSwordItem;
 import com.aetherium.aetherium.content.entity.RiftStalkerEntity;
 import com.aetherium.aetherium.content.entity.LumiveloEntity;
 import com.aetherium.aetherium.content.boss.AetherBoltEntity;
@@ -28,6 +30,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvent;
 import net.minecraftforge.common.ToolType;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -42,6 +46,20 @@ public final class RegistryHandler {
             DeferredRegister.create(ForgeRegistries.ITEMS, AetheriumMod.MOD_ID);
     public static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(ForgeRegistries.ENTITIES, AetheriumMod.MOD_ID);
+    public static final DeferredRegister<SoundEvent> SOUNDS =
+            DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, AetheriumMod.MOD_ID);
+
+    private static RegistryObject<SoundEvent> sound(String id) {
+        ResourceLocation location = new ResourceLocation(AetheriumMod.MOD_ID, id);
+        return SOUNDS.register(id, () -> new SoundEvent(location).setRegistryName(location));
+    }
+
+    public static final RegistryObject<SoundEvent> AETHERIUM_BLADE_HIT = sound("aetherium_blade_hit");
+    public static final RegistryObject<SoundEvent> ASTRAL_BLADE_ARC = sound("astral_blade_arc");
+    public static final RegistryObject<SoundEvent> RIFT_STALKER_POUNCE = sound("rift_stalker_pounce");
+    public static final RegistryObject<SoundEvent> LUMIVELO_CHIME = sound("lumivelo_chime");
+    public static final RegistryObject<SoundEvent> RIFT_GUARDIAN_SLAM = sound("rift_guardian_slam");
+    public static final RegistryObject<SoundEvent> ASTRAL_DEVOURER_PULSE = sound("astral_devourer_pulse");
 
     // Blocks
     public static final RegistryObject<Block> AETHERIUM_ORE = BLOCKS.register("aetherium_ore",
@@ -63,18 +81,18 @@ public final class RegistryHandler {
     // Custom creatures: small tracking/update values limit network and ticking overhead.
     public static final RegistryObject<EntityType<RiftStalkerEntity>> RIFT_STALKER = ENTITIES.register("rift_stalker",
             () -> EntityType.Builder.<RiftStalkerEntity>of(RiftStalkerEntity::new, EntityClassification.MONSTER)
-                    .sized(0.78F, 1.92F).clientTrackingRange(8).updateInterval(3).build("aetherium:rift_stalker"));
+                    .sized(0.88F, 2.05F).clientTrackingRange(8).updateInterval(3).build("aetherium:rift_stalker"));
     public static final RegistryObject<EntityType<LumiveloEntity>> LUMIVELO = ENTITIES.register("lumivelo",
             () -> EntityType.Builder.<LumiveloEntity>of(LumiveloEntity::new, EntityClassification.CREATURE)
-                    .sized(0.92F, 1.05F).clientTrackingRange(8).updateInterval(3).build("aetherium:lumivelo"));
+                    .sized(0.92F, 1.16F).clientTrackingRange(8).updateInterval(3).build("aetherium:lumivelo"));
 
     // Summoned bosses are not part of natural spawning. Their encounter items control when they appear.
     public static final RegistryObject<EntityType<RiftGuardianEntity>> RIFT_GUARDIAN = ENTITIES.register("rift_guardian",
             () -> EntityType.Builder.<RiftGuardianEntity>of(RiftGuardianEntity::new, EntityClassification.MONSTER)
-                    .sized(1.55F, 2.85F).clientTrackingRange(12).updateInterval(3).build("aetherium:rift_guardian"));
+                    .sized(1.70F, 3.10F).clientTrackingRange(12).updateInterval(3).build("aetherium:rift_guardian"));
     public static final RegistryObject<EntityType<AstralDevourerEntity>> ASTRAL_DEVOURER = ENTITIES.register("astral_devourer",
             () -> EntityType.Builder.<AstralDevourerEntity>of(AstralDevourerEntity::new, EntityClassification.MONSTER)
-                    .sized(2.15F, 2.65F).clientTrackingRange(12).updateInterval(3).build("aetherium:astral_devourer"));
+                    .sized(2.20F, 2.80F).clientTrackingRange(12).updateInterval(3).build("aetherium:astral_devourer"));
     public static final RegistryObject<EntityType<AetherBoltEntity>> AETHER_BOLT = ENTITIES.register("aether_bolt",
             () -> EntityType.Builder.<AetherBoltEntity>of(AetherBoltEntity::new, EntityClassification.MISC)
                     .sized(0.32F, 0.32F).clientTrackingRange(8).updateInterval(2).build("aetherium:aether_bolt"));
@@ -114,7 +132,7 @@ public final class RegistryHandler {
 
     // Advanced weapons and tools
     public static final RegistryObject<Item> AETHERIUM_SWORD = ITEMS.register("aetherium_sword",
-            () -> new SwordItem(AetheriumItemTier.INSTANCE, 5, -2.4F,
+            () -> new AetheriumSwordItem(AetheriumItemTier.INSTANCE, 5, -2.4F,
                     new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
     public static final RegistryObject<Item> AETHERIUM_PICKAXE = ITEMS.register("aetherium_pickaxe",
             () -> new PickaxeItem(AetheriumItemTier.INSTANCE, 2, -2.8F,
@@ -141,7 +159,7 @@ public final class RegistryHandler {
     public static final RegistryObject<Item> ASTRAL_INGOT = ITEMS.register("astral_ingot",
             () -> new Item(new Item.Properties().tab(ItemGroup.TAB_MATERIALS)));
     public static final RegistryObject<Item> ASTRAL_SWORD = ITEMS.register("astral_sword",
-            () -> new SwordItem(AstralItemTier.INSTANCE, 7, -2.4F,
+            () -> new AstralSwordItem(AstralItemTier.INSTANCE, 7, -2.4F,
                     new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
     public static final RegistryObject<Item> ASTRAL_PICKAXE = ITEMS.register("astral_pickaxe",
             () -> new PickaxeItem(AstralItemTier.INSTANCE, 2, -2.8F,
@@ -191,5 +209,6 @@ public final class RegistryHandler {
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         ENTITIES.register(modEventBus);
+        SOUNDS.register(modEventBus);
     }
 }

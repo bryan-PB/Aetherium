@@ -41,6 +41,7 @@ public class RiftGuardianEntity extends MonsterEntity {
             BossInfo.Color.PURPLE, BossInfo.Overlay.PROGRESS);
     private int attackCooldown = 55;
     private static final DataParameter<Integer> PHASE = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
+    private static final DataParameter<Integer> SLAM_TICKS = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
     private int phase = 1;
     private int minionCooldown = 0;
 
@@ -54,6 +55,11 @@ public class RiftGuardianEntity extends MonsterEntity {
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(PHASE, 1);
+        this.entityData.define(SLAM_TICKS, 0);
+    }
+
+    public int getSlamAnimationTicks() {
+        return this.entityData.get(SLAM_TICKS);
     }
 
     public static AttributeModifierMap.MutableAttribute createAttributes() {
@@ -80,9 +86,9 @@ public class RiftGuardianEntity extends MonsterEntity {
     @Override
     public void tick() {
         super.tick();
-        if (this.level.isClientSide) {
-            return;
-        }
+        if (this.level.isClientSide) return;
+        int slamTicks = this.entityData.get(SLAM_TICKS);
+        if (slamTicks > 0) this.entityData.set(SLAM_TICKS, slamTicks - 1);
 
         this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
         int nextPhase = this.getHealth() <= this.getMaxHealth() * 0.5F ? 2 : 1;
@@ -106,7 +112,7 @@ public class RiftGuardianEntity extends MonsterEntity {
         LivingEntity target = this.getTarget();
         if (target != null && target.isAlive() && this.attackCooldown <= 0
                 && this.distanceToSqr(target) <= 18.0D * 18.0D) {
-            this.groundSlam(phase == 1 ? 4.4D : 5.7D,
+            this.groundSlam(phase == 1 ? 3.35D : 4.2D,
                     phase == 1 ? 8.0F : 11.0F,
                     phase == 1 ? 0.8D : 1.15D);
             this.attackCooldown = phase == 1 ? 105 : 82;
@@ -118,11 +124,18 @@ public class RiftGuardianEntity extends MonsterEntity {
     }
 
     private void groundSlam(double radius, float damage, double knockback) {
-        AxisAlignedBB area = this.getBoundingBox().inflate(radius, 2.0D, radius);
+        this.entityData.set(SLAM_TICKS, 14);
+        AxisAlignedBB area = new AxisAlignedBB(
+                this.getX() - radius, this.getY() - 0.5D, this.getZ() - radius,
+                this.getX() + radius, this.getY() + this.getBbHeight() + 1.0D, this.getZ() + radius);
         List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, area, PlayerEntity::isAlive);
         for (PlayerEntity player : players) {
+            double dx = player.getX() - this.getX();
+            double dz = player.getZ() - this.getZ();
+            if (dx * dx + dz * dz > radius * radius
+                    || Math.abs(player.getY() - this.getY()) > this.getBbHeight() + 1.2D) continue;
             Vector3d push = player.position().subtract(this.position());
-            double length = Math.max(0.001D, push.length());
+            double length = Math.max(0.001D, Math.sqrt(dx * dx + dz * dz));
             player.hurt(DamageSource.mobAttack(this), damage);
             player.setDeltaMovement(player.getDeltaMovement().add(
                     push.x / length * knockback, 0.32D, push.z / length * knockback));
@@ -132,12 +145,18 @@ public class RiftGuardianEntity extends MonsterEntity {
 
         if (this.level instanceof ServerWorld) {
             ServerWorld server = (ServerWorld) this.level;
-            server.sendParticles(ParticleTypes.CRIT, this.getX(), this.getY() + 0.15D, this.getZ(),
-                    phase == 1 ? 16 : 24, radius * 0.42D, 0.08D, radius * 0.42D, 0.035D);
-            server.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.4D, this.getZ(),
-                    phase == 1 ? 5 : 9, radius * 0.25D, 0.18D, radius * 0.25D, 0.015D);
+            for (int i = 0; i < 28; i++) {
+                double angle = Math.PI * 2.0D * i / 28.0D;
+                server.sendParticles(ParticleTypes.END_ROD,
+                        this.getX() + Math.cos(angle) * radius, this.getY() + 0.12D,
+                        this.getZ() + Math.sin(angle) * radius, 1, 0.02D, 0.03D, 0.02D, 0.0D);
+            }
+            server.sendParticles(ParticleTypes.CRIT, this.getX(), this.getY() + 0.25D, this.getZ(),
+                    phase == 1 ? 20 : 32, radius * 0.36D, 0.10D, radius * 0.36D, 0.04D);
+            server.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.45D, this.getZ(),
+                    phase == 1 ? 8 : 14, radius * 0.22D, 0.20D, radius * 0.22D, 0.02D);
         }
-        this.playSound(SoundEvents.GENERIC_EXPLODE, 0.75F, phase == 1 ? 0.8F : 0.62F);
+        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.9F, phase == 1 ? 0.92F : 0.72F);
     }
 
     private void trySpawnMinion() {
@@ -175,6 +194,14 @@ public class RiftGuardianEntity extends MonsterEntity {
     public void die(DamageSource source) {
         super.die(source);
         this.bossInfo.removeAllPlayers();
+    }
+
+    @Override
+    public boolean doHurtTarget(net.minecraft.entity.Entity target) {
+        if (target == null || !this.getBoundingBox().inflate(0.38D, 0.28D, 0.38D).intersects(target.getBoundingBox())) {
+            return false;
+        }
+        return super.doHurtTarget(target);
     }
 
     @Override

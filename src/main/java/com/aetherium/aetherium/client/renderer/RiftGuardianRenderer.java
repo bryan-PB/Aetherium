@@ -12,7 +12,7 @@ public class RiftGuardianRenderer extends MobRenderer<RiftGuardianEntity, RiftGu
             "textures/entity/boss/rift_guardian.png");
 
     public RiftGuardianRenderer(EntityRendererManager manager) {
-        super(manager, new RiftGuardianModel(), 0.78F);
+        super(manager, new RiftGuardianModel(), 0.92F);
     }
 
     @Override

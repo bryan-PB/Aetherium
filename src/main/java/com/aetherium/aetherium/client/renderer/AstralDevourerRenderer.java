@@ -12,7 +12,7 @@ public class AstralDevourerRenderer extends MobRenderer<AstralDevourerEntity, As
             "textures/entity/boss/astral_devourer.png");
 
     public AstralDevourerRenderer(EntityRendererManager manager) {
-        super(manager, new AstralDevourerModel(), 0.82F);
+        super(manager, new AstralDevourerModel(), 1.02F);
     }
 
     @Override

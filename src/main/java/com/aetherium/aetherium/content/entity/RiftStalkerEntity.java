@@ -1,7 +1,12 @@
 package com.aetherium.aetherium.content.entity;
 
+import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.HurtByTargetGoal;
@@ -12,19 +17,34 @@ import net.minecraft.entity.ai.goal.WaterAvoidingRandomWalkingGoal;
 import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
 import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.particles.ParticleTypes;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.SoundEvents;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 
-/** A low-frequency ambusher that uses a telegraphed short pounce instead of costly path tricks. */
+/** Ambusher that telegraphs a quick rift pounce and attacks only inside its visible claw reach. */
 public class RiftStalkerEntity extends MonsterEntity {
+    private static final DataParameter<Integer> POUNCE_TICKS =
+            EntityDataManager.defineId(RiftStalkerEntity.class, DataSerializers.INT);
     private int pounceCooldown = 60;
 
-    public RiftStalkerEntity(net.minecraft.entity.EntityType<? extends RiftStalkerEntity> type, World world) {
+    public RiftStalkerEntity(EntityType<? extends RiftStalkerEntity> type, World world) {
         super(type, world);
         this.xpReward = 5;
+    }
+
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(POUNCE_TICKS, 0);
+    }
+
+    public int getPounceAnimationTicks() {
+        return this.entityData.get(POUNCE_TICKS);
     }
 
     public static AttributeModifierMap.MutableAttribute createAttributes() {
@@ -49,26 +69,30 @@ public class RiftStalkerEntity extends MonsterEntity {
     @Override
     public void tick() {
         super.tick();
-        if (this.level.isClientSide) {
-            return;
-        }
-        if (this.pounceCooldown > 0) {
-            --this.pounceCooldown;
-        }
+        if (this.level.isClientSide) return;
+
+        int animation = this.entityData.get(POUNCE_TICKS);
+        if (animation > 0) this.entityData.set(POUNCE_TICKS, animation - 1);
+        if (this.pounceCooldown > 0) --this.pounceCooldown;
 
         LivingEntity target = this.getTarget();
-        if (target == null || !target.isAlive() || this.pounceCooldown > 0) {
-            return;
-        }
+        if (target == null || !target.isAlive() || this.pounceCooldown > 0) return;
 
         double distance = this.distanceToSqr(target);
-        // Trigger only at medium range; avoids repeatedly applying velocity at point-blank range.
         if (distance >= 16.0D && distance <= 100.0D && this.onGround) {
             Vector3d direction = target.position().subtract(this.position()).normalize();
+            this.entityData.set(POUNCE_TICKS, 12);
             this.setDeltaMovement(this.getDeltaMovement().add(direction.x * 0.38D,
-                    0.22D, direction.z * 0.38D));
+                    0.27D, direction.z * 0.38D));
             this.hasImpulse = true;
-            this.playSound(SoundEvents.ENDERMAN_TELEPORT, 0.65F, 0.78F + this.random.nextFloat() * 0.18F);
+            if (this.level instanceof ServerWorld) {
+                ((ServerWorld)this.level).sendParticles(ParticleTypes.PORTAL,
+                        this.getX(), this.getY() + 0.5D, this.getZ(), 12, 0.25D, 0.35D, 0.25D, 0.08D);
+                ((ServerWorld)this.level).sendParticles(ParticleTypes.CRIT,
+                        this.getX(), this.getY() + 0.7D, this.getZ(), 6, 0.2D, 0.3D, 0.2D, 0.04D);
+            }
+            this.playSound(RegistryHandler.RIFT_STALKER_POUNCE.get(), 0.72F,
+                    0.88F + this.random.nextFloat() * 0.18F);
             this.pounceCooldown = 100;
         }
     }
@@ -90,6 +114,9 @@ public class RiftStalkerEntity extends MonsterEntity {
 
     @Override
     public boolean doHurtTarget(Entity target) {
+        if (target == null) return false;
+        AxisAlignedBB attackBox = this.getBoundingBox().inflate(0.24D, 0.18D, 0.24D);
+        if (!attackBox.intersects(target.getBoundingBox())) return false;
         boolean hit = super.doHurtTarget(target);
         if (hit && target instanceof LivingEntity && this.random.nextFloat() < 0.22F) {
             ((LivingEntity) target).addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 40, 0));

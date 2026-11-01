@@ -20,6 +20,7 @@ import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.SoundEvents;
+import net.minecraft.particles.ParticleTypes;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 
@@ -61,7 +62,12 @@ public class LumiveloEntity extends AnimalEntity {
                 for (MonsterEntity threat : threats) {
                     threat.addEffect(new EffectInstance(Effects.GLOWING, 60, 0, true, false));
                 }
-                this.playSound(SoundEvents.BEACON_ACTIVATE, 0.28F, 1.65F);
+                this.playSound(RegistryHandler.LUMIVELO_CHIME.get(), 0.42F, 1.05F);
+                if (this.level instanceof ServerWorld) {
+                    ((ServerWorld)this.level).sendParticles(ParticleTypes.END_ROD,
+                            this.getX(), this.getY() + 0.65D, this.getZ(), 10,
+                            0.45D, 0.30D, 0.45D, 0.025D);
+                }
             }
         }
     }
@@ -78,7 +84,7 @@ public class LumiveloEntity extends AnimalEntity {
 
     @Override
     protected net.minecraft.util.SoundEvent getAmbientSound() {
-        return SoundEvents.FOX_AMBIENT;
+        return RegistryHandler.LUMIVELO_CHIME.get();
     }
 
     @Override

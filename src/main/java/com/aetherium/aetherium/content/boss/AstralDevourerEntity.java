@@ -1,5 +1,6 @@
 package com.aetherium.aetherium.content.boss;
 
+import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraft.entity.EntityType;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
@@ -37,6 +38,7 @@ public class AstralDevourerEntity extends MonsterEntity {
             new TranslationTextComponent("entity.aetherium.astral_devourer"),
             BossInfo.Color.BLUE, BossInfo.Overlay.PROGRESS);
     private static final DataParameter<Integer> PHASE = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.INT);
+    private static final DataParameter<Integer> ATTACK_TICKS = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.INT);
     private int phase = 1;
     private int attackCooldown = 70;
 
@@ -50,6 +52,11 @@ public class AstralDevourerEntity extends MonsterEntity {
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(PHASE, 1);
+        this.entityData.define(ATTACK_TICKS, 0);
+    }
+
+    public int getAttackAnimationTicks() {
+        return this.entityData.get(ATTACK_TICKS);
     }
 
     public static AttributeModifierMap.MutableAttribute createAttributes() {
@@ -77,6 +84,8 @@ public class AstralDevourerEntity extends MonsterEntity {
     public void tick() {
         super.tick();
         if (this.level.isClientSide) return;
+        int animation = this.entityData.get(ATTACK_TICKS);
+        if (animation > 0) this.entityData.set(ATTACK_TICKS, animation - 1);
 
         this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
         int nextPhase = this.getHealth() <= this.getMaxHealth() * 0.33F ? 3
@@ -95,7 +104,7 @@ public class AstralDevourerEntity extends MonsterEntity {
                 ((ServerWorld) this.level).sendParticles(ParticleTypes.PORTAL,
                         this.getX(), this.getY() + 1.0D, this.getZ(), 26, 1.2D, 0.8D, 1.2D, 0.2D);
             }
-            this.playSound(SoundEvents.ENDER_DRAGON_GROWL, 0.95F, phase == 3 ? 0.72F : 0.9F);
+            this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, phase == 3 ? 0.72F : 0.9F);
         }
 
         if (this.attackCooldown > 0) this.attackCooldown--;
@@ -119,6 +128,7 @@ public class AstralDevourerEntity extends MonsterEntity {
 
     private void shootBolt(LivingEntity target, float inaccuracy, float velocity) {
         if (!(this.level instanceof ServerWorld)) return;
+        this.entityData.set(ATTACK_TICKS, 12);
         AetherBoltEntity bolt = new AetherBoltEntity(this.level, this);
         bolt.setPos(this.getX(), this.getY() + this.getEyeHeight() * 0.72D, this.getZ());
         double dx = target.getX() - this.getX();
@@ -135,44 +145,67 @@ public class AstralDevourerEntity extends MonsterEntity {
     }
 
     private void gravityWell() {
-        AxisAlignedBB area = this.getBoundingBox().inflate(8.0D, 4.0D, 8.0D);
+        this.entityData.set(ATTACK_TICKS, 16);
+        double radius = 6.0D;
+        AxisAlignedBB area = new AxisAlignedBB(this.getX() - radius, this.getY() - 3.0D,
+                this.getZ() - radius, this.getX() + radius,
+                this.getY() + this.getBbHeight() + 2.0D, this.getZ() + radius);
         List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, area, PlayerEntity::isAlive);
         for (PlayerEntity player : players) {
-            Vector3d pull = this.position().subtract(player.position());
-            double length = Math.max(0.001D, pull.length());
-            player.setDeltaMovement(player.getDeltaMovement().add(
-                    pull.x / length * 0.52D, 0.12D, pull.z / length * 0.52D));
+            double dx = this.getX() - player.getX();
+            double dz = this.getZ() - player.getZ();
+            if (dx * dx + dz * dz > radius * radius || Math.abs(player.getY() - this.getY()) > 5.0D) continue;
+            double length = Math.max(0.001D, Math.sqrt(dx * dx + dz * dz));
+            player.setDeltaMovement(player.getDeltaMovement().add(dx / length * 0.52D,
+                    0.12D, dz / length * 0.52D));
             player.hurtMarked = true;
             player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 45, 0, true, true));
         }
         if (this.level instanceof ServerWorld) {
-            ((ServerWorld) this.level).sendParticles(ParticleTypes.PORTAL,
-                    this.getX(), this.getY() + 0.8D, this.getZ(), 20, 2.2D, 0.7D, 2.2D, 0.12D);
+            ServerWorld server = (ServerWorld)this.level;
+            for (int i = 0; i < 32; i++) {
+                double angle = Math.PI * 2.0D * i / 32.0D;
+                server.sendParticles(ParticleTypes.PORTAL,
+                        this.getX() + Math.cos(angle) * radius, this.getY() + 0.15D,
+                        this.getZ() + Math.sin(angle) * radius, 1, 0.02D, 0.05D, 0.02D, 0.0D);
+            }
+            server.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.8D, this.getZ(),
+                    18, 1.8D, 0.7D, 1.8D, 0.10D);
         }
-        this.playSound(SoundEvents.ENDERMAN_TELEPORT, 0.85F, 0.55F);
+        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.88F, 0.78F);
     }
 
     private void cosmicNova() {
-        double radius = 6.5D;
-        AxisAlignedBB area = this.getBoundingBox().inflate(radius, 3.0D, radius);
+        this.entityData.set(ATTACK_TICKS, 16);
+        double radius = 5.0D;
+        AxisAlignedBB area = new AxisAlignedBB(this.getX() - radius, this.getY() - 2.5D,
+                this.getZ() - radius, this.getX() + radius,
+                this.getY() + this.getBbHeight() + 1.5D, this.getZ() + radius);
         List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, area, PlayerEntity::isAlive);
         for (PlayerEntity player : players) {
+            double dx = player.getX() - this.getX();
+            double dz = player.getZ() - this.getZ();
+            if (dx * dx + dz * dz > radius * radius || Math.abs(player.getY() - this.getY()) > 4.0D) continue;
             Vector3d away = player.position().subtract(this.position());
-            double length = Math.max(0.001D, away.length());
+            double length = Math.max(0.001D, Math.sqrt(dx * dx + dz * dz));
             player.hurt(DamageSource.mobAttack(this), 10.0F);
             player.setDeltaMovement(player.getDeltaMovement().add(
-                    away.x / length * 1.15D, 0.48D, away.z / length * 1.15D));
+                    dx / length * 1.15D, 0.48D, dz / length * 1.15D));
             player.hurtMarked = true;
             player.addEffect(new EffectInstance(Effects.BLINDNESS, 25, 0, true, true));
         }
         if (this.level instanceof ServerWorld) {
             ServerWorld server = (ServerWorld) this.level;
-            server.sendParticles(ParticleTypes.PORTAL, this.getX(), this.getY() + 0.7D, this.getZ(),
-                    42, 2.8D, 1.0D, 2.8D, 0.22D);
+            for (int i = 0; i < 40; i++) {
+                double angle = Math.PI * 2.0D * i / 40.0D;
+                server.sendParticles(ParticleTypes.PORTAL,
+                        this.getX() + Math.cos(angle) * radius, this.getY() + 0.16D,
+                        this.getZ() + Math.sin(angle) * radius, 1, 0.025D, 0.04D, 0.025D, 0.0D);
+            }
             server.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.5D, this.getZ(),
-                    12, 1.8D, 0.4D, 1.8D, 0.04D);
+                    24, 1.8D, 0.7D, 1.8D, 0.05D);
         }
-        this.playSound(SoundEvents.GENERIC_EXPLODE, 1.0F, 0.48F);
+        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, 0.55F);
     }
 
     public int getPhase() {
@@ -195,6 +228,14 @@ public class AstralDevourerEntity extends MonsterEntity {
     public void die(DamageSource source) {
         super.die(source);
         this.bossInfo.removeAllPlayers();
+    }
+
+    @Override
+    public boolean doHurtTarget(net.minecraft.entity.Entity target) {
+        if (target == null || !this.getBoundingBox().inflate(0.48D, 0.32D, 0.48D).intersects(target.getBoundingBox())) {
+            return false;
+        }
+        return super.doHurtTarget(target);
     }
 
     @Override
