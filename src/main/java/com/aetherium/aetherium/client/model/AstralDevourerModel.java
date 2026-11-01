@@ -59,8 +59,8 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
     }
 
     @Override
-    public void renderToBuffer(net.minecraft.util.math.vector.MatrixStack stack,
-                               net.minecraft.client.renderer.IVertexBuilder buffer,
+    public void renderToBuffer(com.mojang.blaze3d.matrix.MatrixStack stack,
+                               com.mojang.blaze3d.vertex.IVertexBuilder buffer,
                                int packedLight, int packedOverlay,
                                float red, float green, float blue, float alpha) {
         this.core.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);

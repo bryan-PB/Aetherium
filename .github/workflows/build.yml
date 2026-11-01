@@ -65,14 +65,6 @@ jobs:
 
           root = Path.cwd()
 
-          build = root / "build.gradle"
-          text = build.read_text(encoding="utf-8")
-          text = text.replace(
-              "mappings channel: 'official', version: '1.16.5'",
-              "mappings channel: 'snapshot', version: '20210309-1.16.5'"
-          )
-          build.write_text(text, encoding="utf-8")
-
           for path in (root / "src/main/java").rglob("*.java"):
               text = path.read_text(encoding="utf-8")
               text = text.replace(

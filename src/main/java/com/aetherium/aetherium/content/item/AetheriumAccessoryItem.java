@@ -11,16 +11,14 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.world.World;
 
-import java.lang.reflect.Method;
 
 /**
- * Accessory item with an optional Curios implementation.
+ * Accessory item with an optional Curios slot tag integration.
  * Without Curios, right-click activates a short defensive/utility pulse.
  */
 public class AetheriumAccessoryItem extends Item {
     public enum Type { AMULET, RING }
 
-    private static final Method SLOT_ENTITY_METHOD = findSlotEntityMethod();
     private final Type type;
 
     public AetheriumAccessoryItem(Type type, Properties properties) {
