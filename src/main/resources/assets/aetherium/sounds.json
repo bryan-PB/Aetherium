@@ -1,0 +1,56 @@
+{
+  "aetherium_blade_hit": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "aetherium:aetherium_blade_hit",
+        "volume": 0.82
+      }
+    ]
+  },
+  "astral_blade_arc": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "aetherium:astral_blade_arc",
+        "volume": 0.92
+      }
+    ]
+  },
+  "rift_stalker_pounce": {
+    "category": "hostile",
+    "sounds": [
+      {
+        "name": "aetherium:rift_stalker_pounce",
+        "volume": 0.78
+      }
+    ]
+  },
+  "lumivelo_chime": {
+    "category": "neutral",
+    "sounds": [
+      {
+        "name": "aetherium:lumivelo_chime",
+        "volume": 0.65
+      }
+    ]
+  },
+  "rift_guardian_slam": {
+    "category": "hostile",
+    "sounds": [
+      {
+        "name": "aetherium:rift_guardian_slam",
+        "volume": 0.95
+      }
+    ]
+  },
+  "astral_devourer_pulse": {
+    "category": "hostile",
+    "sounds": [
+      {
+        "name": "aetherium:astral_devourer_pulse",
+        "volume": 0.95
+      }
+    ]
+  }
+}
