@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -29,6 +29,7 @@ jobs:
           gradle-version: '7.6.4'
 
       - name: Reconstruir el código fuente
+        if: ${{ hashFiles('build.gradle') == '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -50,24 +51,71 @@ jobs:
           project_dir="$(dirname "$wrapper")"
           echo "AETHERIUM_PROJECT_DIR=$project_dir" >> "$GITHUB_ENV"
 
-      - name: Diagnosticar configuración y fuentes Java
+      - name: Usar fuentes del repositorio
+        if: ${{ hashFiles('build.gradle') != '' }}
+        shell: bash
+        run: |
+          echo "AETHERIUM_PROJECT_DIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+
+      - name: Publicar las fuentes como archivos normales
+        if: ${{ hashFiles('build.gradle') == '' }}
         shell: bash
         run: |
           set -euo pipefail
-          cd "$AETHERIUM_PROJECT_DIR"
-          echo "===== build.gradle ====="
-          sed -n '1,220p' build.gradle
-          echo "===== gradle.properties ====="
-          if [[ -f gradle.properties ]]; then cat gradle.properties; fi
-          for f in \
-            src/main/java/com/aetherium/aetherium/registry/RegistryHandler.java \
-            src/main/java/com/aetherium/aetherium/content/item/AetheriumAccessoryItem.java \
-            src/main/java/com/aetherium/aetherium/content/entity/RiftStalkerEntity.java \
-            src/main/java/com/aetherium/aetherium/content/boss/RiftGuardianEntity.java \
-            src/main/java/com/aetherium/aetherium/client/model/RiftStalkerModel.java; do
-            echo "===== $f ====="
-            sed -n '1,240p' "$f"
-          done
+
+          test -f "$AETHERIUM_PROJECT_DIR/build.gradle"
+          test -d "$AETHERIUM_PROJECT_DIR/src/main/java"
+
+          rsync -a --exclude README.md "$AETHERIUM_PROJECT_DIR/" "$GITHUB_WORKSPACE/"
+
+          if [[ -f gradle/wrapper/gradle-wrapper.properties ]]; then
+            sed -i 's#gradle-[0-9.]*-bin.zip#gradle-7.6.4-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+          fi
+
+          cat > README.md <<'EOF'
+# Aetherium
+
+Mod de contenido para **Minecraft 1.16.5** con **Minecraft Forge 36.2.42**.
+
+## Compilar
+
+Requiere JDK 8 de 64 bits.
+
+Windows:
+
+```bat
+gradlew.bat build
+```
+
+Linux/macOS:
+
+```bash
+chmod +x gradlew
+./gradlew build
+```
+
+El archivo JAR se genera en `build/libs/`.
+
+La compilación automática se ejecuta desde **GitHub Actions** en cada push a `main` y se puede iniciar manualmente desde la pestaña Actions.
+
+## Compatibilidad
+
+- Minecraft 1.16.5 / Forge 36.2.42.
+- Java 8.
+- Curios es una integración opcional; las funciones que no requieren Curios deben seguir disponibles sin instalarlo.
+
+## Estado
+
+El código se está adaptando y validando con la compilación automática. No considerar el JAR listo para jugar hasta que GitHub Actions termine correctamente y se hagan pruebas dentro del juego.
+EOF
+
+          git rm -f Aetherium-source.tar.xz.part001 Aetherium-source.tar.xz.part002 Aetherium-source.tar.xz.part003 Aetherium-source.tar.xz.part004 Aetherium-source.tar.xz.part005 Aetherium-source.tar.xz.part006 Aetherium-source.tar.xz.part007 Aetherium-source.tar.xz.part008 Aetherium-source.tar.xz.part009
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Expandir el código fuente del mod en el repositorio"
+          git push origin HEAD:main
 
       - name: Compilar mod con Gradle 7.6.4
         shell: bash
