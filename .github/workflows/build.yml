@@ -15,16 +15,18 @@ jobs:
 
     steps:
       - name: Descargar repositorio
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Configurar Java 8
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '8'
 
-      - name: Preparar Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Preparar Gradle 7.6.4
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '7.6.4'
 
       - name: Reconstruir el código fuente
         shell: bash
@@ -33,7 +35,7 @@ jobs:
 
           cat Aetherium-source.tar.xz.part{001..009} > "$RUNNER_TEMP/Aetherium-source.tar.xz"
 
-          # Comprueba que las nueve partes formen un archivo XZ/TAR válido.
+          # Verifica que las nueve partes formen un archivo XZ/TAR válido.
           tar -tJf "$RUNNER_TEMP/Aetherium-source.tar.xz" > /dev/null
 
           mkdir -p "$RUNNER_TEMP/aetherium-source"
@@ -46,18 +48,18 @@ jobs:
           fi
 
           project_dir="$(dirname "$wrapper")"
-          chmod +x "$wrapper"
           echo "AETHERIUM_PROJECT_DIR=$project_dir" >> "$GITHUB_ENV"
 
-      - name: Compilar mod
+      - name: Compilar mod con Gradle 7.6.4
         shell: bash
         run: |
           set -euo pipefail
           cd "$AETHERIUM_PROJECT_DIR"
-          ./gradlew build --no-daemon
+          gradle --version
+          gradle build --no-daemon
 
       - name: Publicar JAR
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Aetherium-jar
           path: ${{ env.AETHERIUM_PROJECT_DIR }}/build/libs/*.jar
