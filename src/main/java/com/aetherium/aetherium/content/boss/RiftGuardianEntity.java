@@ -41,6 +41,7 @@ public class RiftGuardianEntity extends MonsterEntity {
     private int attackCooldown = 55;
     private static final DataParameter<Integer> PHASE = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> SLAM_TICKS = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
+    private static final DataParameter<Integer> ATTACK_STATE = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
     private int phase = 1;
     private int minionCooldown = 0;
 
@@ -55,10 +56,19 @@ public class RiftGuardianEntity extends MonsterEntity {
         super.defineSynchedData();
         this.entityData.define(PHASE, 1);
         this.entityData.define(SLAM_TICKS, 0);
+        this.entityData.define(ATTACK_STATE, 0);
     }
 
     public int getSlamAnimationTicks() {
         return this.entityData.get(SLAM_TICKS);
+    }
+
+    public int getAttackAnimationTicks() {
+        return this.entityData.get(SLAM_TICKS);
+    }
+
+    public int getAttackState() {
+        return this.entityData.get(ATTACK_STATE);
     }
 
     public static AttributeModifierMap.MutableAttribute createAttributes() {
@@ -87,7 +97,10 @@ public class RiftGuardianEntity extends MonsterEntity {
         super.tick();
         if (this.level.isClientSide) return;
         int slamTicks = this.entityData.get(SLAM_TICKS);
-        if (slamTicks > 0) this.entityData.set(SLAM_TICKS, slamTicks - 1);
+        if (slamTicks > 0) {
+            this.entityData.set(SLAM_TICKS, slamTicks - 1);
+            if (slamTicks == 1) this.entityData.set(ATTACK_STATE, 0);
+        }
 
         this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
         int nextPhase = this.getHealth() <= this.getMaxHealth() * 0.5F ? 2 : 1;
@@ -137,7 +150,8 @@ public class RiftGuardianEntity extends MonsterEntity {
 
     /** Three visible rift bolts force players to dodge when they try to kite phase II. */
     private void fireRiftVolley(LivingEntity target) {
-        this.entityData.set(SLAM_TICKS, 16);
+        this.entityData.set(ATTACK_STATE, 2);
+        this.entityData.set(SLAM_TICKS, 22);
         if (!(this.level instanceof ServerWorld)) return;
         for (int i = -2; i <= 2; i++) {
             AetherBoltEntity bolt = new AetherBoltEntity(this.level, this);
@@ -150,12 +164,17 @@ public class RiftGuardianEntity extends MonsterEntity {
         }
         ServerWorld server = (ServerWorld) this.level;
         server.sendParticles(ParticleTypes.END_ROD,
-                this.getX(), this.getY() + 1.2D, this.getZ(), 18, 0.65D, 0.55D, 0.65D, 0.08D);
+                this.getX(), this.getY() + 1.2D, this.getZ(), 24, 0.75D, 0.65D, 0.75D, 0.10D);
+        server.sendParticles(ParticleTypes.PORTAL,
+                this.getX() - 0.85D, this.getY() + 1.7D, this.getZ() - 0.35D, 8, 0.12D, 0.12D, 0.12D, 0.01D);
+        server.sendParticles(ParticleTypes.PORTAL,
+                this.getX() + 0.85D, this.getY() + 1.7D, this.getZ() - 0.35D, 8, 0.12D, 0.12D, 0.12D, 0.01D);
         this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.9F, 0.65F);
     }
 
     private void groundSlam(double radius, float damage, double knockback) {
-        this.entityData.set(SLAM_TICKS, 16);
+        this.entityData.set(ATTACK_STATE, 1);
+        this.entityData.set(SLAM_TICKS, 24);
         AxisAlignedBB area = new AxisAlignedBB(
                 this.getX() - radius, this.getY() - 0.5D, this.getZ() - radius,
                 this.getX() + radius, this.getY() + this.getBbHeight() + 1.0D, this.getZ() + radius);
