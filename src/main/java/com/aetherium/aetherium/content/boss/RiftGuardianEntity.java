@@ -20,7 +20,6 @@ import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.Hand;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.vector.Vector3d;
@@ -34,7 +33,7 @@ import net.minecraft.potion.Effects;
 
 import java.util.List;
 
-/** Two-phase arena boss: telegraphed shockwaves, then heavier slams and one optional minion. */
+/** Two-phase arena boss: shockwave melee in phase I, ranged volleys and brutal slams in phase II. */
 public class RiftGuardianEntity extends MonsterEntity {
     private final ServerBossInfo bossInfo = new ServerBossInfo(
             new TranslationTextComponent("entity.aetherium.rift_guardian"),
@@ -97,34 +96,66 @@ public class RiftGuardianEntity extends MonsterEntity {
             this.entityData.set(PHASE, nextPhase);
             this.bossInfo.setColor(BossInfo.Color.RED);
             this.bossInfo.setName(new TranslationTextComponent("entity.aetherium.rift_guardian.phase_two"));
+            this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.32D);
+            this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(11.0D);
+            this.attackCooldown = 24;
             if (this.level instanceof ServerWorld) {
-                ((ServerWorld) this.level).sendParticles(ParticleTypes.EXPLOSION,
-                        this.getX(), this.getY() + 1.0D, this.getZ(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
-                ((ServerWorld) this.level).sendParticles(ParticleTypes.CRIT,
-                        this.getX(), this.getY() + 1.0D, this.getZ(), 18, 1.0D, 0.5D, 1.0D, 0.08D);
+                ServerWorld server = (ServerWorld) this.level;
+                server.sendParticles(ParticleTypes.EXPLOSION,
+                        this.getX(), this.getY() + 1.0D, this.getZ(), 2, 0.35D, 0.35D, 0.35D, 0.0D);
+                server.sendParticles(ParticleTypes.CRIT,
+                        this.getX(), this.getY() + 1.0D, this.getZ(), 34, 1.4D, 0.9D, 1.4D, 0.16D);
+                server.sendParticles(ParticleTypes.FLAME,
+                        this.getX(), this.getY() + 1.0D, this.getZ(), 22, 1.0D, 0.6D, 1.0D, 0.035D);
             }
-            this.playSound(SoundEvents.RAVAGER_ROAR, 0.9F, 0.7F);
+            this.playSound(SoundEvents.RAVAGER_ROAR, 1.0F, 0.62F);
         }
 
         if (this.attackCooldown > 0) this.attackCooldown--;
         if (this.minionCooldown > 0) this.minionCooldown--;
 
         LivingEntity target = this.getTarget();
-        if (target != null && target.isAlive() && this.attackCooldown <= 0
-                && this.distanceToSqr(target) <= 18.0D * 18.0D) {
-            this.groundSlam(phase == 1 ? 3.35D : 4.2D,
+        if (target == null || !target.isAlive() || this.attackCooldown > 0
+                || this.distanceToSqr(target) > 20.0D * 20.0D) return;
+
+        double distanceSq = this.distanceToSqr(target);
+        if (phase == 2 && distanceSq > 8.0D * 8.0D) {
+            this.fireRiftVolley(target);
+            this.attackCooldown = 92;
+        } else {
+            this.groundSlam(phase == 1 ? 3.35D : 4.45D,
                     phase == 1 ? 8.0F : 11.0F,
-                    phase == 1 ? 0.8D : 1.15D);
-            this.attackCooldown = phase == 1 ? 105 : 82;
-            if (phase == 2 && this.minionCooldown <= 0 && this.random.nextInt(3) == 0) {
-                this.trySpawnMinion();
-                this.minionCooldown = 240;
-            }
+                    phase == 1 ? 0.8D : 1.25D);
+            this.attackCooldown = phase == 1 ? 105 : 78;
+        }
+
+        if (phase == 2 && this.minionCooldown <= 0 && this.random.nextInt(3) == 0) {
+            this.trySpawnMinion();
+            this.minionCooldown = 240;
         }
     }
 
+    /** Three visible rift bolts force players to dodge when they try to kite phase II. */
+    private void fireRiftVolley(LivingEntity target) {
+        this.entityData.set(SLAM_TICKS, 16);
+        if (!(this.level instanceof ServerWorld)) return;
+        for (int i = -1; i <= 1; i++) {
+            AetherBoltEntity bolt = new AetherBoltEntity(this.level, this);
+            bolt.setPos(this.getX(), this.getY() + this.getBbHeight() * 0.72D, this.getZ());
+            double dx = target.getX() + i * 0.8D - this.getX();
+            double dy = target.getY(0.45D) - bolt.getY();
+            double dz = target.getZ() + i * 0.8D - this.getZ();
+            bolt.shoot(dx, dy, dz, 0.92F, 3.4F);
+            this.level.addFreshEntity(bolt);
+        }
+        ServerWorld server = (ServerWorld) this.level;
+        server.sendParticles(ParticleTypes.END_ROD,
+                this.getX(), this.getY() + 1.2D, this.getZ(), 18, 0.65D, 0.55D, 0.65D, 0.08D);
+        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.9F, 0.65F);
+    }
+
     private void groundSlam(double radius, float damage, double knockback) {
-        this.entityData.set(SLAM_TICKS, 14);
+        this.entityData.set(SLAM_TICKS, 16);
         AxisAlignedBB area = new AxisAlignedBB(
                 this.getX() - radius, this.getY() - 0.5D, this.getZ() - radius,
                 this.getX() + radius, this.getY() + this.getBbHeight() + 1.0D, this.getZ() + radius);
@@ -134,29 +165,28 @@ public class RiftGuardianEntity extends MonsterEntity {
             double dz = player.getZ() - this.getZ();
             if (dx * dx + dz * dz > radius * radius
                     || Math.abs(player.getY() - this.getY()) > this.getBbHeight() + 1.2D) continue;
-            Vector3d push = player.position().subtract(this.position());
             double length = Math.max(0.001D, Math.sqrt(dx * dx + dz * dz));
             player.hurt(DamageSource.mobAttack(this), damage);
             player.setDeltaMovement(player.getDeltaMovement().add(
-                    push.x / length * knockback, 0.32D, push.z / length * knockback));
+                    dx / length * knockback, 0.32D, dz / length * knockback));
             player.hurtMarked = true;
             if (phase == 2) player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 45, 0, true, true));
         }
 
         if (this.level instanceof ServerWorld) {
             ServerWorld server = (ServerWorld) this.level;
-            for (int i = 0; i < 28; i++) {
-                double angle = Math.PI * 2.0D * i / 28.0D;
+            for (int i = 0; i < 36; i++) {
+                double angle = Math.PI * 2.0D * i / 36.0D;
                 server.sendParticles(ParticleTypes.END_ROD,
                         this.getX() + Math.cos(angle) * radius, this.getY() + 0.12D,
                         this.getZ() + Math.sin(angle) * radius, 1, 0.02D, 0.03D, 0.02D, 0.0D);
             }
             server.sendParticles(ParticleTypes.CRIT, this.getX(), this.getY() + 0.25D, this.getZ(),
-                    phase == 1 ? 20 : 32, radius * 0.36D, 0.10D, radius * 0.36D, 0.04D);
-            server.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.45D, this.getZ(),
-                    phase == 1 ? 8 : 14, radius * 0.22D, 0.20D, radius * 0.22D, 0.02D);
+                    phase == 1 ? 24 : 38, radius * 0.38D, 0.10D, radius * 0.38D, 0.05D);
+            server.sendParticles(ParticleTypes.FLAME, this.getX(), this.getY() + 0.25D, this.getZ(),
+                    phase == 1 ? 5 : 18, radius * 0.24D, 0.10D, radius * 0.24D, 0.025D);
         }
-        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.9F, phase == 1 ? 0.92F : 0.72F);
+        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.95F, phase == 1 ? 0.92F : 0.68F);
     }
 
     private void trySpawnMinion() {

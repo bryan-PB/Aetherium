@@ -9,6 +9,8 @@ import com.aetherium.aetherium.content.item.AstralItemTier;
 import com.aetherium.aetherium.content.item.AetheriumMagnetItem;
 import com.aetherium.aetherium.content.item.AetheriumFlareItem;
 import com.aetherium.aetherium.content.item.AetheriumSwordItem;
+import com.aetherium.aetherium.content.item.AetheriumAxeItem;
+import com.aetherium.aetherium.content.item.AstralAxeItem;
 import com.aetherium.aetherium.content.item.AstralSwordItem;
 import com.aetherium.aetherium.content.entity.RiftStalkerEntity;
 import com.aetherium.aetherium.content.entity.LumiveloEntity;
@@ -138,7 +140,7 @@ public final class RegistryHandler {
             () -> new PickaxeItem(AetheriumItemTier.INSTANCE, 2, -2.8F,
                     new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
     public static final RegistryObject<Item> AETHERIUM_AXE = ITEMS.register("aetherium_axe",
-            () -> new AxeItem(AetheriumItemTier.INSTANCE, 5.0F, -3.0F,
+            () -> new AetheriumAxeItem(AetheriumItemTier.INSTANCE, 5.0F, -3.0F,
                     new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
 
     // Full armor set
@@ -165,7 +167,7 @@ public final class RegistryHandler {
             () -> new PickaxeItem(AstralItemTier.INSTANCE, 2, -2.8F,
                     new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
     public static final RegistryObject<Item> ASTRAL_AXE = ITEMS.register("astral_axe",
-            () -> new AxeItem(AstralItemTier.INSTANCE, 7.0F, -3.0F,
+            () -> new AstralAxeItem(AstralItemTier.INSTANCE, 7.0F, -3.0F,
                     new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
     public static final RegistryObject<Item> ASTRAL_HELMET = ITEMS.register("astral_helmet",
             () -> new ArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.HEAD,
