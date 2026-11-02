@@ -128,11 +128,11 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         rightHand.addBox(-1.8F, 0.0F, -2.0F, 3.6F, 3.0F, 4.0F);
         rightForearm.addChild(rightHand);
 
-        leftWing = new ModelRenderer(this, 48, 0);
+        leftWing = new ModelRenderer(this, 42, 0);
         leftWing.setPos(6.0F, -8.0F, 3.5F);
         leftWing.addBox(0.0F, -1.0F, -1.0F, 8.0F, 12.0F, 2.0F);
         body.addChild(leftWing);
-        rightWing = new ModelRenderer(this, 48, 14);
+        rightWing = new ModelRenderer(this, 42, 14);
         rightWing.setPos(-6.0F, -8.0F, 3.5F);
         rightWing.addBox(-8.0F, -1.0F, -1.0F, 8.0F, 12.0F, 2.0F);
         body.addChild(rightWing);

@@ -27,7 +27,7 @@ public final class AetheriumClientEvents {
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.RIFT_GUARDIAN.get(), RiftGuardianRenderer::new);
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.ASTRAL_DEVOURER.get(), AstralDevourerRenderer::new);
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.AETHER_BOLT.get(),
-                    manager -> new SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer(), 0.45F, true));
+                    manager -> new SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer(), 0.95F, true));
         });
     }
 }
