@@ -43,7 +43,7 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         eyeRight.addBox(-1.1F, -0.55F, -0.2F, 2.2F, 1.1F, 0.4F);
         head.addChild(eyeRight);
 
-        crown = new ModelRenderer(this, 40, 22);
+        crown = new ModelRenderer(this, 28, 32);
         crown.setPos(0.0F, -5.5F, 0.0F);
         crown.addBox(-4.8F, -2.0F, -4.0F, 9.6F, 3.0F, 8.0F);
         head.addChild(crown);
@@ -121,14 +121,14 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         rightForearm.addBox(-2.0F, -0.4F, -2.0F, 4.0F, 8.0F, 4.0F);
         rightArm.addChild(rightForearm);
 
-        leftHand = new ModelRenderer(this, 52, 16);
+        leftHand = new ModelRenderer(this, 48, 16);
         leftHand.setPos(0.0F, 7.0F, -0.2F);
         leftHand.addBox(-2.0F, -0.5F, -2.0F, 4.0F, 4.0F, 4.0F);
-        leftArm.addChild(leftHand);
-        rightHand = new ModelRenderer(this, 52, 28);
+        leftForearm.addChild(leftHand);
+        rightHand = new ModelRenderer(this, 48, 28);
         rightHand.setPos(0.0F, 7.0F, -0.2F);
         rightHand.addBox(-2.0F, -0.5F, -2.0F, 4.0F, 4.0F, 4.0F);
-        rightArm.addChild(rightHand);
+        rightForearm.addChild(rightHand);
 
         leftLeg = new ModelRenderer(this, 40, 40);
         leftLeg.setPos(3.8F, 8.0F, 0.0F);
@@ -146,11 +146,11 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         rightShin.addBox(-2.0F, 0.0F, -2.0F, 4.0F, 8.0F, 4.0F);
         rightLeg.addChild(rightShin);
 
-        leftFoot = new ModelRenderer(this, 52, 40);
+        leftFoot = new ModelRenderer(this, 44, 40);
         leftFoot.setPos(0.0F, 7.0F, -0.5F);
         leftFoot.addBox(-2.4F, 0.0F, -3.0F, 4.8F, 2.0F, 5.0F);
         leftShin.addChild(leftFoot);
-        rightFoot = new ModelRenderer(this, 52, 48);
+        rightFoot = new ModelRenderer(this, 44, 48);
         rightFoot.setPos(0.0F, 7.0F, -0.5F);
         rightFoot.addBox(-2.4F, 0.0F, -3.0F, 4.8F, 2.0F, 5.0F);
         rightShin.addChild(rightFoot);
