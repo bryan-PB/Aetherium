@@ -51,7 +51,7 @@ public class AstralAxeItem extends AxeItem {
                         SoundCategory.PLAYERS, 0.85F, 0.72F);
             }
             if (target.level instanceof ServerWorld) {
-                ((ServerWorld) target.level).sendParticles(ParticleTypes.CRIT_MAGIC,
+                ((ServerWorld) target.level).sendParticles(ParticleTypes.CRIT,
                         target.getX(), target.getY(0.5D), target.getZ(), 10, 0.3D, 0.3D, 0.3D, 0.05D);
             }
         }

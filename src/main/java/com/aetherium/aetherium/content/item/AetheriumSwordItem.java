@@ -48,7 +48,7 @@ public class AetheriumSwordItem extends SwordItem {
                             sx + (ex - sx) * t + zig, sy + (ey - sy) * t,
                             sz + (ez - sz) * t - zig, 1, 0.0D, 0.0D, 0.0D, 0.0D);
                 }
-                server.sendParticles(ParticleTypes.CRIT_MAGIC, ex, ey, ez, 9, 0.25D, 0.3D, 0.25D, 0.08D);
+                server.sendParticles(ParticleTypes.CRIT, ex, ey, ez, 9, 0.25D, 0.3D, 0.25D, 0.08D);
             }
         }
 

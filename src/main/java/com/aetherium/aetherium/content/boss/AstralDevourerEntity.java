@@ -111,7 +111,7 @@ public class AstralDevourerEntity extends MonsterEntity {
                         this.getX(), this.getY() + 1.0D, this.getZ(), 44, 1.45D, 1.0D, 1.45D, 0.25D);
                 server.sendParticles(ParticleTypes.END_ROD,
                         this.getX(), this.getY() + 1.0D, this.getZ(), 24, 1.0D, 0.9D, 1.0D, 0.09D);
-                if (phase == 3) server.sendParticles(ParticleTypes.CRIT_MAGIC,
+                if (phase == 3) server.sendParticles(ParticleTypes.CRIT,
                         this.getX(), this.getY() + 1.0D, this.getZ(), 36, 1.5D, 1.0D, 1.5D, 0.2D);
             }
             this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, phase == 3 ? 0.62F : 0.82F);
@@ -224,7 +224,7 @@ public class AstralDevourerEntity extends MonsterEntity {
             }
             server.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.5D, this.getZ(),
                     34, 2.0D, 0.9D, 2.0D, 0.08D);
-            server.sendParticles(ParticleTypes.CRIT_MAGIC, this.getX(), this.getY() + 0.5D, this.getZ(),
+            server.sendParticles(ParticleTypes.CRIT, this.getX(), this.getY() + 0.5D, this.getZ(),
                     20, 1.4D, 0.8D, 1.4D, 0.12D);
         }
         this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, 0.48F);

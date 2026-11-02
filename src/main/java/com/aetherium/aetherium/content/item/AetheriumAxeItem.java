@@ -30,7 +30,7 @@ public class AetheriumAxeItem extends AxeItem {
                     ServerWorld server = (ServerWorld) target.level;
                     server.sendParticles(ParticleTypes.END_ROD, target.getX(), target.getY(0.5D), target.getZ(),
                             16, 0.38D, 0.42D, 0.38D, 0.055D);
-                    server.sendParticles(ParticleTypes.CRIT_MAGIC, target.getX(), target.getY(0.5D), target.getZ(),
+                    server.sendParticles(ParticleTypes.CRIT, target.getX(), target.getY(0.5D), target.getZ(),
                             8, 0.25D, 0.35D, 0.25D, 0.07D);
                 }
             }

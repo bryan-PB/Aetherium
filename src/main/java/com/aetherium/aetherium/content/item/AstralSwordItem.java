@@ -65,6 +65,6 @@ public class AstralSwordItem extends SwordItem {
                     sx + (ex - sx) * t + zig, sy + (ey - sy) * t,
                     sz + (ez - sz) * t - zig, 1, 0.012D, 0.012D, 0.012D, 0.0D);
         }
-        world.sendParticles(ParticleTypes.CRIT_MAGIC, ex, ey, ez, 10, 0.32D, 0.36D, 0.32D, 0.05D);
+        world.sendParticles(ParticleTypes.CRIT, ex, ey, ez, 10, 0.32D, 0.36D, 0.32D, 0.05D);
     }
 }
