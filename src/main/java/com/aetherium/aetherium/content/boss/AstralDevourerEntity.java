@@ -10,10 +10,8 @@ import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.HurtByTargetGoal;
 import net.minecraft.entity.ai.goal.LookAtGoal;
-import net.minecraft.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
 import net.minecraft.entity.ai.goal.LookRandomlyGoal;
-import net.minecraft.entity.ai.goal.WaterAvoidingRandomWalkingGoal;
 import net.minecraft.world.BossInfo;
 import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -46,6 +44,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         super(type, world);
         this.xpReward = 100;
         this.setPersistenceRequired();
+        this.setNoGravity(true);
     }
 
     @Override
@@ -72,10 +71,9 @@ public class AstralDevourerEntity extends MonsterEntity {
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 0.95D, true));
-        this.goalSelector.addGoal(2, new WaterAvoidingRandomWalkingGoal(this, 0.45D));
-        this.goalSelector.addGoal(3, new LookAtGoal(this, PlayerEntity.class, 20.0F));
-        this.goalSelector.addGoal(4, new LookRandomlyGoal(this));
+        // Flight and combat spacing are controlled in tick(); ground navigation would pull it underground.
+        this.goalSelector.addGoal(1, new LookAtGoal(this, PlayerEntity.class, 28.0F));
+        this.goalSelector.addGoal(2, new LookRandomlyGoal(this));
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, true));
     }
@@ -83,7 +81,12 @@ public class AstralDevourerEntity extends MonsterEntity {
     @Override
     public void tick() {
         super.tick();
+        this.setNoGravity(true);
         if (this.level.isClientSide) return;
+
+        LivingEntity target = this.getTarget();
+        this.updateHoverMovement(target);
+
         int animation = this.entityData.get(ATTACK_TICKS);
         if (animation > 0) this.entityData.set(ATTACK_TICKS, animation - 1);
 
@@ -118,33 +121,76 @@ public class AstralDevourerEntity extends MonsterEntity {
         }
 
         if (this.attackCooldown > 0) this.attackCooldown--;
-        LivingEntity target = this.getTarget();
         if (target == null || !target.isAlive() || this.distanceToSqr(target) > 28.0D * 28.0D
                 || this.attackCooldown > 0) return;
 
         double distanceSq = this.distanceToSqr(target);
         if (phase == 1) {
-            this.shootBolt(target, 0.0F, 1.0F);
-            this.attackCooldown = 82;
-        } else if (phase == 2) {
-            if (distanceSq > 10.0D * 10.0D) {
-                this.shootBolt(target, 0.45F, 0.96F);
-                this.attackCooldown = 76;
+            // The first phase teaches players to dodge a precise lance, then punishes close pursuit.
+            if (distanceSq > 6.5D * 6.5D) {
+                this.shootBolt(target, 0.0F, 1.05F);
+                this.attackCooldown = 78;
             } else {
                 this.gravityWell();
-                this.shootBolt(target, 0.8F, 0.9F);
-                this.attackCooldown = 96;
+                this.attackCooldown = 102;
             }
-        } else {
-            if (distanceSq > 8.5D * 8.5D) {
-                this.shootBolt(target, 1.1F, 1.0F);
+        } else if (phase == 2) {
+            // The awakened phase mixes double volleys with a pull-in when players get near.
+            if (distanceSq > 9.0D * 9.0D) {
+                this.shootBolt(target, 0.35F, 1.0F);
                 this.attackCooldown = 72;
             } else {
+                this.gravityWell();
+                this.shootBolt(target, 0.75F, 0.94F);
+                this.attackCooldown = 92;
+            }
+        } else {
+            // Final phase closes distance quickly and explodes if the player stays underneath it.
+            if (distanceSq > 7.5D * 7.5D) {
+                this.shootBolt(target, 0.9F, 1.08F);
+                this.attackCooldown = 66;
+            } else {
                 this.cosmicNova();
-                this.shootBolt(target, 0.9F, 0.95F);
-                this.attackCooldown = 84;
+                this.shootBolt(target, 0.85F, 0.98F);
+                this.attackCooldown = 82;
             }
         }
+    }
+
+    /** Keeps the Devourer airborne and circling its target instead of pathfinding on the ground. */
+    private void updateHoverMovement(LivingEntity target) {
+        this.getNavigation().stop();
+        Vector3d velocity = this.getDeltaMovement();
+        double desiredX = 0.0D;
+        double desiredZ = 0.0D;
+        double desiredY = Math.sin(this.tickCount * 0.075D) * 0.012D;
+
+        if (target != null && target.isAlive()) {
+            double dx = target.getX() - this.getX();
+            double dz = target.getZ() - this.getZ();
+            double horizontalDistance = Math.max(0.001D, Math.sqrt(dx * dx + dz * dz));
+            double hoverY = target.getY() + 0.45D;
+            desiredY = Math.max(-0.14D, Math.min(0.14D, (hoverY - this.getY()) * 0.075D));
+
+            double preferredDistance = this.phase == 1 ? 10.5D : (this.phase == 2 ? 8.5D : 7.0D);
+            if (horizontalDistance > preferredDistance + 1.0D) {
+                desiredX = dx / horizontalDistance * 0.105D;
+                desiredZ = dz / horizontalDistance * 0.105D;
+            } else if (horizontalDistance < preferredDistance - 1.0D) {
+                desiredX = -dx / horizontalDistance * 0.075D;
+                desiredZ = -dz / horizontalDistance * 0.075D;
+            } else {
+                // A slow orbit makes the ranged phases harder to kite without teleporting.
+                desiredX = -dz / horizontalDistance * 0.045D;
+                desiredZ = dx / horizontalDistance * 0.045D;
+            }
+            this.getLookControl().setLookAt(target, 30.0F, 30.0F);
+        }
+
+        this.setDeltaMovement(
+                velocity.x * 0.70D + desiredX * 0.30D,
+                velocity.y * 0.66D + desiredY * 0.34D,
+                velocity.z * 0.70D + desiredZ * 0.30D);
     }
 
     /** Phase I fires one precise bolt; later phases fan out two or three bolts. */

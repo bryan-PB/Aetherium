@@ -16,7 +16,7 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         this.texWidth = 64;
         this.texHeight = 64;
         core = new ModelRenderer(this, 0, 0);
-        core.setPos(0.0F, 19.0F, 0.0F);
+        core.setPos(0.0F, 9.0F, 0.0F);
         core.addBox(-12.0F, -11.0F, -8.0F, 24.0F, 22.0F, 16.0F);
 
         mantle = new ModelRenderer(this, 0, 40);
@@ -82,13 +82,13 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
             float x = (i % 2 == 0 ? -1.0F : 1.0F) * (i < 2 ? 13.0F : 10.0F);
             float z = i < 2 ? -3.0F : (i < 4 ? 4.0F : 0.0F);
             tendrils[i] = new ModelRenderer(this, 0, 56);
-            tendrils[i].setPos(x, 8.0F + (i % 3) * 2.0F, z);
+            tendrils[i].setPos(x, -2.0F + (i % 3) * 2.0F, z);
             tendrils[i].addBox(-2.5F, 0.0F, -2.5F, 5.0F, 14.0F + (i % 2) * 3.0F, 5.0F);
         }
 
         for (int i = 0; i < shards.length; i++) {
             shards[i] = new ModelRenderer(this, 40, 24);
-            shards[i].setPos((i - 1.5F) * 7.0F, 16.0F + (i % 2) * 5.0F, 0.0F);
+            shards[i].setPos((i - 1.5F) * 7.0F, 6.0F + (i % 2) * 5.0F, 0.0F);
             shards[i].addBox(-1.8F, -4.5F, -1.8F, 3.6F, 9.0F, 3.6F);
         }
     }
@@ -102,7 +102,7 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         float awakened = phase >= 2 ? 1.0F : 0.0F;
         float ascended = phase >= 3 ? 1.0F : 0.0F;
 
-        core.y = 19.0F + idle * 1.15F - attack * 0.55F;
+        core.y = 9.0F + idle * 1.55F - attack * 0.75F;
         core.yRot = netHeadYaw * ((float)Math.PI / 180.0F) * 0.14F
                 + MathHelper.sin(ageInTicks * 0.035F) * (0.08F + ascended * 0.12F);
         core.xRot = headPitch * ((float)Math.PI / 180.0F) * 0.10F;

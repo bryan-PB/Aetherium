@@ -139,13 +139,13 @@ public class RiftGuardianEntity extends MonsterEntity {
     private void fireRiftVolley(LivingEntity target) {
         this.entityData.set(SLAM_TICKS, 16);
         if (!(this.level instanceof ServerWorld)) return;
-        for (int i = -1; i <= 1; i++) {
+        for (int i = -2; i <= 2; i++) {
             AetherBoltEntity bolt = new AetherBoltEntity(this.level, this);
             bolt.setPos(this.getX(), this.getY() + this.getBbHeight() * 0.72D, this.getZ());
-            double dx = target.getX() + i * 0.8D - this.getX();
+            double dx = target.getX() + i * 1.05D - this.getX();
             double dy = target.getY(0.45D) - bolt.getY();
-            double dz = target.getZ() + i * 0.8D - this.getZ();
-            bolt.shoot(dx, dy, dz, 0.92F, 3.4F);
+            double dz = target.getZ() + i * 0.72D - this.getZ();
+            bolt.shoot(dx, dy, dz, 0.96F, 2.4F);
             this.level.addFreshEntity(bolt);
         }
         ServerWorld server = (ServerWorld) this.level;
