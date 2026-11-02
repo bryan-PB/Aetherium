@@ -62,12 +62,41 @@ public class AetherBoltEntity extends ProjectileItemEntity {
     @Override
     public void tick() {
         super.tick();
-        if (this.level.isClientSide && this.tickCount % 3 == 0) {
-            this.level.addParticle(ParticleTypes.END_ROD, this.getX(), this.getY(), this.getZ(),
-                    0.0D, 0.015D, 0.0D);
+        if (this.level.isClientSide) {
+            // A bright three-layer trail makes the moving bolt readable even at a distance.
+            for (int i = 0; i < 3; i++) {
+                double spreadX = (this.random.nextDouble() - 0.5D) * 0.09D;
+                double spreadY = (this.random.nextDouble() - 0.5D) * 0.09D;
+                double spreadZ = (this.random.nextDouble() - 0.5D) * 0.09D;
+                this.level.addParticle(ParticleTypes.END_ROD,
+                        this.getX() + spreadX, this.getY() + spreadY, this.getZ() + spreadZ,
+                        -this.getDeltaMovement().x * 0.045D,
+                        -this.getDeltaMovement().y * 0.045D,
+                        -this.getDeltaMovement().z * 0.045D);
+            }
+            if (this.tickCount % 2 == 0) {
+                this.level.addParticle(ParticleTypes.PORTAL, this.getX(), this.getY(), this.getZ(),
+                        0.0D, 0.015D, 0.0D);
+                this.level.addParticle(ParticleTypes.CRIT, this.getX(), this.getY(), this.getZ(),
+                        0.0D, 0.0D, 0.0D);
+            }
         }
         if (!this.level.isClientSide && this.tickCount > 80) {
             this.remove();
+        }
+    }
+
+    @Override
+    public void handleEntityEvent(byte id) {
+        super.handleEntityEvent(id);
+        if (id == 3 && this.level.isClientSide) {
+            for (int i = 0; i < 16; i++) {
+                double dx = (this.random.nextDouble() - 0.5D) * 0.32D;
+                double dy = (this.random.nextDouble() - 0.5D) * 0.32D;
+                double dz = (this.random.nextDouble() - 0.5D) * 0.32D;
+                this.level.addParticle(ParticleTypes.END_ROD, this.getX(), this.getY(), this.getZ(),
+                        dx, dy, dz);
+            }
         }
     }
 }
