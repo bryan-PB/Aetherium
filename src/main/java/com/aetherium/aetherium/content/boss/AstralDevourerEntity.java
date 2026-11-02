@@ -37,8 +37,15 @@ public class AstralDevourerEntity extends MonsterEntity {
             BossInfo.Color.BLUE, BossInfo.Overlay.PROGRESS);
     private static final DataParameter<Integer> PHASE = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> ATTACK_TICKS = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.INT);
+    private static final DataParameter<Integer> ATTACK_STATE = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.INT);
     private int phase = 1;
     private int attackCooldown = 70;
+    private int attackCycle = 0;
+    private int beamChargeTicks = 0;
+    private int beamTicks = 0;
+    private double beamEndX;
+    private double beamEndY;
+    private double beamEndZ;
 
     public AstralDevourerEntity(EntityType<? extends AstralDevourerEntity> type, World world) {
         super(type, world);
@@ -52,10 +59,15 @@ public class AstralDevourerEntity extends MonsterEntity {
         super.defineSynchedData();
         this.entityData.define(PHASE, 1);
         this.entityData.define(ATTACK_TICKS, 0);
+        this.entityData.define(ATTACK_STATE, 0);
     }
 
     public int getAttackAnimationTicks() {
         return this.entityData.get(ATTACK_TICKS);
+    }
+
+    public int getAttackState() {
+        return this.entityData.get(ATTACK_STATE);
     }
 
     public static AttributeModifierMap.MutableAttribute createAttributes() {
@@ -87,9 +99,6 @@ public class AstralDevourerEntity extends MonsterEntity {
         LivingEntity target = this.getTarget();
         this.updateHoverMovement(target);
 
-        int animation = this.entityData.get(ATTACK_TICKS);
-        if (animation > 0) this.entityData.set(ATTACK_TICKS, animation - 1);
-
         this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
         int nextPhase = this.getHealth() <= this.getMaxHealth() * 0.33F ? 3
                 : this.getHealth() <= this.getMaxHealth() * 0.66F ? 2 : 1;
@@ -120,11 +129,20 @@ public class AstralDevourerEntity extends MonsterEntity {
             this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, phase == 3 ? 0.62F : 0.82F);
         }
 
+        if (this.tickAstralBeam()) return;
+        this.tickAttackAnimation();
+
         if (this.attackCooldown > 0) this.attackCooldown--;
         if (target == null || !target.isAlive() || this.distanceToSqr(target) > 28.0D * 28.0D
                 || this.attackCooldown > 0) return;
 
         double distanceSq = this.distanceToSqr(target);
+        this.attackCycle++;
+        if (phase >= 2 && distanceSq > 8.0D * 8.0D && this.attackCycle % 3 == 0) {
+            this.prepareAstralRay(target);
+            this.attackCooldown = 136;
+            return;
+        }
         if (phase == 1) {
             // The first phase teaches players to dodge a precise lance, then punishes close pursuit.
             if (distanceSq > 6.5D * 6.5D) {
@@ -193,9 +211,10 @@ public class AstralDevourerEntity extends MonsterEntity {
                 velocity.z * 0.70D + desiredZ * 0.30D);
     }
 
-    /** Phase I fires one precise bolt; later phases fan out two or three bolts. */
+    /** Fires an animated volley of bright astral projectiles. */
     private void shootBolt(LivingEntity target, float inaccuracy, float velocity) {
         if (!(this.level instanceof ServerWorld)) return;
+        this.entityData.set(ATTACK_STATE, 1);
         this.entityData.set(ATTACK_TICKS, 16);
         int count = phase == 1 ? 1 : (phase == 2 ? 2 : 3);
         for (int i = 0; i < count; i++) {
@@ -208,10 +227,143 @@ public class AstralDevourerEntity extends MonsterEntity {
             bolt.shoot(dx, dy, dz, velocity, inaccuracy);
             this.level.addFreshEntity(bolt);
         }
+        ServerWorld server = (ServerWorld) this.level;
+        server.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + this.getBbHeight() * 0.58D,
+                this.getZ(), 18, 0.35D, 0.3D, 0.35D, 0.02D);
+        server.sendParticles(ParticleTypes.PORTAL, this.getX(), this.getY() + this.getBbHeight() * 0.58D,
+                this.getZ(), 12, 0.25D, 0.25D, 0.25D, 0.03D);
+    }
+
+
+    /** Starts a clearly telegraphed line attack; the locked endpoint lets players dodge before release. */
+    private void prepareAstralRay(LivingEntity target) {
+        this.beamEndX = target.getX();
+        this.beamEndY = target.getY() + target.getBbHeight() * 0.55D;
+        this.beamEndZ = target.getZ();
+        this.beamChargeTicks = 22;
+        this.entityData.set(ATTACK_STATE, 2);
+        this.entityData.set(ATTACK_TICKS, this.beamChargeTicks);
+        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.9F, 1.18F);
+    }
+
+    /** Advances the charge and firing windows on the server and streams particles to every tracking client. */
+    private boolean tickAstralBeam() {
+        if (this.beamChargeTicks > 0) {
+            this.beamChargeTicks--;
+            this.entityData.set(ATTACK_TICKS, this.beamChargeTicks);
+            if (this.beamChargeTicks % 3 == 0) {
+                this.sendAstralRayParticles(1.0D, false);
+                if (this.level instanceof ServerWorld) {
+                    ServerWorld server = (ServerWorld) this.level;
+                    server.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + this.getBbHeight() * 0.58D,
+                            this.getZ(), 6, 0.22D, 0.22D, 0.22D, 0.01D);
+                }
+            }
+            if (this.beamChargeTicks == 0) this.beginAstralRay();
+            return true;
+        }
+        if (this.beamTicks > 0) {
+            this.sendAstralRayParticles(1.0D, true);
+            this.beamTicks--;
+            this.entityData.set(ATTACK_TICKS, this.beamTicks);
+            if (this.beamTicks == 0) this.entityData.set(ATTACK_STATE, 0);
+            return true;
+        }
+        return false;
+    }
+
+    private void beginAstralRay() {
+        this.beamTicks = 10;
+        this.entityData.set(ATTACK_STATE, 3);
+        this.entityData.set(ATTACK_TICKS, this.beamTicks);
+        this.damageAlongAstralRay();
+        if (this.level instanceof ServerWorld) {
+            ServerWorld server = (ServerWorld) this.level;
+            server.sendParticles(ParticleTypes.END_ROD, this.beamEndX, this.beamEndY, this.beamEndZ,
+                    24, 0.4D, 0.4D, 0.4D, 0.06D);
+            server.sendParticles(ParticleTypes.PORTAL, this.beamEndX, this.beamEndY, this.beamEndZ,
+                    18, 0.35D, 0.35D, 0.35D, 0.08D);
+        }
+        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, 0.56F);
+    }
+
+    /** Draws a bright, slightly wavering particle beam instead of relying on an invisible line entity. */
+    private void sendAstralRayParticles(double reach, boolean firing) {
+        if (!(this.level instanceof ServerWorld)) return;
+        ServerWorld server = (ServerWorld) this.level;
+        double sx = this.getX();
+        double sy = this.getY() + this.getBbHeight() * 0.58D;
+        double sz = this.getZ();
+        double dx = this.beamEndX - sx;
+        double dy = this.beamEndY - sy;
+        double dz = this.beamEndZ - sz;
+        double sideLength = Math.max(0.001D, Math.sqrt(dx * dx + dz * dz));
+        double sideX = -dz / sideLength;
+        double sideZ = dx / sideLength;
+        for (int i = 0; i <= 18; i++) {
+            double progress = i / 18.0D;
+            if (progress > reach) continue;
+            double wave = Math.sin(this.tickCount * 0.72D + i * 0.9D) * (firing ? 0.11D : 0.035D);
+            double px = sx + dx * progress + sideX * wave;
+            double py = sy + dy * progress + Math.cos(this.tickCount * 0.5D + i) * wave;
+            double pz = sz + dz * progress + sideZ * wave;
+            server.sendParticles(firing ? ParticleTypes.END_ROD : ParticleTypes.PORTAL,
+                    px, py, pz, 1, 0.018D, 0.018D, 0.018D, 0.0D);
+            if (firing && i % 3 == 0) {
+                server.sendParticles(ParticleTypes.CRIT, px, py, pz, 1, 0.025D, 0.025D, 0.025D, 0.0D);
+            }
+            if (firing && i % 6 == 0) {
+                server.sendParticles(ParticleTypes.PORTAL, px + sideX * 0.12D, py,
+                        pz + sideZ * 0.12D, 1, 0.015D, 0.015D, 0.015D, 0.0D);
+            }
+        }
+    }
+
+    /** Hits players intersecting the beam once, at release; the remaining beam time is visual. */
+    private void damageAlongAstralRay() {
+        double sx = this.getX();
+        double sy = this.getY() + this.getBbHeight() * 0.58D;
+        double sz = this.getZ();
+        double dx = this.beamEndX - sx;
+        double dy = this.beamEndY - sy;
+        double dz = this.beamEndZ - sz;
+        double lengthSq = dx * dx + dy * dy + dz * dz;
+        if (lengthSq < 0.01D) return;
+        AxisAlignedBB area = new AxisAlignedBB(
+                Math.min(sx, beamEndX), Math.min(sy, beamEndY), Math.min(sz, beamEndZ),
+                Math.max(sx, beamEndX), Math.max(sy, beamEndY), Math.max(sz, beamEndZ)).inflate(1.35D);
+        List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, area, PlayerEntity::isAlive);
+        for (PlayerEntity player : players) {
+            double px = player.getX() - sx;
+            double py = player.getY(player.getBbHeight() * 0.5D) - sy;
+            double pz = player.getZ() - sz;
+            double t = (px * dx + py * dy + pz * dz) / lengthSq;
+            if (t < 0.0D || t > 1.0D) continue;
+            double nearX = sx + dx * t;
+            double nearY = sy + dy * t;
+            double nearZ = sz + dz * t;
+            double ex = player.getX() - nearX;
+            double ey = player.getY(player.getBbHeight() * 0.5D) - nearY;
+            double ez = player.getZ() - nearZ;
+            if (ex * ex + ey * ey + ez * ez <= 1.35D * 1.35D) {
+                player.hurt(DamageSource.indirectMagic(this, this), 12.0F);
+                player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 50, 0, true, true));
+            }
+        }
+    }
+
+    private void tickAttackAnimation() {
+        int ticks = this.entityData.get(ATTACK_TICKS);
+        if (ticks > 0) {
+            ticks--;
+            this.entityData.set(ATTACK_TICKS, ticks);
+            if (ticks == 0) this.entityData.set(ATTACK_STATE, 0);
+        }
     }
 
     private void gravityWell() {
-        this.entityData.set(ATTACK_TICKS, 16);
+        this.entityData.set(ATTACK_STATE, 4);
+        this.entityData.set(ATTACK_TICKS, 24);
         double radius = 6.0D;
         AxisAlignedBB area = new AxisAlignedBB(this.getX() - radius, this.getY() - 3.0D,
                 this.getZ() - radius, this.getX() + radius,
@@ -242,7 +394,8 @@ public class AstralDevourerEntity extends MonsterEntity {
     }
 
     private void cosmicNova() {
-        this.entityData.set(ATTACK_TICKS, 18);
+        this.entityData.set(ATTACK_STATE, 5);
+        this.entityData.set(ATTACK_TICKS, 24);
         double radius = 5.4D;
         AxisAlignedBB area = new AxisAlignedBB(this.getX() - radius, this.getY() - 2.5D,
                 this.getZ() - radius, this.getX() + radius,
