@@ -51,7 +51,7 @@ public final class RegistryHandler {
 
     private static RegistryObject<SoundEvent> sound(String id) {
         ResourceLocation location = new ResourceLocation(AetheriumMod.MOD_ID, id);
-        return SOUNDS.register(id, () -> new SoundEvent(location).setRegistryName(location));
+        return SOUNDS.register(id, () -> new SoundEvent(location));
     }
 
     public static final RegistryObject<SoundEvent> AETHERIUM_BLADE_HIT = sound("aetherium_blade_hit");
