@@ -26,8 +26,9 @@ public final class AetheriumClientEvents {
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.LUMIVELO.get(), LumiveloRenderer::new);
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.RIFT_GUARDIAN.get(), RiftGuardianRenderer::new);
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.ASTRAL_DEVOURER.get(), AstralDevourerRenderer::new);
+            // A larger full-bright sprite makes the moving bolt readable; its entity adds a continuous light trail.
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.AETHER_BOLT.get(),
-                    manager -> new SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer(), 0.95F, true));
+                    manager -> new SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer(), 1.10F, true));
         });
     }
 }
