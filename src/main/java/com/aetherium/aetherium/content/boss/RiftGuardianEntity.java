@@ -125,6 +125,7 @@ public class RiftGuardianEntity extends MonsterEntity {
             }
         }
         if (this.level.isClientSide) return;
+        this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
         if (this.phase >= 2 && this.entityData.get(ATTACK_STATE) == 0 && this.tickCount % 6 == 0) {
             this.sendRageAuraParticles();
         }
@@ -132,6 +133,11 @@ public class RiftGuardianEntity extends MonsterEntity {
         if (slamTicks > 0) {
             int nextSlamTick = slamTicks - 1;
             this.entityData.set(SLAM_TICKS, nextSlamTick);
+            int state = this.entityData.get(ATTACK_STATE);
+            if ((state == 1 || state == 3 || state == 4)
+                    && nextSlamTick > 11 && nextSlamTick % 4 == 0) {
+                this.sendGreatswordWindupTelegraph(state);
+            }
             if (this.entityData.get(ATTACK_STATE) == 3 && nextSlamTick == 11 && !this.sweepHitApplied) {
                 this.resolveGreatswordSweep();
             }
@@ -179,7 +185,6 @@ public class RiftGuardianEntity extends MonsterEntity {
             return;
         }
 
-        this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
         int nextPhase = this.getHealth() <= this.getMaxHealth() * 0.5F ? 2 : 1;
         if (nextPhase != this.phase) {
             this.phase = nextPhase;
@@ -207,6 +212,8 @@ public class RiftGuardianEntity extends MonsterEntity {
                         this.getX(), this.getY() + 1.2D, this.getZ(), 16, 0.8D, 0.8D, 0.8D, 0.04D);
             }
             this.playSound(SoundEvents.RAVAGER_ROAR, 1.0F, 0.62F);
+            // Keep the awakening animation intact even if a target is in melee range.
+            return;
         }
 
         if (this.attackCooldown > 0) this.attackCooldown--;
@@ -373,6 +380,50 @@ public class RiftGuardianEntity extends MonsterEntity {
             }
         }
         return best;
+    }
+
+    /** Repeats the weapon warnings until release, marking the same area each attack can hit. */
+    private void sendGreatswordWindupTelegraph(int state) {
+        if (!(this.level instanceof ServerWorld)) return;
+        ServerWorld server = (ServerWorld) this.level;
+        if (state == 1) {
+            // The ring matches the radial ground-slam damage radius.
+            for (int i = 0; i < 16; i++) {
+                double angle = Math.PI * 2.0D * i / 16.0D;
+                server.sendParticles(ParticleTypes.PORTAL,
+                        this.getX() + Math.cos(angle) * this.pendingSlamRadius,
+                        this.getY() + 0.12D,
+                        this.getZ() + Math.sin(angle) * this.pendingSlamRadius,
+                        1, 0.015D, 0.02D, 0.015D, 0.0D);
+            }
+        } else if (state == 3) {
+            // The cleave reaches 5.8 blocks in a forward cone (dot >= 0.28).
+            double direction = Math.atan2(this.sweepDirectionZ, this.sweepDirectionX);
+            for (int i = 0; i <= 12; i++) {
+                double angle = direction - 1.28D + 2.56D * i / 12.0D;
+                double x = Math.cos(angle);
+                double z = Math.sin(angle);
+                server.sendParticles(ParticleTypes.END_ROD,
+                        this.getX() + x * 5.6D, this.getY() + 0.18D,
+                        this.getZ() + z * 5.6D,
+                        1, 0.02D, 0.02D, 0.02D, 0.0D);
+                if (i % 3 == 0) {
+                    server.sendParticles(ParticleTypes.PORTAL,
+                            this.getX() + x * 2.8D, this.getY() + 0.18D,
+                            this.getZ() + z * 2.8D,
+                            1, 0.02D, 0.02D, 0.02D, 0.0D);
+                }
+            }
+        } else if (state == 4) {
+            // The lunge follows its locked direction; leave a sparse line ahead.
+            for (int i = 1; i <= 6; i++) {
+                server.sendParticles(ParticleTypes.END_ROD,
+                        this.getX() + this.sweepDirectionX * i * 1.2D,
+                        this.getY() + 0.18D,
+                        this.getZ() + this.sweepDirectionZ * i * 1.2D,
+                        1, 0.02D, 0.025D, 0.02D, 0.0D);
+            }
+        }
     }
 
     /** Raises the greatsword and locks the facing direction before the cleave lands. */
