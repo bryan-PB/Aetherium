@@ -5,181 +5,98 @@ import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.util.math.MathHelper;
 
-/** Astral Devourer: a winged void tyrant with an animated halo, claws and six living tendrils. */
+/** A winged, many-tentacled eye monster inspired by classic arena bosses. */
 public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
-    private final ModelRenderer head, jaw, mask, eye, eyeLeft, eyeRight, hornLeft, hornRight, halo;
-    private final ModelRenderer neck, body, mantle, chest, core, leftShoulder, rightShoulder;
-    private final ModelRenderer leftArm, rightArm, leftForearm, rightForearm, leftHand, rightHand;
-    private final ModelRenderer leftWing, rightWing, leftWingTip, rightWingTip;
-    private final ModelRenderer leftLeg, rightLeg, leftShin, rightShin, leftClaw, rightClaw;
+    private final ModelRenderer eyeShell, upperLid, lowerLid, iris, pupil, glint, jaw, fangLeft, fangRight;
+    private final ModelRenderer wingLeft, wingRight, wingTipLeft, wingTipRight, sideEyeLeft, sideEyeRight;
     private final ModelRenderer[] tendrils = new ModelRenderer[6];
-    private final ModelRenderer[] shards = new ModelRenderer[4];
-    private final ModelRenderer[] ribs = new ModelRenderer[4];
+    private final ModelRenderer[] barbs = new ModelRenderer[4];
 
     public AstralDevourerModel() {
         texWidth = 64;
         texHeight = 64;
 
-        head = new ModelRenderer(this, 0, 0);
-        head.setPos(0.0F, -15.0F, 0.0F);
-        head.addBox(-5.5F, -5.5F, -4.5F, 11.0F, 11.0F, 9.0F);
+        eyeShell = new ModelRenderer(this, 0, 0);
+        eyeShell.setPos(0.0F, -1.0F, 0.0F);
+        eyeShell.addBox(-9.0F, -7.5F, -4.0F, 18.0F, 15.0F, 8.0F);
 
-        jaw = new ModelRenderer(this, 36, 0);
-        jaw.setPos(0.0F, 3.0F, -4.15F);
-        jaw.addBox(-3.8F, 0.0F, -0.7F, 7.6F, 2.4F, 1.1F);
-        head.addChild(jaw);
+        upperLid = new ModelRenderer(this, 32, 0);
+        upperLid.setPos(0.0F, -1.2F, -4.25F);
+        upperLid.addBox(-8.0F, -7.0F, -0.55F, 16.0F, 3.0F, 1.1F);
+        eyeShell.addChild(upperLid);
+        lowerLid = new ModelRenderer(this, 32, 6);
+        lowerLid.setPos(0.0F, -1.0F, -4.25F);
+        lowerLid.addBox(-8.0F, 4.0F, -0.55F, 16.0F, 3.0F, 1.1F);
+        eyeShell.addChild(lowerLid);
 
-        mask = new ModelRenderer(this, 0, 20);
-        mask.setPos(0.0F, -1.0F, -4.62F);
-        mask.addBox(-4.7F, -2.5F, -0.35F, 9.4F, 5.0F, 0.7F);
-        head.addChild(mask);
+        iris = new ModelRenderer(this, 0, 42);
+        iris.setPos(0.0F, -1.0F, -4.65F);
+        iris.addBox(-4.2F, -4.2F, -0.35F, 8.4F, 8.4F, 0.7F);
+        eyeShell.addChild(iris);
+        pupil = new ModelRenderer(this, 18, 42);
+        pupil.setPos(0.0F, -1.0F, -5.05F);
+        pupil.addBox(-1.6F, -2.4F, -0.35F, 3.2F, 4.8F, 0.7F);
+        eyeShell.addChild(pupil);
+        glint = new ModelRenderer(this, 28, 42);
+        glint.setPos(-1.0F, -2.0F, -5.45F);
+        glint.addBox(-0.5F, -0.5F, -0.2F, 1.0F, 1.0F, 0.4F);
+        eyeShell.addChild(glint);
 
-        eye = new ModelRenderer(this, 32, 20);
-        eye.setPos(0.0F, -1.1F, -5.1F);
-        eye.addBox(-2.3F, -2.3F, -0.3F, 4.6F, 4.6F, 0.6F);
-        head.addChild(eye);
-        eyeLeft = new ModelRenderer(this, 44, 20);
-        eyeLeft.setPos(-3.1F, -1.2F, -4.95F);
-        eyeLeft.addBox(-0.7F, -0.4F, -0.25F, 1.4F, 0.8F, 0.5F);
-        head.addChild(eyeLeft);
-        eyeRight = new ModelRenderer(this, 48, 20);
-        eyeRight.setPos(3.1F, -1.2F, -4.95F);
-        eyeRight.addBox(-0.7F, -0.4F, -0.25F, 1.4F, 0.8F, 0.5F);
-        head.addChild(eyeRight);
+        jaw = new ModelRenderer(this, 0, 54);
+        jaw.setPos(0.0F, 6.2F, -3.0F);
+        jaw.addBox(-4.0F, 0.0F, -1.4F, 8.0F, 2.1F, 2.0F);
+        eyeShell.addChild(jaw);
+        fangLeft = new ModelRenderer(this, 20, 54);
+        fangLeft.setPos(-2.3F, 1.0F, -1.4F);
+        fangLeft.addBox(-0.55F, -0.2F, -0.7F, 1.1F, 2.6F, 1.3F);
+        jaw.addChild(fangLeft);
+        fangRight = new ModelRenderer(this, 24, 54);
+        fangRight.setPos(2.3F, 1.0F, -1.4F);
+        fangRight.addBox(-0.55F, -0.2F, -0.7F, 1.1F, 2.6F, 1.3F);
+        jaw.addChild(fangRight);
 
-        hornLeft = new ModelRenderer(this, 0, 28);
-        hornLeft.setPos(-4.0F, -3.5F, 0.0F);
-        hornLeft.addBox(-1.1F, -7.0F, -1.0F, 2.2F, 7.2F, 2.0F);
-        hornLeft.zRot = -0.28F;
-        head.addChild(hornLeft);
-        hornRight = new ModelRenderer(this, 12, 28);
-        hornRight.setPos(4.0F, -3.5F, 0.0F);
-        hornRight.addBox(-1.1F, -7.0F, -1.0F, 2.2F, 7.2F, 2.0F);
-        hornRight.zRot = 0.28F;
-        head.addChild(hornRight);
+        sideEyeLeft = new ModelRenderer(this, 32, 14);
+        sideEyeLeft.setPos(-7.0F, 0.4F, -3.2F);
+        sideEyeLeft.addBox(-1.8F, -1.7F, -0.6F, 3.6F, 3.4F, 1.2F);
+        eyeShell.addChild(sideEyeLeft);
+        sideEyeRight = new ModelRenderer(this, 42, 14);
+        sideEyeRight.setPos(7.0F, 0.4F, -3.2F);
+        sideEyeRight.addBox(-1.8F, -1.7F, -0.6F, 3.6F, 3.4F, 1.2F);
+        eyeShell.addChild(sideEyeRight);
 
-        halo = new ModelRenderer(this, 0, 40);
-        halo.setPos(0.0F, -1.0F, 4.8F);
-        halo.addBox(-11.0F, -9.0F, -0.4F, 22.0F, 1.0F, 0.8F);
-        halo.addBox(-11.0F, 8.0F, -0.4F, 22.0F, 1.0F, 0.8F);
-        halo.addBox(-11.0F, -9.0F, -0.4F, 1.0F, 18.0F, 0.8F);
-        halo.addBox(10.0F, -9.0F, -0.4F, 1.0F, 18.0F, 0.8F);
-        head.addChild(halo);
-
-        neck = new ModelRenderer(this, 0, 0);
-        neck.setPos(0.0F, -10.0F, 0.0F);
-        neck.addBox(-2.8F, -0.4F, -2.8F, 5.6F, 4.5F, 5.6F);
-
-        body = new ModelRenderer(this, 20, 28);
-        body.setPos(0.0F, -1.0F, 0.0F);
-        body.addBox(-7.0F, -8.0F, -4.0F, 14.0F, 16.0F, 8.0F);
-
-        mantle = new ModelRenderer(this, 0, 0);
-        mantle.setPos(0.0F, -6.0F, 0.0F);
-        mantle.addBox(-8.5F, -1.0F, -4.5F, 17.0F, 4.0F, 9.0F);
-        body.addChild(mantle);
-
-        chest = new ModelRenderer(this, 36, 32);
-        chest.setPos(0.0F, -3.8F, -4.15F);
-        chest.addBox(-5.3F, -2.0F, -0.45F, 10.6F, 6.5F, 0.9F);
-        body.addChild(chest);
-
-        core = new ModelRenderer(this, 48, 40);
-        core.setPos(0.0F, -1.0F, -4.7F);
-        core.addBox(-2.5F, -2.5F, -0.5F, 5.0F, 5.0F, 1.0F);
-        body.addChild(core);
-
-        for (int i = 0; i < ribs.length; i++) {
-            ribs[i] = new ModelRenderer(this, 36, 20);
-            float side = i % 2 == 0 ? -1.0F : 1.0F;
-            ribs[i].setPos(side * 5.0F, -1.8F + (i / 2) * 4.0F, -3.8F);
-            ribs[i].addBox(-0.65F, -1.7F, -0.45F, 1.3F, 3.4F, 0.9F);
-            body.addChild(ribs[i]);
-        }
-
-        leftShoulder = new ModelRenderer(this, 0, 20);
-        leftShoulder.setPos(7.0F, -6.0F, 0.0F);
-        leftShoulder.addBox(-0.8F, -2.8F, -3.0F, 5.0F, 5.6F, 6.0F);
-        rightShoulder = new ModelRenderer(this, 20, 20);
-        rightShoulder.setPos(-7.0F, -6.0F, 0.0F);
-        rightShoulder.addBox(-4.2F, -2.8F, -3.0F, 5.0F, 5.6F, 6.0F);
-
-        leftArm = new ModelRenderer(this, 0, 0);
-        leftArm.setPos(7.5F, -6.0F, 0.0F);
-        leftArm.addBox(-1.8F, -0.5F, -2.1F, 3.8F, 7.0F, 4.2F);
-        rightArm = new ModelRenderer(this, 20, 0);
-        rightArm.setPos(-7.5F, -6.0F, 0.0F);
-        rightArm.addBox(-2.0F, -0.5F, -2.1F, 3.8F, 7.0F, 4.2F);
-        leftForearm = new ModelRenderer(this, 0, 14);
-        leftForearm.setPos(0.0F, 6.0F, 0.0F);
-        leftForearm.addBox(-1.8F, 0.0F, -2.3F, 3.8F, 7.0F, 4.6F);
-        leftArm.addChild(leftForearm);
-        rightForearm = new ModelRenderer(this, 20, 14);
-        rightForearm.setPos(0.0F, 6.0F, 0.0F);
-        rightForearm.addBox(-2.0F, 0.0F, -2.3F, 3.8F, 7.0F, 4.6F);
-        rightArm.addChild(rightForearm);
-
-        leftHand = new ModelRenderer(this, 40, 0);
-        leftHand.setPos(0.0F, 6.2F, -0.2F);
-        leftHand.addBox(-1.8F, 0.0F, -2.0F, 3.6F, 3.0F, 4.0F);
-        leftForearm.addChild(leftHand);
-        rightHand = new ModelRenderer(this, 40, 8);
-        rightHand.setPos(0.0F, 6.2F, -0.2F);
-        rightHand.addBox(-1.8F, 0.0F, -2.0F, 3.6F, 3.0F, 4.0F);
-        rightForearm.addChild(rightHand);
-
-        leftWing = new ModelRenderer(this, 42, 0);
-        leftWing.setPos(6.0F, -8.0F, 3.5F);
-        leftWing.addBox(0.0F, -1.0F, -1.0F, 8.0F, 12.0F, 2.0F);
-        body.addChild(leftWing);
-        rightWing = new ModelRenderer(this, 42, 14);
-        rightWing.setPos(-6.0F, -8.0F, 3.5F);
-        rightWing.addBox(-8.0F, -1.0F, -1.0F, 8.0F, 12.0F, 2.0F);
-        body.addChild(rightWing);
-
-        leftWingTip = new ModelRenderer(this, 48, 28);
-        leftWingTip.setPos(7.0F, 9.0F, 0.0F);
-        leftWingTip.addBox(0.0F, -1.0F, -0.6F, 6.0F, 9.0F, 1.2F);
-        leftWing.addChild(leftWingTip);
-        rightWingTip = new ModelRenderer(this, 48, 38);
-        rightWingTip.setPos(-7.0F, 9.0F, 0.0F);
-        rightWingTip.addBox(-6.0F, -1.0F, -0.6F, 6.0F, 9.0F, 1.2F);
-        rightWing.addChild(rightWingTip);
-
-        leftLeg = new ModelRenderer(this, 0, 0);
-        leftLeg.setPos(3.6F, 7.0F, 0.0F);
-        leftLeg.addBox(-2.0F, 0.0F, -2.0F, 4.0F, 6.0F, 4.0F);
-        rightLeg = new ModelRenderer(this, 18, 0);
-        rightLeg.setPos(-3.6F, 7.0F, 0.0F);
-        rightLeg.addBox(-2.0F, 0.0F, -2.0F, 4.0F, 6.0F, 4.0F);
-        leftShin = new ModelRenderer(this, 0, 12);
-        leftShin.setPos(0.0F, 5.5F, 0.0F);
-        leftShin.addBox(-1.6F, 0.0F, -1.7F, 3.2F, 7.0F, 3.4F);
-        leftLeg.addChild(leftShin);
-        rightShin = new ModelRenderer(this, 16, 12);
-        rightShin.setPos(0.0F, 5.5F, 0.0F);
-        rightShin.addBox(-1.6F, 0.0F, -1.7F, 3.2F, 7.0F, 3.4F);
-        rightLeg.addChild(rightShin);
-        leftClaw = new ModelRenderer(this, 36, 44);
-        leftClaw.setPos(0.0F, 6.4F, -0.4F);
-        leftClaw.addBox(-1.8F, 0.0F, -2.8F, 3.6F, 2.0F, 4.0F);
-        leftShin.addChild(leftClaw);
-        rightClaw = new ModelRenderer(this, 48, 44);
-        rightClaw.setPos(0.0F, 6.4F, -0.4F);
-        rightClaw.addBox(-1.8F, 0.0F, -2.8F, 3.6F, 2.0F, 4.0F);
-        rightShin.addChild(rightClaw);
+        wingLeft = new ModelRenderer(this, 0, 48);
+        wingLeft.setPos(-7.0F, -3.2F, 2.6F);
+        wingLeft.addBox(-10.0F, -2.0F, -0.5F, 10.0F, 9.0F, 1.0F);
+        eyeShell.addChild(wingLeft);
+        wingRight = new ModelRenderer(this, 22, 48);
+        wingRight.setPos(7.0F, -3.2F, 2.6F);
+        wingRight.addBox(0.0F, -2.0F, -0.5F, 10.0F, 9.0F, 1.0F);
+        eyeShell.addChild(wingRight);
+        wingTipLeft = new ModelRenderer(this, 44, 48);
+        wingTipLeft.setPos(-9.0F, 6.0F, 0.0F);
+        wingTipLeft.addBox(-4.0F, -1.0F, -0.4F, 4.0F, 7.0F, 0.8F);
+        wingLeft.addChild(wingTipLeft);
+        wingTipRight = new ModelRenderer(this, 52, 48);
+        wingTipRight.setPos(9.0F, 6.0F, 0.0F);
+        wingTipRight.addBox(0.0F, -1.0F, -0.4F, 4.0F, 7.0F, 0.8F);
+        wingRight.addChild(wingTipRight);
 
         for (int i = 0; i < tendrils.length; i++) {
             float side = i % 2 == 0 ? -1.0F : 1.0F;
-            tendrils[i] = new ModelRenderer(this, 0, 48);
-            tendrils[i].setPos(side * (4.2F + (i / 2) * 0.8F), 6.0F + (i % 3) * 1.2F, 3.0F);
-            tendrils[i].addBox(-1.2F, 0.0F, -1.2F, 2.4F, 10.0F + (i % 2) * 3.0F, 2.4F);
+            float x = side * (i < 2 ? 4.0F : (i < 4 ? 7.0F : 5.5F));
+            float y = i < 2 ? 4.0F : (i < 4 ? 1.0F : 6.0F);
+            float z = i < 2 ? 1.5F : 3.0F;
+            tendrils[i] = new ModelRenderer(this, 44, 32);
+            tendrils[i].setPos(x, y, z);
+            tendrils[i].addBox(-1.1F, 0.0F, -1.1F, 2.2F, 10.0F + (i % 2) * 3.0F, 2.2F);
         }
 
-        for (int i = 0; i < shards.length; i++) {
-            shards[i] = new ModelRenderer(this, 36, 48);
-            shards[i].setPos((i % 2 == 0 ? -1.0F : 1.0F) * 10.0F, -2.0F + (i / 2) * 6.0F, 0.0F);
-            shards[i].addBox(-1.3F, -3.5F, -1.3F, 2.6F, 7.0F, 2.6F);
+        for (int i = 0; i < barbs.length; i++) {
+            float angle = i * (float)Math.PI * 0.5F;
+            barbs[i] = new ModelRenderer(this, 52, 0);
+            barbs[i].setPos(MathHelper.cos(angle) * 8.0F, MathHelper.sin(angle) * 5.5F, 2.5F);
+            barbs[i].addBox(-0.8F, -3.2F, -0.8F, 1.6F, 6.4F, 1.6F);
+            eyeShell.addChild(barbs[i]);
         }
     }
 
@@ -191,85 +108,56 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         float timer = entity.getAttackAnimationTicks();
         float awakened = phase >= 2 ? 1.0F : 0.0F;
         float ascended = phase >= 3 ? 1.0F : 0.0F;
-        float idle = MathHelper.sin(ageInTicks * 0.075F);
-        float charge = state == 2 ? MathHelper.clamp(timer / 24.0F, 0.0F, 1.0F) : 0.0F;
+        float idle = MathHelper.sin(ageInTicks * 0.08F);
+        float cast = state == 1 ? 1.0F : 0.0F;
+        float charge = state == 2 ? MathHelper.clamp(timer / 22.0F, 0.0F, 1.0F) : 0.0F;
         float beam = state == 3 ? 1.0F : 0.0F;
+        float pull = state == 4 ? 1.0F : 0.0F;
+        float nova = state == 5 ? 1.0F : 0.0F;
         float dashCharge = state == 6 ? 1.0F : 0.0F;
         float dash = state == 7 ? 1.0F : 0.0F;
-        float nova = state == 5 ? 1.0F : 0.0F;
-        float cast = state == 1 ? 1.0F : 0.0F;
-        float pull = state == 4 ? 1.0F : 0.0F;
 
-        body.y = -1.0F + idle * 0.65F - charge * 0.35F + nova * 0.5F;
-        body.xRot = -charge * 0.18F + beam * 0.15F - nova * 0.24F
-                + dashCharge * 0.16F - dash * 0.58F;
-        head.yRot = netHeadYaw * ((float)Math.PI / 180.0F) * 0.72F
-                + MathHelper.sin(ageInTicks * 0.04F) * (0.06F + ascended * 0.08F);
-        head.xRot = headPitch * ((float)Math.PI / 180.0F) * 0.38F - charge * 0.2F + beam * 0.12F
-                + dashCharge * 0.12F - dash * 0.25F;
-        jaw.xRot = MathHelper.sin(ageInTicks * 0.12F) * 0.04F + nova * 0.5F + beam * 0.3F;
-        eye.y = -1.1F + MathHelper.sin(ageInTicks * 0.2F) * 0.18F - charge * 0.45F;
-        eye.zRot = ageInTicks * (0.025F + ascended * 0.04F);
-        hornLeft.zRot = -0.28F - ascended * 0.12F;
-        hornRight.zRot = -hornLeft.zRot;
+        eyeShell.y = -1.0F + idle * 0.55F - charge * 0.4F;
+        eyeShell.xRot = headPitch * ((float)Math.PI / 180.0F) * 0.08F
+                - dashCharge * 0.12F + dash * 0.48F - nova * 0.2F;
+        eyeShell.yRot = netHeadYaw * ((float)Math.PI / 180.0F) * 0.28F
+                + MathHelper.sin(ageInTicks * 0.035F) * (0.06F + ascended * 0.1F);
+        eyeShell.zRot = MathHelper.sin(ageInTicks * 0.06F) * 0.035F + dash * 0.12F;
 
-        halo.yRot = ageInTicks * (0.025F + awakened * 0.05F + ascended * 0.095F);
-        halo.xRot = 0.25F + MathHelper.sin(ageInTicks * 0.04F) * 0.08F + ascended * 0.3F;
-        halo.zRot = MathHelper.sin(ageInTicks * 0.05F) * 0.08F + beam * 0.22F;
+        float open = 1.0F - charge * 0.35F - dashCharge * 0.2F + beam * 0.12F + ascended * 0.08F;
+        upperLid.y = -1.2F - open * 0.45F;
+        lowerLid.y = -1.0F + open * 0.25F;
+        iris.yRot = MathHelper.sin(ageInTicks * (0.06F + awakened * 0.035F)) * 0.12F
+                + dashCharge * 0.12F + beam * 0.16F;
+        pupil.xRot = MathHelper.sin(ageInTicks * 0.12F) * 0.05F - charge * 0.15F;
+        pupil.zRot = ageInTicks * (0.025F + ascended * 0.04F);
+        glint.y = -2.0F + MathHelper.sin(ageInTicks * 0.16F) * 0.18F;
+        jaw.xRot = nova * 0.4F + beam * 0.22F + MathHelper.sin(ageInTicks * 0.1F) * 0.035F;
+        fangLeft.xRot = -0.08F - nova * 0.25F;
+        fangRight.xRot = fangLeft.xRot;
 
-        core.y = -1.0F + MathHelper.sin(ageInTicks * (0.18F + awakened * 0.08F)) * (0.45F + ascended * 0.35F);
-        core.zRot = ageInTicks * (0.035F + ascended * 0.08F);
-        chest.xRot = charge * 0.1F - nova * 0.12F;
-        mantle.xRot = 0.04F + awakened * 0.12F + ascended * 0.2F;
-        for (int i = 0; i < ribs.length; i++) {
-            ribs[i].zRot = MathHelper.sin(ageInTicks * 0.06F + i) * 0.04F + ascended * 0.05F;
-        }
+        float flap = MathHelper.sin(ageInTicks * (0.18F + awakened * 0.06F + ascended * 0.04F));
+        wingLeft.zRot = -0.35F - flap * (0.14F + awakened * 0.12F)
+                - dashCharge * 0.55F + dash * 0.4F + nova * 0.25F;
+        wingRight.zRot = 0.35F + flap * (0.14F + awakened * 0.12F)
+                + dashCharge * 0.55F - dash * 0.4F - nova * 0.25F;
+        wingLeft.xRot = 0.08F + beam * 0.12F + dash * 0.2F;
+        wingRight.xRot = -wingLeft.xRot;
+        wingTipLeft.zRot = -0.28F - dashCharge * 0.3F + dash * 0.2F;
+        wingTipRight.zRot = -wingTipLeft.zRot;
 
-        leftArm.xRot = -0.18F + MathHelper.sin(ageInTicks * 0.08F) * 0.08F
-                - cast * 0.95F - charge * 1.55F + beam * 0.25F - nova * 1.1F + pull * 0.45F
-                + dashCharge * 0.5F - dash * 0.85F;
-        rightArm.xRot = -0.18F - MathHelper.sin(ageInTicks * 0.08F) * 0.08F
-                - cast * 0.95F - charge * 1.55F + beam * 0.25F - nova * 1.1F + pull * 0.45F
-                + dashCharge * 0.5F - dash * 0.85F;
-        leftArm.zRot = -0.12F - awakened * 0.15F - beam * 0.35F - nova * 0.55F;
-        rightArm.zRot = 0.12F + awakened * 0.15F + beam * 0.35F + nova * 0.55F;
-        leftForearm.xRot = 0.18F + cast * 0.75F + charge * 0.95F + beam * 0.7F + nova * 1.1F;
-        rightForearm.xRot = 0.18F + cast * 0.75F + charge * 0.95F + beam * 0.7F + nova * 1.1F;
-        leftHand.xRot = -0.15F - nova * 0.25F;
-        rightHand.xRot = leftHand.xRot;
-        leftShoulder.xRot = leftArm.xRot * 0.22F;
-        rightShoulder.xRot = rightArm.xRot * 0.22F;
-
-        leftWing.zRot = -0.35F - awakened * 0.45F - ascended * 0.35F
-                + MathHelper.sin(ageInTicks * (0.12F + ascended * 0.08F)) * (0.12F + awakened * 0.12F)
-                + dashCharge * 0.42F - dash * 0.28F;
-        rightWing.zRot = -leftWing.zRot;
-        leftWing.xRot = 0.12F + ascended * 0.25F + beam * 0.18F;
-        rightWing.xRot = -leftWing.xRot;
-        leftWingTip.zRot = -0.35F - awakened * 0.25F - ascended * 0.3F;
-        rightWingTip.zRot = -leftWingTip.zRot;
-
-        leftLeg.xRot = MathHelper.sin(ageInTicks * 0.08F) * 0.07F - nova * 0.25F;
-        rightLeg.xRot = -leftLeg.xRot;
-        leftShin.xRot = 0.1F + awakened * 0.08F;
-        rightShin.xRot = leftShin.xRot;
-        leftClaw.xRot = 0.12F + ascended * 0.22F;
-        rightClaw.xRot = leftClaw.xRot;
-
+        sideEyeLeft.xRot = MathHelper.sin(ageInTicks * 0.09F) * 0.08F + cast * 0.16F;
+        sideEyeRight.xRot = -sideEyeLeft.xRot;
         for (int i = 0; i < tendrils.length; i++) {
-            float wave = ageInTicks * (0.075F + awakened * 0.03F + ascended * 0.045F) + i * 1.05F;
-            tendrils[i].xRot = 0.45F + MathHelper.sin(wave) * (0.23F + ascended * 0.16F)
-                    - charge * 0.35F - beam * 0.5F + nova * 0.65F;
-            tendrils[i].zRot = MathHelper.cos(wave * 0.8F) * (0.18F + awakened * 0.15F + ascended * 0.1F)
-                    + (i % 2 == 0 ? -1.0F : 1.0F) * (nova * 0.28F + beam * 0.12F);
+            float wave = ageInTicks * (0.075F + awakened * 0.025F + ascended * 0.045F) + i * 1.0F;
+            tendrils[i].xRot = 0.35F + MathHelper.sin(wave) * (0.22F + ascended * 0.14F)
+                    - charge * 0.45F - dashCharge * 0.25F + dash * 0.75F + nova * 0.35F;
+            tendrils[i].zRot = MathHelper.cos(wave * 0.8F) * (0.18F + awakened * 0.12F)
+                    + (i % 2 == 0 ? -1.0F : 1.0F) * (dash * 0.32F + pull * 0.22F);
         }
-        for (int i = 0; i < shards.length; i++) {
-            float angle = ageInTicks * (0.04F + awakened * 0.04F + ascended * 0.075F) + i * 1.57F;
-            shards[i].x = MathHelper.cos(angle) * (10.0F + ascended * 2.0F);
-            shards[i].y = -2.0F + (i / 2) * 6.0F + MathHelper.sin(angle) * 2.0F;
-            shards[i].z = MathHelper.sin(angle) * 2.8F;
-            shards[i].yRot = -angle;
-            shards[i].zRot = MathHelper.sin(angle * 2.0F) * 0.24F + ascended * 0.2F;
+        for (int i = 0; i < barbs.length; i++) {
+            barbs[i].xRot = MathHelper.sin(ageInTicks * 0.07F + i) * 0.05F + ascended * 0.18F;
+            barbs[i].yRot = ageInTicks * 0.02F + i * 1.57F;
         }
     }
 
@@ -278,16 +166,9 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
                                com.mojang.blaze3d.vertex.IVertexBuilder buffer,
                                int packedLight, int packedOverlay,
                                float red, float green, float blue, float alpha) {
-        head.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        neck.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        body.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        leftShoulder.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        rightShoulder.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        leftArm.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        rightArm.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        leftLeg.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        rightLeg.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        for (ModelRenderer tendril : tendrils) tendril.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        for (ModelRenderer shard : shards) shard.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        eyeShell.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        for (ModelRenderer tendril : tendrils) {
+            tendril.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        }
     }
 }
