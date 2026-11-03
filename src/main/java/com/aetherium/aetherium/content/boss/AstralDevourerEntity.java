@@ -15,6 +15,7 @@ import net.minecraft.entity.ai.goal.LookRandomlyGoal;
 import net.minecraft.world.BossInfo;
 import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.potion.EffectInstance;
@@ -337,6 +338,8 @@ public class AstralDevourerEntity extends MonsterEntity {
         for (int i = 0; i < count; i++) {
             double spread = (i - (count - 1) / 2.0D) * (followUp ? 0.7D : 1.05D);
             AetherBoltEntity bolt = new AetherBoltEntity(this.level, this);
+            // Sync the astral sprite explicitly for clients receiving the entity before its owner.
+            bolt.setItem(new ItemStack(RegistryHandler.ASTRAL_FRAGMENT.get()));
             bolt.setPos(this.getX(), this.getY() + this.getEyeHeight() * 0.72D, this.getZ());
             double dx = target.getX() + sideX * spread - bolt.getX();
             double dy = target.getY(0.45D) - bolt.getY();
