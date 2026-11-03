@@ -1,7 +1,6 @@
 package com.aetherium.aetherium.content.item;
 
 import com.aetherium.aetherium.registry.RegistryHandler;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.AxeItem;
@@ -76,10 +75,9 @@ public class AetheriumAxeItem extends AxeItem {
             victim.hurtMarked = true;
             server.sendParticles(ParticleTypes.CRIT, victim.getX(), victim.getY(0.45D), victim.getZ(),
                     12, 0.28D, 0.24D, 0.28D, 0.045D);
-            server.sendParticles(ParticleTypes.BLOCK,
+            server.sendParticles(ParticleTypes.POOF,
                     victim.getX(), victim.getY() + 0.12D, victim.getZ(), 8,
-                    0.24D, 0.08D, 0.24D, 0.10D,
-                    Blocks.STONE.defaultBlockState());
+                    0.24D, 0.08D, 0.24D, 0.025D);
         }
 
         // Three expanding rings make the slam readable even when no enemy is nearby.
