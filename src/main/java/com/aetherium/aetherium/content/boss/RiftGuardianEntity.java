@@ -9,7 +9,7 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.ai.goal.FloatGoal;
+import net.minecraft.entity.ai.goal.SwimGoal;
 import net.minecraft.entity.ai.goal.HurtByTargetGoal;
 import net.minecraft.entity.ai.goal.LookAtGoal;
 import net.minecraft.entity.ai.goal.MeleeAttackGoal;
@@ -86,7 +86,7 @@ public class RiftGuardianEntity extends MonsterEntity {
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(0, new SwimGoal(this));
         this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.05D, true));
         this.goalSelector.addGoal(2, new WaterAvoidingRandomWalkingGoal(this, 0.62D));
         this.goalSelector.addGoal(3, new LookAtGoal(this, PlayerEntity.class, 16.0F));
