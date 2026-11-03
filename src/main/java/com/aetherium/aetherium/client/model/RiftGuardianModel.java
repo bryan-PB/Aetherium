@@ -182,21 +182,27 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         head.xRot = headPitch * ((float)Math.PI / 180.0F) - windup * 0.12F
                 + impact * 0.2F + stagger * 0.18F + death * 0.28F;
         jaw.xRot = MathHelper.sin(ageInTicks * 0.08F) * 0.035F + rage * 0.1F;
-        hornLeft.zRot = -0.2F - rage * 0.08F + idle * 0.025F;
+        hornLeft.zRot = -0.2F - rage * 0.22F + idle * 0.025F;
         hornRight.zRot = -hornLeft.zRot;
+        hornLeft.xRot = -rage * 0.12F;
+        hornRight.xRot = -rage * 0.12F;
 
         body.y = idle * 0.14F + windup * 0.35F - impact * 0.4F;
         body.xRot = -windup * 0.14F + impact * 0.24F + chargeWindup * 0.12F
                 - chargeRush * 0.48F + stagger * 0.22F - phaseShift * 0.24F
                 + death * 0.82F;
-        chestPlate.xRot = -windup * 0.05F + impact * 0.1F - phaseShift * 0.32F;
+        chestPlate.xRot = -windup * 0.05F + impact * 0.1F - phaseShift * 0.32F
+                - rage * 0.08F;
         core.y = -0.2F - phaseShift * 0.62F
                 + MathHelper.sin(ageInTicks * (0.16F + rage * 0.12F)) * (0.3F + rage * 0.25F);
         core.xRot = phaseShift * 0.7F;
         core.zRot = ageInTicks * (0.025F + rage * 0.035F + phaseShift * 0.13F);
-        backPlate.xRot = 0.08F + rage * 0.2F;
+        backPlate.xRot = 0.08F + rage * 0.42F + phaseShift * 0.18F;
+        backPlate.yRot = MathHelper.sin(ageInTicks * 0.045F) * rage * 0.08F;
         for (int i = 0; i < chestRibs.length; i++) {
-            chestRibs[i].zRot = MathHelper.sin(ageInTicks * 0.05F + i) * 0.025F;
+            float ribSide = i == 1 ? 0.0F : (i == 0 ? -1.0F : 1.0F);
+            chestRibs[i].zRot = MathHelper.sin(ageInTicks * (0.05F + rage * 0.035F) + i) * 0.025F
+                    + ribSide * (rage * 0.12F + phaseShift * 0.08F);
         }
 
         leftArm.xRot = -MathHelper.cos(gait) * 0.3F * walk - windup * 1.25F
@@ -212,11 +218,17 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         rightForearm.xRot = 0.12F + windup * 0.5F + impact * 0.5F + sweepWindup * 0.55F - sweep * 0.45F;
         leftHand.xRot = -0.05F - impact * 0.12F;
         rightHand.xRot = -0.08F - sweep * 0.28F;
-        leftShoulder.xRot = leftArm.xRot * 0.2F;
-        rightShoulder.xRot = rightArm.xRot * 0.2F;
-        leftSpike.xRot = -0.12F - rage * 0.25F;
-        rightSpike.xRot = -0.12F - rage * 0.25F;
+        leftShoulder.xRot = leftArm.xRot * 0.2F - rage * 0.08F;
+        rightShoulder.xRot = rightArm.xRot * 0.2F - rage * 0.08F;
+        leftShoulder.zRot = -rage * 0.1F;
+        rightShoulder.zRot = rage * 0.1F;
+        leftSpike.xRot = -0.12F - rage * 0.42F;
+        rightSpike.xRot = -0.12F - rage * 0.42F;
+        leftSpike.zRot = -rage * 0.16F;
+        rightSpike.zRot = rage * 0.16F;
 
+        leftLeg.x = 3.6F + rage * 0.55F;
+        rightLeg.x = -3.6F - rage * 0.55F;
         leftLeg.xRot = MathHelper.cos(gait) * 0.46F * walk + impact * 0.15F;
         rightLeg.xRot = MathHelper.cos(gait + (float)Math.PI) * 0.46F * walk + impact * 0.15F;
         leftShin.xRot = Math.max(0.0F, -leftLeg.xRot) * 0.5F;
@@ -228,13 +240,14 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         greatsword.xRot = -windup * 0.95F - sweepWindup * 0.72F
                 + impact * 0.62F + sweep * 1.18F
                 - chargeWindup * 0.28F + chargeRush * 0.82F
-                + stagger * 0.34F + phaseShift * 0.52F;
+                + stagger * 0.34F + phaseShift * 0.52F - rage * 0.12F;
         greatsword.yRot = -sweepWindup * 0.22F + sweep * 0.68F
                 + chargeRush * 0.16F + phaseShift * 0.24F;
         greatsword.zRot = -0.12F + windup * 0.22F + impact * 0.18F
                 + sweepWindup * 0.38F - sweep * 0.82F
                 + chargeWindup * 0.28F - chargeRush * 0.18F
-                + stagger * 0.24F + phaseShift * 0.36F + death * 0.72F;
+                + stagger * 0.24F + phaseShift * 0.36F + death * 0.72F
+                - rage * 0.08F;
     }
 
     @Override
