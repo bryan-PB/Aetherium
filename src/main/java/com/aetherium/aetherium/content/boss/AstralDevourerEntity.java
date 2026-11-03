@@ -46,6 +46,15 @@ public class AstralDevourerEntity extends MonsterEntity {
     private double beamEndX;
     private double beamEndY;
     private double beamEndZ;
+    private int dashChargeTicks = 0;
+    private int dashTicks = 0;
+    private int dashRecoveryTicks = 0;
+    private int dashesRemaining = 0;
+    private boolean dashHitRegistered = false;
+    private double dashDirX;
+    private double dashDirY;
+    private double dashDirZ;
+    private LivingEntity dashTarget;
 
     public AstralDevourerEntity(EntityType<? extends AstralDevourerEntity> type, World world) {
         super(type, world);
@@ -97,7 +106,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         if (this.level.isClientSide) return;
 
         LivingEntity target = this.getTarget();
-        this.updateHoverMovement(target);
+        if (!this.tickDashPattern()) this.updateHoverMovement(target);
         if (this.isInWater()) {
             Vector3d motion = this.getDeltaMovement();
             this.setDeltaMovement(motion.x * 0.92D, Math.max(motion.y, 0.20D), motion.z * 0.92D);
@@ -134,6 +143,7 @@ public class AstralDevourerEntity extends MonsterEntity {
             this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, phase == 3 ? 0.62F : 0.82F);
         }
 
+        if (this.tickDashPattern()) return;
         if (this.tickAstralBeam()) return;
         this.tickAttackAnimation();
 
@@ -143,6 +153,11 @@ public class AstralDevourerEntity extends MonsterEntity {
 
         double distanceSq = this.distanceToSqr(target);
         this.attackCycle++;
+        if (distanceSq > 4.5D * 4.5D && distanceSq < 18.0D * 18.0D && this.attackCycle % 3 == 0) {
+            this.startDashPattern(target);
+            this.attackCooldown = phase >= 3 ? 118 : 132;
+            return;
+        }
         if (phase >= 2 && distanceSq > 8.0D * 8.0D && this.attackCycle % 2 == 0) {
             this.prepareAstralRay(target);
             this.attackCooldown = 136;
@@ -240,6 +255,136 @@ public class AstralDevourerEntity extends MonsterEntity {
                 this.getZ(), 12, 0.25D, 0.25D, 0.25D, 0.03D);
     }
 
+
+
+    /** Starts two or three Eye-like charges with a readable pause between each rush. */
+    private void startDashPattern(LivingEntity target) {
+        this.dashTarget = target;
+        this.dashesRemaining = this.phase >= 3 ? 3 : 2;
+        this.dashRecoveryTicks = 0;
+        this.beginDashCharge(target);
+    }
+
+    private void beginDashCharge(LivingEntity target) {
+        if (target == null || !target.isAlive()) {
+            this.dashTarget = null;
+            this.entityData.set(ATTACK_STATE, 0);
+            return;
+        }
+        Vector3d direction = target.position().add(0.0D, target.getBbHeight() * 0.45D, 0.0D)
+                .subtract(this.position().add(0.0D, this.getBbHeight() * 0.55D, 0.0D)).normalize();
+        this.dashDirX = direction.x;
+        this.dashDirY = direction.y;
+        this.dashDirZ = direction.z;
+        this.dashChargeTicks = this.phase >= 3 ? 10 : 14;
+        this.dashHitRegistered = false;
+        this.entityData.set(ATTACK_STATE, 6);
+        this.entityData.set(ATTACK_TICKS, this.dashChargeTicks);
+        this.setDeltaMovement(Vector3d.ZERO);
+        this.hasImpulse = true;
+        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.9F, 1.25F);
+    }
+
+    /** Server-side dash state machine. Motion and damage are authoritative; effects are sent to tracking clients. */
+    private boolean tickDashPattern() {
+        if (this.dashChargeTicks > 0) {
+            this.dashChargeTicks--;
+            this.entityData.set(ATTACK_TICKS, this.dashChargeTicks);
+            if (this.level instanceof ServerWorld && this.dashChargeTicks % 2 == 0) {
+                ServerWorld server = (ServerWorld) this.level;
+                double y = this.getY() + this.getBbHeight() * 0.55D;
+                server.sendParticles(ParticleTypes.DRAGON_BREATH, this.getX(), y, this.getZ(),
+                        5, 0.28D, 0.24D, 0.28D, 0.015D);
+                server.sendParticles(ParticleTypes.END_ROD,
+                        this.getX() + this.dashDirX * 0.8D, y + this.dashDirY * 0.8D,
+                        this.getZ() + this.dashDirZ * 0.8D, 3, 0.08D, 0.08D, 0.08D, 0.01D);
+            }
+            if (this.dashChargeTicks == 0) this.beginDashBurst();
+            return true;
+        }
+
+        if (this.dashTicks > 0) {
+            double speed = this.phase >= 3 ? 1.02D : 0.86D;
+            this.setDeltaMovement(this.dashDirX * speed, this.dashDirY * speed,
+                    this.dashDirZ * speed);
+            this.hasImpulse = true;
+            if (this.level instanceof ServerWorld) {
+                ServerWorld server = (ServerWorld) this.level;
+                server.sendParticles(ParticleTypes.DRAGON_BREATH,
+                        this.getX(), this.getY() + this.getBbHeight() * 0.55D, this.getZ(),
+                        4, 0.18D, 0.20D, 0.18D, 0.01D);
+                server.sendParticles(ParticleTypes.END_ROD,
+                        this.getX(), this.getY() + this.getBbHeight() * 0.55D, this.getZ(),
+                        2, 0.10D, 0.12D, 0.10D, 0.015D);
+            }
+            if (!this.dashHitRegistered) this.checkDashImpact();
+            this.dashTicks--;
+            this.entityData.set(ATTACK_TICKS, this.dashTicks);
+            if (this.dashTicks == 0) {
+                this.setDeltaMovement(this.getDeltaMovement().scale(0.32D));
+                this.hasImpulse = true;
+                if (this.dashesRemaining > 0) {
+                    this.dashRecoveryTicks = 8;
+                    this.entityData.set(ATTACK_STATE, 6);
+                    this.entityData.set(ATTACK_TICKS, this.dashRecoveryTicks);
+                } else {
+                    this.entityData.set(ATTACK_STATE, 0);
+                    this.entityData.set(ATTACK_TICKS, 0);
+                    this.dashTarget = null;
+                }
+            }
+            return true;
+        }
+
+        if (this.dashRecoveryTicks > 0) {
+            this.dashRecoveryTicks--;
+            this.entityData.set(ATTACK_TICKS, this.dashRecoveryTicks);
+            if (this.dashRecoveryTicks == 0) {
+                if (this.dashTarget != null && this.dashTarget.isAlive()) {
+                    this.beginDashCharge(this.dashTarget);
+                } else {
+                    this.dashesRemaining = 0;
+                    this.dashTarget = null;
+                    this.entityData.set(ATTACK_STATE, 0);
+                    this.entityData.set(ATTACK_TICKS, 0);
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void beginDashBurst() {
+        this.dashTicks = this.phase >= 3 ? 10 : 9;
+        this.dashesRemaining = Math.max(0, this.dashesRemaining - 1);
+        this.entityData.set(ATTACK_STATE, 7);
+        this.entityData.set(ATTACK_TICKS, this.dashTicks);
+        double speed = this.phase >= 3 ? 1.02D : 0.86D;
+        this.setDeltaMovement(this.dashDirX * speed, this.dashDirY * speed,
+                this.dashDirZ * speed);
+        this.hasImpulse = true;
+        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, this.phase >= 3 ? 0.48F : 0.62F);
+    }
+
+    private void checkDashImpact() {
+        AxisAlignedBB hitBox = this.getBoundingBox().inflate(0.42D, 0.30D, 0.42D);
+        List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, hitBox, PlayerEntity::isAlive);
+        for (PlayerEntity player : players) {
+            if (!this.getBoundingBox().inflate(0.42D, 0.30D, 0.42D).intersects(player.getBoundingBox())) continue;
+            player.hurt(DamageSource.mobAttack(this), this.phase >= 3 ? 14.0F : 10.0F);
+            player.setDeltaMovement(player.getDeltaMovement().add(
+                    this.dashDirX * 0.72D, 0.28D + this.dashDirY * 0.25D, this.dashDirZ * 0.72D));
+            player.hurtMarked = true;
+            player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 30, 0, true, true));
+            this.dashHitRegistered = true;
+            if (this.level instanceof ServerWorld) {
+                ((ServerWorld) this.level).sendParticles(ParticleTypes.CRIT,
+                        player.getX(), player.getY(0.55D), player.getZ(), 16,
+                        0.28D, 0.32D, 0.28D, 0.06D);
+            }
+            break;
+        }
+    }
 
     /** Starts a clearly telegraphed line attack; the locked endpoint lets players dodge before release. */
     private void prepareAstralRay(LivingEntity target) {

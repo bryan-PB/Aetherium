@@ -1,8 +1,8 @@
 package com.aetherium.aetherium.content.item;
 
+import com.aetherium.aetherium.content.boss.AetherBoltEntity;
 import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.SwordItem;
 import net.minecraft.particles.ParticleTypes;
@@ -12,10 +12,10 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.world.server.ServerWorld;
 
-import java.util.List;
-
-/** Astral edge: stronger life siphon, brief stun and a visible chain-lightning strike. */
+/** Astral edge: every fourth hit releases a visible, three-pronged bolt fan. */
 public class AstralSwordItem extends SwordItem {
+    private static final String COMBO_KEY = "AetheriumAstralCombo";
+
     public AstralSwordItem(net.minecraft.item.IItemTier tier, int attackDamage, float attackSpeed, Properties properties) {
         super(tier, attackDamage, attackSpeed, properties);
     }
@@ -25,46 +25,50 @@ public class AstralSwordItem extends SwordItem {
         boolean hit = super.hurtEnemy(stack, target, attacker);
         if (!hit || target.level.isClientSide) return hit;
 
-        attacker.heal(3.0F);
-        target.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 24, 0, true, true));
-        if (target.level instanceof ServerWorld) {
-            ServerWorld server = (ServerWorld) target.level;
-            server.sendParticles(ParticleTypes.END_ROD, target.getX(), target.getY(0.55D), target.getZ(),
-                    12, 0.34D, 0.38D, 0.34D, 0.04D);
-            server.sendParticles(ParticleTypes.PORTAL, attacker.getX(), attacker.getY(0.8D), attacker.getZ(),
-                    9, 0.22D, 0.28D, 0.22D, 0.035D);
-        }
-
-        if (attacker.getRandom().nextFloat() < 0.24F) {
-            List<LivingEntity> nearby = target.level.getEntitiesOfClass(LivingEntity.class,
-                    target.getBoundingBox().inflate(3.2D, 1.6D, 3.2D),
-                    entity -> entity instanceof MonsterEntity && entity != target && entity != attacker && entity.isAlive());
-            for (LivingEntity entity : nearby) {
-                entity.hurt(DamageSource.MAGIC, 4.0F);
-                entity.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 55, 1, true, true));
-                entity.addEffect(new EffectInstance(Effects.WEAKNESS, 45, 0, true, true));
-                if (target.level instanceof ServerWorld) {
-                    drawArc((ServerWorld) target.level, target, entity);
-                }
+        attacker.heal(1.2F);
+        target.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 30, 0, true, true));
+        int combo = attacker.getPersistentData().getInt(COMBO_KEY) + 1;
+        if (combo >= 4) {
+            attacker.getPersistentData().putInt(COMBO_KEY, 0);
+            releaseAstralFan(target, attacker);
+        } else {
+            attacker.getPersistentData().putInt(COMBO_KEY, combo);
+            if (target.level instanceof ServerWorld) {
+                ((ServerWorld) target.level).sendParticles(ParticleTypes.DRAGON_BREATH,
+                        target.getX(), target.getY(0.55D), target.getZ(), 5,
+                        0.20D, 0.25D, 0.20D, 0.012D);
             }
-            target.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 45, 1, true, true));
-            target.addEffect(new EffectInstance(Effects.WEAKNESS, 35, 0, true, true));
-            target.level.playSound(null, target.blockPosition(), RegistryHandler.ASTRAL_BLADE_ARC.get(),
-                    SoundCategory.PLAYERS, 0.95F, 0.86F + attacker.getRandom().nextFloat() * 0.24F);
         }
+        target.level.playSound(null, target.blockPosition(), RegistryHandler.ASTRAL_BLADE_ARC.get(),
+                SoundCategory.PLAYERS, 0.8F, 0.9F + combo * 0.04F);
         return true;
     }
 
-    private static void drawArc(ServerWorld world, LivingEntity from, LivingEntity to) {
-        double sx = from.getX(), sy = from.getY(0.58D), sz = from.getZ();
-        double ex = to.getX(), ey = to.getY(0.58D), ez = to.getZ();
-        for (int i = 0; i <= 14; i++) {
-            double t = i / 14.0D;
-            double zig = (i % 2 == 0 ? -0.16D : 0.16D);
-            world.sendParticles(ParticleTypes.END_ROD,
-                    sx + (ex - sx) * t + zig, sy + (ey - sy) * t,
-                    sz + (ez - sz) * t - zig, 1, 0.012D, 0.012D, 0.012D, 0.0D);
+    private static void releaseAstralFan(LivingEntity target, LivingEntity attacker) {
+        if (!(attacker.level instanceof ServerWorld)) return;
+        ServerWorld server = (ServerWorld) attacker.level;
+        attacker.heal(2.8F);
+        double originY = attacker.getY() + attacker.getEyeHeight() * 0.72D;
+        server.sendParticles(ParticleTypes.END_ROD, attacker.getX(), originY, attacker.getZ(),
+                18, 0.25D, 0.25D, 0.25D, 0.035D);
+        server.sendParticles(ParticleTypes.DRAGON_BREATH, attacker.getX(), originY, attacker.getZ(),
+                20, 0.30D, 0.28D, 0.30D, 0.018D);
+
+        for (int i = -1; i <= 1; i++) {
+            AetherBoltEntity bolt = new AetherBoltEntity(attacker.level, attacker);
+            bolt.setPos(attacker.getX(), originY, attacker.getZ());
+            double spread = i * 1.1D;
+            double dx = target.getX() + spread - bolt.getX();
+            double dy = target.getY(0.52D) - bolt.getY();
+            double dz = target.getZ() - bolt.getZ() - spread * 0.35D;
+            bolt.shoot(dx, dy, dz, 1.28F, 0.22F);
+            attacker.level.addFreshEntity(bolt);
         }
-        world.sendParticles(ParticleTypes.CRIT, ex, ey, ez, 10, 0.32D, 0.36D, 0.32D, 0.05D);
+        target.hurt(DamageSource.MAGIC, 3.0F);
+        target.addEffect(new EffectInstance(Effects.WEAKNESS, 50, 0, true, true));
+        server.sendParticles(ParticleTypes.CRIT, target.getX(), target.getY(0.55D), target.getZ(),
+                14, 0.3D, 0.34D, 0.3D, 0.06D);
+        attacker.level.playSound(null, attacker.blockPosition(), RegistryHandler.ASTRAL_BLADE_ARC.get(),
+                SoundCategory.PLAYERS, 1.05F, 0.72F);
     }
 }
