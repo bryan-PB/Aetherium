@@ -124,12 +124,14 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         float phaseShift = state == 9
                 ? MathHelper.sin(MathHelper.clamp(1.0F - timer / 54.0F, 0.0F, 1.0F) * (float)Math.PI)
                 : 0.0F;
+        float death = MathHelper.clamp(entity.deathTime / 20.0F, 0.0F, 1.0F);
 
         eyeShell.y = -1.0F + idle * 0.55F - charge * 0.4F + stagger * 0.38F
                 - phaseShift * 0.48F;
         eyeShell.xRot = headPitch * ((float)Math.PI / 180.0F) * 0.08F
                 - dashCharge * 0.12F + dash * 0.48F - nova * (0.08F + areaCharge * 0.3F)
-                + pull * areaCharge * 0.12F + stagger * 0.2F + phaseShift * 0.22F;
+                + pull * areaCharge * 0.12F + stagger * 0.2F + phaseShift * 0.22F
+                + death * 1.05F;
         eyeShell.yRot = netHeadYaw * ((float)Math.PI / 180.0F) * 0.28F
                 + MathHelper.sin(ageInTicks * 0.035F) * (0.06F + ascended * 0.1F);
         eyeShell.zRot = MathHelper.sin(ageInTicks * 0.06F) * 0.035F + dash * 0.12F;
@@ -145,17 +147,20 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         pupil.zRot = ageInTicks * (0.025F + ascended * 0.04F);
         glint.y = -2.0F + MathHelper.sin(ageInTicks * 0.16F) * 0.18F;
         jaw.xRot = nova * (0.12F + areaCharge * 0.55F) + beam * 0.22F
-                + phaseShift * 0.38F + MathHelper.sin(ageInTicks * 0.1F) * 0.035F;
+                + phaseShift * 0.38F + MathHelper.sin(ageInTicks * 0.1F) * 0.035F
+                + death * 0.65F;
         fangLeft.xRot = -0.08F - nova * 0.25F;
         fangRight.xRot = fangLeft.xRot;
 
         float flap = MathHelper.sin(ageInTicks * (0.18F + awakened * 0.06F + ascended * 0.04F));
         wingLeft.zRot = -0.35F - flap * (0.14F + awakened * 0.12F)
                 - dashCharge * 0.55F + dash * 0.4F + nova * (0.08F + areaCharge * 0.38F)
-                - pull * areaCharge * 0.18F - stagger * 0.38F - phaseShift * 0.62F;
+                - pull * areaCharge * 0.18F - stagger * 0.38F - phaseShift * 0.62F
+                + death * 0.95F;
         wingRight.zRot = 0.35F + flap * (0.14F + awakened * 0.12F)
                 + dashCharge * 0.55F - dash * 0.4F - nova * (0.08F + areaCharge * 0.38F)
-                + pull * areaCharge * 0.18F + stagger * 0.38F + phaseShift * 0.62F;
+                + pull * areaCharge * 0.18F + stagger * 0.38F + phaseShift * 0.62F
+                - death * 0.95F;
         wingLeft.xRot = 0.08F + beam * 0.12F + dash * 0.2F - phaseShift * 0.25F;
         wingRight.xRot = -wingLeft.xRot;
         wingTipLeft.zRot = -0.28F - dashCharge * 0.3F + dash * 0.2F;
@@ -169,7 +174,7 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
                     - charge * 0.45F - dashCharge * 0.25F + dash * 0.75F
                     + nova * (0.12F + areaCharge * 0.55F) - pull * areaCharge * 0.18F
                     + stagger * (0.42F + (i % 2 == 0 ? 0.08F : -0.08F))
-                    + phaseShift * (i % 2 == 0 ? -0.5F : 0.5F);
+                    + phaseShift * (i % 2 == 0 ? -0.5F : 0.5F) + death * 0.85F;
             tendrils[i].zRot = MathHelper.cos(wave * 0.8F) * (0.18F + awakened * 0.12F)
                     + (i % 2 == 0 ? -1.0F : 1.0F) * (dash * 0.32F + pull * 0.22F);
         }
