@@ -4,6 +4,7 @@ import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.monster.MonsterEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particles.IParticleData;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraft.entity.projectile.ProjectileItemEntity;
@@ -45,7 +46,7 @@ public class AetherBoltEntity extends ProjectileItemEntity {
             LivingEntity victim = (LivingEntity) result.getEntity();
             LivingEntity owner = this.getOwner() instanceof LivingEntity ? (LivingEntity) this.getOwner() : null;
             DamageSource source = owner == null ? DamageSource.MAGIC : DamageSource.indirectMagic(this, owner);
-            victim.hurt(source, 8.0F);
+            victim.hurt(source, this.getOwner() instanceof PlayerEntity ? 4.0F : 8.0F);
             victim.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 50, 0, true, true));
             if (this.level instanceof ServerWorld) {
                 ServerWorld server = (ServerWorld) this.level;

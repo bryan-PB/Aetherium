@@ -29,15 +29,15 @@ public class AstralSwordItem extends SwordItem {
         attacker.heal(1.2F);
         target.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 30, 0, true, true));
         long now = attacker.level.getGameTime();
-        long lastHit = attacker.getPersistentData().getLong(COMBO_TIME_KEY);
-        int combo = (now - lastHit > 40L ? 0 : attacker.getPersistentData().getInt(COMBO_KEY)) + 1;
-        attacker.getPersistentData().putLong(COMBO_TIME_KEY, now);
+        long lastHit = stack.getOrCreateTag().getLong(COMBO_TIME_KEY);
+        int combo = (now - lastHit > 40L ? 0 : stack.getOrCreateTag().getInt(COMBO_KEY)) + 1;
+        stack.getOrCreateTag().putLong(COMBO_TIME_KEY, now);
         if (combo >= 4) {
-            attacker.getPersistentData().putInt(COMBO_KEY, 0);
-            attacker.getPersistentData().putLong(COMBO_TIME_KEY, 0L);
+            stack.getOrCreateTag().putInt(COMBO_KEY, 0);
+            stack.getOrCreateTag().putLong(COMBO_TIME_KEY, 0L);
             releaseAstralFan(target, attacker);
         } else {
-            attacker.getPersistentData().putInt(COMBO_KEY, combo);
+            stack.getOrCreateTag().putInt(COMBO_KEY, combo);
             if (target.level instanceof ServerWorld) {
                 ((ServerWorld) target.level).sendParticles(ParticleTypes.DRAGON_BREATH,
                         target.getX(), target.getY(0.55D), target.getZ(), 5,
