@@ -89,6 +89,8 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
             tendrils[i] = new ModelRenderer(this, 44, 32);
             tendrils[i].setPos(x, y, z);
             tendrils[i].addBox(-1.1F, 0.0F, -1.1F, 2.2F, 10.0F + (i % 2) * 3.0F, 2.2F);
+            // Keep every appendage in the same moving coordinate space as the eye shell.
+            eyeShell.addChild(tendrils[i]);
         }
 
         for (int i = 0; i < barbs.length; i++) {
@@ -183,8 +185,5 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
                                int packedLight, int packedOverlay,
                                float red, float green, float blue, float alpha) {
         eyeShell.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        for (ModelRenderer tendril : tendrils) {
-            tendril.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        }
     }
 }
