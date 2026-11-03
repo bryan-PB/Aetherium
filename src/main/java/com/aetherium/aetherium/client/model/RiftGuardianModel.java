@@ -164,8 +164,14 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         float idle = MathHelper.sin(ageInTicks * 0.07F);
         int state = entity.getAttackState();
         float timer = entity.getAttackAnimationTicks();
-        float windup = state == 1 ? MathHelper.clamp((timer - 12.0F) / 12.0F, 0.0F, 1.0F) : 0.0F;
-        float impact = state == 1 ? MathHelper.clamp((12.0F - timer) / 12.0F, 0.0F, 1.0F) : 0.0F;
+        // The slam and sweep both deal damage at timer 11: raise, strike, then recover.
+        // Make the strongest weapon motion land on that frame rather than several ticks later.
+        float weaponRaise = MathHelper.clamp((24.0F - timer) / 10.0F, 0.0F, 1.0F)
+                * MathHelper.clamp((timer - 11.0F) / 3.0F, 0.0F, 1.0F);
+        float weaponStrike = MathHelper.clamp((14.0F - timer) / 3.0F, 0.0F, 1.0F)
+                * MathHelper.clamp((timer - 1.0F) / 10.0F, 0.0F, 1.0F);
+        float windup = state == 1 ? weaponRaise : 0.0F;
+        float impact = state == 1 ? weaponStrike : 0.0F;
         float volley = state == 2 ? 1.0F : 0.0F;
         float chargeWindup = state == 4 ? MathHelper.clamp((timer - 12.0F) / 12.0F, 0.0F, 1.0F) : 0.0F;
         float chargeRush = state == 4 ? 1.0F - chargeWindup : 0.0F;
@@ -173,8 +179,8 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         float phaseShift = state == 6
                 ? MathHelper.sin(MathHelper.clamp(1.0F - timer / 48.0F, 0.0F, 1.0F) * (float)Math.PI)
                 : 0.0F;
-        float sweepWindup = state == 3 ? MathHelper.clamp((timer - 12.0F) / 12.0F, 0.0F, 1.0F) : 0.0F;
-        float sweep = state == 3 ? MathHelper.sin(MathHelper.clamp((12.0F - timer) / 12.0F, 0.0F, 1.0F) * (float)Math.PI) : 0.0F;
+        float sweepWindup = state == 3 ? weaponRaise : 0.0F;
+        float sweep = state == 3 ? weaponStrike : 0.0F;
         float rage = entity.getPhase() >= 2 ? 1.0F : 0.0F;
         float death = MathHelper.clamp(entity.deathTime / 20.0F, 0.0F, 1.0F);
 
