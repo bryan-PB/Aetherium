@@ -126,15 +126,17 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
                 : 0.0F;
         float death = MathHelper.clamp(entity.deathTime / 20.0F, 0.0F, 1.0F);
 
+        // The awakened forms spread the creature's silhouette instead of relying on a tint.
         eyeShell.y = -1.0F + idle * 0.55F - charge * 0.4F + stagger * 0.38F
-                - phaseShift * 0.48F;
+                - phaseShift * 0.48F - awakened * 0.22F - ascended * 0.18F;
         eyeShell.xRot = headPitch * ((float)Math.PI / 180.0F) * 0.08F
                 - dashCharge * 0.12F + dash * 0.48F - nova * (0.08F + areaCharge * 0.3F)
                 + pull * areaCharge * 0.12F + stagger * 0.2F + phaseShift * 0.22F
                 + death * 1.05F;
         eyeShell.yRot = netHeadYaw * ((float)Math.PI / 180.0F) * 0.28F
                 + MathHelper.sin(ageInTicks * 0.035F) * (0.06F + ascended * 0.1F);
-        eyeShell.zRot = MathHelper.sin(ageInTicks * 0.06F) * 0.035F + dash * 0.12F;
+        eyeShell.zRot = MathHelper.sin(ageInTicks * 0.06F) * 0.035F + dash * 0.12F
+                + MathHelper.sin(ageInTicks * 0.045F) * (awakened * 0.045F + ascended * 0.07F);
 
         float open = 1.0F - charge * 0.35F - dashCharge * 0.2F + beam * 0.12F
                 + ascended * 0.08F + nova * areaCharge * 0.22F - stagger * 0.48F
@@ -153,21 +155,30 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         fangRight.xRot = fangLeft.xRot;
 
         float flap = MathHelper.sin(ageInTicks * (0.18F + awakened * 0.06F + ascended * 0.04F));
-        wingLeft.zRot = -0.35F - flap * (0.14F + awakened * 0.12F)
+        wingLeft.zRot = -0.35F - flap * (0.14F + awakened * 0.12F + ascended * 0.08F)
+                - awakened * 0.16F - ascended * 0.18F
                 - dashCharge * 0.55F + dash * 0.4F + nova * (0.08F + areaCharge * 0.38F)
                 - pull * areaCharge * 0.18F - stagger * 0.38F - phaseShift * 0.62F
                 + death * 0.95F;
-        wingRight.zRot = 0.35F + flap * (0.14F + awakened * 0.12F)
+        wingRight.zRot = 0.35F + flap * (0.14F + awakened * 0.12F + ascended * 0.08F)
+                + awakened * 0.16F + ascended * 0.18F
                 + dashCharge * 0.55F - dash * 0.4F - nova * (0.08F + areaCharge * 0.38F)
                 + pull * areaCharge * 0.18F + stagger * 0.38F + phaseShift * 0.62F
                 - death * 0.95F;
-        wingLeft.xRot = 0.08F + beam * 0.12F + dash * 0.2F - phaseShift * 0.25F;
+        wingLeft.xRot = 0.08F + awakened * 0.12F + ascended * 0.18F
+                + beam * 0.12F + dash * 0.2F - phaseShift * 0.25F;
         wingRight.xRot = -wingLeft.xRot;
-        wingTipLeft.zRot = -0.28F - dashCharge * 0.3F + dash * 0.2F;
+        wingTipLeft.zRot = -0.28F - awakened * 0.12F - ascended * 0.22F
+                - dashCharge * 0.3F + dash * 0.2F;
         wingTipRight.zRot = -wingTipLeft.zRot;
+        wingTipLeft.xRot = -awakened * 0.16F - ascended * 0.3F + dash * 0.18F;
+        wingTipRight.xRot = -wingTipLeft.xRot;
 
         sideEyeLeft.xRot = MathHelper.sin(ageInTicks * 0.09F) * 0.08F + cast * 0.16F;
         sideEyeRight.xRot = -sideEyeLeft.xRot;
+        sideEyeLeft.yRot = -awakened * 0.18F - ascended * 0.24F
+                + MathHelper.sin(ageInTicks * 0.07F) * 0.08F;
+        sideEyeRight.yRot = -sideEyeLeft.yRot;
         for (int i = 0; i < tendrils.length; i++) {
             float wave = ageInTicks * (0.075F + awakened * 0.025F + ascended * 0.045F) + i * 1.0F;
             tendrils[i].xRot = 0.35F + MathHelper.sin(wave) * (0.22F + ascended * 0.14F)
@@ -175,12 +186,16 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
                     + nova * (0.12F + areaCharge * 0.55F) - pull * areaCharge * 0.18F
                     + stagger * (0.42F + (i % 2 == 0 ? 0.08F : -0.08F))
                     + phaseShift * (i % 2 == 0 ? -0.5F : 0.5F) + death * 0.85F;
-            tendrils[i].zRot = MathHelper.cos(wave * 0.8F) * (0.18F + awakened * 0.12F)
-                    + (i % 2 == 0 ? -1.0F : 1.0F) * (dash * 0.32F + pull * 0.22F);
+            float fan = i % 2 == 0 ? -1.0F : 1.0F;
+            tendrils[i].zRot = MathHelper.cos(wave * 0.8F) * (0.18F + awakened * 0.12F + ascended * 0.1F)
+                    + fan * (awakened * 0.16F + ascended * 0.24F + dash * 0.32F + pull * 0.22F);
+            tendrils[i].yRot = fan * (awakened * 0.12F + ascended * 0.2F);
         }
         for (int i = 0; i < barbs.length; i++) {
-            barbs[i].xRot = MathHelper.sin(ageInTicks * 0.07F + i) * 0.05F + ascended * 0.18F;
-            barbs[i].yRot = ageInTicks * 0.02F + i * 1.57F;
+            barbs[i].xRot = MathHelper.sin(ageInTicks * 0.07F + i) * 0.05F
+                    + awakened * 0.1F + ascended * 0.24F;
+            barbs[i].yRot = ageInTicks * (0.02F + awakened * 0.012F + ascended * 0.025F)
+                    + i * 1.57F;
         }
     }
 
