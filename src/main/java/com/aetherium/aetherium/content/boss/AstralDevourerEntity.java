@@ -22,6 +22,7 @@ import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
@@ -55,6 +56,8 @@ public class AstralDevourerEntity extends MonsterEntity {
     private double dashDirY;
     private double dashDirZ;
     private LivingEntity dashTarget;
+    private BlockPos waterExitTarget;
+    private int waterSearchCooldown = 0;
 
     public AstralDevourerEntity(EntityType<? extends AstralDevourerEntity> type, World world) {
         super(type, world);
@@ -227,10 +230,55 @@ public class AstralDevourerEntity extends MonsterEntity {
             this.getLookControl().setLookAt(target, 30.0F, 30.0F);
         }
 
+        if (this.isInWater()) {
+            if (this.waterSearchCooldown > 0) this.waterSearchCooldown--;
+            if (this.waterSearchCooldown <= 0) {
+                this.waterExitTarget = this.findNearestDryPosition();
+                this.waterSearchCooldown = 20;
+            }
+            if (this.waterExitTarget != null) {
+                double shoreX = this.waterExitTarget.getX() + 0.5D - this.getX();
+                double shoreZ = this.waterExitTarget.getZ() + 0.5D - this.getZ();
+                double shoreLength = Math.max(0.001D, Math.sqrt(shoreX * shoreX + shoreZ * shoreZ));
+                desiredX = shoreX / shoreLength * 0.15D;
+                desiredZ = shoreZ / shoreLength * 0.15D;
+                desiredY = Math.max(desiredY, 0.22D);
+            }
+        } else {
+            this.waterExitTarget = null;
+            this.waterSearchCooldown = 0;
+        }
+
         this.setDeltaMovement(
                 velocity.x * 0.70D + desiredX * 0.30D,
                 velocity.y * 0.66D + desiredY * 0.34D,
                 velocity.z * 0.70D + desiredZ * 0.30D);
+    }
+
+    /** Finds a nearby dry two-block-high landing position when the flying boss is submerged. */
+    private BlockPos findNearestDryPosition() {
+        BlockPos origin = this.blockPosition();
+        BlockPos best = null;
+        double bestScore = Double.MAX_VALUE;
+        for (int dx = -12; dx <= 12; dx += 2) {
+            for (int dz = -12; dz <= 12; dz += 2) {
+                for (int dy = 8; dy >= -12; dy--) {
+                    BlockPos ground = origin.offset(dx, dy, dz);
+                    if (!this.level.getBlockState(ground).getMaterial().isSolid()
+                            || !this.level.getFluidState(ground).isEmpty()) continue;
+                    BlockPos feet = ground.offset(0, 1, 0);
+                    BlockPos head = ground.offset(0, 2, 0);
+                    if (!this.level.getBlockState(feet).isAir() || !this.level.getFluidState(feet).isEmpty()
+                            || !this.level.getBlockState(head).isAir() || !this.level.getFluidState(head).isEmpty()) continue;
+                    double score = dx * dx + dz * dz + dy * dy * 0.35D;
+                    if (score < bestScore) {
+                        bestScore = score;
+                        best = feet;
+                    }
+                }
+            }
+        }
+        return best;
     }
 
     /** Fires an animated volley of bright astral projectiles. */
