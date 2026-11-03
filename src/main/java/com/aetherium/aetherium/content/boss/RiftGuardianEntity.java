@@ -23,6 +23,7 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
@@ -102,6 +103,13 @@ public class RiftGuardianEntity extends MonsterEntity {
             Vector3d motion = this.getDeltaMovement();
             this.setDeltaMovement(motion.x * 0.92D, Math.max(motion.y, 0.24D), motion.z * 0.92D);
             this.hasImpulse = true;
+            if (this.tickCount % 20 == 0) {
+                BlockPos shore = this.findNearestDryPosition();
+                if (shore != null) {
+                    this.getNavigation().moveTo(shore.getX() + 0.5D, shore.getY(),
+                            shore.getZ() + 0.5D, 1.18D);
+                }
+            }
         }
         if (this.level.isClientSide) return;
         int slamTicks = this.entityData.get(SLAM_TICKS);
@@ -184,6 +192,32 @@ public class RiftGuardianEntity extends MonsterEntity {
     }
 
     /** A broad, telegraphed cleave that sweeps the space in front of the Guardian. */
+    /** Finds a nearby dry two-block-high landing spot while the boss is submerged. */
+    private BlockPos findNearestDryPosition() {
+        BlockPos origin = this.blockPosition();
+        BlockPos best = null;
+        double bestScore = Double.MAX_VALUE;
+        for (int dx = -12; dx <= 12; dx += 2) {
+            for (int dz = -12; dz <= 12; dz += 2) {
+                for (int dy = 8; dy >= -12; dy--) {
+                    BlockPos ground = origin.offset(dx, dy, dz);
+                    if (!this.level.getBlockState(ground).getMaterial().isSolid()
+                            || !this.level.getFluidState(ground).isEmpty()) continue;
+                    BlockPos feet = ground.offset(0, 1, 0);
+                    BlockPos head = ground.offset(0, 2, 0);
+                    if (!this.level.getBlockState(feet).isAir() || !this.level.getFluidState(feet).isEmpty()
+                            || !this.level.getBlockState(head).isAir() || !this.level.getFluidState(head).isEmpty()) continue;
+                    double score = dx * dx + dz * dz + dy * dy * 0.35D;
+                    if (score < bestScore) {
+                        bestScore = score;
+                        best = feet;
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
     private void greatswordSweep(LivingEntity target) {
         this.entityData.set(ATTACK_STATE, 3);
         this.entityData.set(SLAM_TICKS, 24);
