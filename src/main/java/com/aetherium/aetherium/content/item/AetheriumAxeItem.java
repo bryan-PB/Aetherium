@@ -79,7 +79,7 @@ public class AetheriumAxeItem extends AxeItem {
             server.sendParticles(ParticleTypes.BLOCK,
                     victim.getX(), victim.getY() + 0.12D, victim.getZ(), 8,
                     0.24D, 0.08D, 0.24D, 0.10D,
-                    Blocks.DEEPSLATE.defaultBlockState());
+                    Blocks.STONE.defaultBlockState());
         }
 
         // Three expanding rings make the slam readable even when no enemy is nearby.
