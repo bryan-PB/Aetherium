@@ -95,6 +95,17 @@ public class AetherBoltEntity extends ProjectileItemEntity {
                 this.level.addParticle(ParticleTypes.CRIT, this.getX(), this.getY(), this.getZ(),
                         0.0D, 0.0D, 0.0D);
             }
+        } else if (this.level instanceof ServerWorld && this.tickCount % 2 == 0) {
+            // Send a compact server-side trail as well: this remains visible to tracking clients
+            // even when local entity particle interpolation is sparse or the client misses a tick.
+            ServerWorld server = (ServerWorld) this.level;
+            double trailY = this.getY() + this.getBbHeight() * 0.5D;
+            server.sendParticles(ParticleTypes.END_ROD,
+                    this.getX(), trailY, this.getZ(), 2, 0.035D, 0.035D, 0.035D, 0.005D);
+            server.sendParticles(ParticleTypes.DRAGON_BREATH,
+                    this.getX(), trailY, this.getZ(), 2, 0.045D, 0.045D, 0.045D, 0.002D);
+            server.sendParticles(ParticleTypes.FLAME,
+                    this.getX(), trailY, this.getZ(), 1, 0.015D, 0.015D, 0.015D, 0.0D);
         }
         if (!this.level.isClientSide && this.tickCount > 80) {
             this.remove();
