@@ -113,8 +113,13 @@ public class RiftGuardianEntity extends MonsterEntity {
             if (this.tickCount % 20 == 0) {
                 BlockPos shore = this.findNearestDryPosition();
                 if (shore != null) {
-                    this.getNavigation().moveTo(shore.getX() + 0.5D, shore.getY(),
-                            shore.getZ() + 0.5D, 1.18D);
+                    double shoreX = shore.getX() + 0.5D - this.getX();
+                    double shoreZ = shore.getZ() + 0.5D - this.getZ();
+                    double shoreLength = Math.max(0.001D, Math.sqrt(shoreX * shoreX + shoreZ * shoreZ));
+                    this.setDeltaMovement(motion.x * 0.55D + shoreX / shoreLength * 0.20D,
+                            Math.max(motion.y, 0.24D),
+                            motion.z * 0.55D + shoreZ / shoreLength * 0.20D);
+                    this.hasImpulse = true;
                 }
             }
         }

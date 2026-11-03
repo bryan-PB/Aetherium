@@ -536,7 +536,8 @@ public class AstralDevourerEntity extends MonsterEntity {
         List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, area, PlayerEntity::isAlive);
         for (PlayerEntity player : players) {
             double px = player.getX() - sx;
-            double py = player.getY(player.getBbHeight() * 0.5D) - sy;
+            double playerCenterY = player.getY(0.5D);
+            double py = playerCenterY - sy;
             double pz = player.getZ() - sz;
             double t = (px * dx + py * dy + pz * dz) / lengthSq;
             if (t < 0.0D || t > 1.0D) continue;
@@ -544,7 +545,7 @@ public class AstralDevourerEntity extends MonsterEntity {
             double nearY = sy + dy * t;
             double nearZ = sz + dz * t;
             double ex = player.getX() - nearX;
-            double ey = player.getY(player.getBbHeight() * 0.5D) - nearY;
+            double ey = playerCenterY - nearY;
             double ez = player.getZ() - nearZ;
             if (ex * ex + ey * ey + ez * ez <= 1.35D * 1.35D) {
                 player.hurt(DamageSource.indirectMagic(this, this), 12.0F);

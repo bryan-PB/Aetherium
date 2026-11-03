@@ -15,6 +15,7 @@ import net.minecraft.world.server.ServerWorld;
 /** Astral edge: every fourth hit releases a visible, three-pronged bolt fan. */
 public class AstralSwordItem extends SwordItem {
     private static final String COMBO_KEY = "AetheriumAstralCombo";
+    private static final String COMBO_TIME_KEY = "AetheriumAstralComboTime";
 
     public AstralSwordItem(net.minecraft.item.IItemTier tier, int attackDamage, float attackSpeed, Properties properties) {
         super(tier, attackDamage, attackSpeed, properties);
@@ -27,9 +28,13 @@ public class AstralSwordItem extends SwordItem {
 
         attacker.heal(1.2F);
         target.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 30, 0, true, true));
-        int combo = attacker.getPersistentData().getInt(COMBO_KEY) + 1;
+        long now = attacker.level.getGameTime();
+        long lastHit = attacker.getPersistentData().getLong(COMBO_TIME_KEY);
+        int combo = (now - lastHit > 40L ? 0 : attacker.getPersistentData().getInt(COMBO_KEY)) + 1;
+        attacker.getPersistentData().putLong(COMBO_TIME_KEY, now);
         if (combo >= 4) {
             attacker.getPersistentData().putInt(COMBO_KEY, 0);
+            attacker.getPersistentData().putLong(COMBO_TIME_KEY, 0L);
             releaseAstralFan(target, attacker);
         } else {
             attacker.getPersistentData().putInt(COMBO_KEY, combo);

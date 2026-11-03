@@ -17,6 +17,7 @@ import java.util.List;
 /** Rift-forged blade: a reliable three-hit cleave that rewards maintaining an attack rhythm. */
 public class AetheriumSwordItem extends SwordItem {
     private static final String COMBO_KEY = "AetheriumRiftCombo";
+    private static final String COMBO_TIME_KEY = "AetheriumRiftComboTime";
 
     public AetheriumSwordItem(net.minecraft.item.IItemTier tier, int attackDamage, float attackSpeed, Properties properties) {
         super(tier, attackDamage, attackSpeed, properties);
@@ -29,9 +30,13 @@ public class AetheriumSwordItem extends SwordItem {
 
         attacker.heal(1.0F);
         target.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 28, 0, true, true));
-        int combo = attacker.getPersistentData().getInt(COMBO_KEY) + 1;
+        long now = attacker.level.getGameTime();
+        long lastHit = attacker.getPersistentData().getLong(COMBO_TIME_KEY);
+        int combo = (now - lastHit > 40L ? 0 : attacker.getPersistentData().getInt(COMBO_KEY)) + 1;
+        attacker.getPersistentData().putLong(COMBO_TIME_KEY, now);
         if (combo >= 3) {
             attacker.getPersistentData().putInt(COMBO_KEY, 0);
+            attacker.getPersistentData().putLong(COMBO_TIME_KEY, 0L);
             performRiftCleave(target, attacker);
         } else {
             attacker.getPersistentData().putInt(COMBO_KEY, combo);
