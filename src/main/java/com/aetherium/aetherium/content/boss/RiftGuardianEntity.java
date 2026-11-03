@@ -305,6 +305,22 @@ public class RiftGuardianEntity extends MonsterEntity {
                 Math.max(-0.08D, this.getDeltaMovement().y),
                 this.sweepDirectionZ * 0.78D);
         this.hasImpulse = true;
+
+        // Leave a directional rift wake during the charge so its path reads clearly at combat speed.
+        if (this.level instanceof ServerWorld && this.tickCount % 2 == 0) {
+            ServerWorld server = (ServerWorld) this.level;
+            for (int i = 1; i <= 5; i++) {
+                double trailX = this.getX() - this.sweepDirectionX * i * 0.72D;
+                double trailZ = this.getZ() - this.sweepDirectionZ * i * 0.72D;
+                double trailY = this.getY() + 0.18D + i * 0.035D;
+                server.sendParticles(ParticleTypes.END_ROD, trailX, trailY, trailZ,
+                        1, 0.025D, 0.035D, 0.025D, 0.0D);
+                if (i % 2 == 0) {
+                    server.sendParticles(ParticleTypes.PORTAL, trailX, trailY, trailZ,
+                            2, 0.045D, 0.035D, 0.045D, 0.01D);
+                }
+            }
+        }
         if (this.chargeHitApplied) return;
 
         AxisAlignedBB hitBox = this.getBoundingBox().inflate(0.52D, 0.24D, 0.52D);
