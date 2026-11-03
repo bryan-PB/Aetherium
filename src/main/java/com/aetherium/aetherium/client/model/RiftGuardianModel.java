@@ -220,8 +220,18 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         rightShin.xRot = Math.max(0.0F, -rightLeg.xRot) * 0.5F;
         leftBoot.xRot = -leftShin.xRot * 0.35F;
         rightBoot.xRot = -rightShin.xRot * 0.35F;
-        greatsword.zRot = -0.12F + sweep * 0.12F + chargeWindup * 0.28F
-                - chargeRush * 0.18F + stagger * 0.24F;
+        // Give each heavy attack a readable weapon silhouette before the hit lands.
+        // The blade is a child of the right hand, so these rotations layer onto the arm pose.
+        greatsword.xRot = -windup * 0.95F - sweepWindup * 0.72F
+                + impact * 0.62F + sweep * 1.18F
+                - chargeWindup * 0.28F + chargeRush * 0.82F
+                + stagger * 0.34F + phaseShift * 0.52F;
+        greatsword.yRot = -sweepWindup * 0.22F + sweep * 0.68F
+                + chargeRush * 0.16F + phaseShift * 0.24F;
+        greatsword.zRot = -0.12F + windup * 0.22F + impact * 0.18F
+                + sweepWindup * 0.38F - sweep * 0.82F
+                + chargeWindup * 0.28F - chargeRush * 0.18F
+                + stagger * 0.24F + phaseShift * 0.36F;
     }
 
     @Override
