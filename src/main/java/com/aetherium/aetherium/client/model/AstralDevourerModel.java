@@ -11,6 +11,9 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
     private final ModelRenderer wingLeft, wingRight, wingTipLeft, wingTipRight, sideEyeLeft, sideEyeRight;
     private final ModelRenderer[] tendrils = new ModelRenderer[6];
     private final ModelRenderer[] barbs = new ModelRenderer[4];
+    private float phaseTintRed = 1.0F;
+    private float phaseTintGreen = 1.0F;
+    private float phaseTintBlue = 1.0F;
 
     public AstralDevourerModel() {
         texWidth = 64;
@@ -110,6 +113,10 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         float timer = entity.getAttackAnimationTicks();
         float awakened = phase >= 2 ? 1.0F : 0.0F;
         float ascended = phase >= 3 ? 1.0F : 0.0F;
+        // Textures stay unchanged, but each awakening gets an unmistakable color identity.
+        this.phaseTintRed = phase == 2 ? 0.72F : 1.0F;
+        this.phaseTintGreen = phase == 2 ? 0.78F : (phase == 3 ? 0.60F : 1.0F);
+        this.phaseTintBlue = phase == 3 ? 0.76F : 1.0F;
         float idle = MathHelper.sin(ageInTicks * 0.08F);
         float cast = state == 1 ? 1.0F : 0.0F;
         float charge = state == 2 ? MathHelper.clamp(timer / 22.0F, 0.0F, 1.0F) : 0.0F;
@@ -156,19 +163,19 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
 
         float flap = MathHelper.sin(ageInTicks * (0.18F + awakened * 0.06F + ascended * 0.04F));
         wingLeft.zRot = -0.35F - flap * (0.14F + awakened * 0.12F + ascended * 0.08F)
-                - awakened * 0.16F - ascended * 0.18F
+                - awakened * 0.28F - ascended * 0.34F
                 - dashCharge * 0.55F + dash * 0.4F + nova * (0.08F + areaCharge * 0.38F)
                 - pull * areaCharge * 0.18F - stagger * 0.38F - phaseShift * 0.62F
                 + death * 0.95F;
         wingRight.zRot = 0.35F + flap * (0.14F + awakened * 0.12F + ascended * 0.08F)
-                + awakened * 0.16F + ascended * 0.18F
+                + awakened * 0.28F + ascended * 0.34F
                 + dashCharge * 0.55F - dash * 0.4F - nova * (0.08F + areaCharge * 0.38F)
                 + pull * areaCharge * 0.18F + stagger * 0.38F + phaseShift * 0.62F
                 - death * 0.95F;
         wingLeft.xRot = 0.08F + awakened * 0.12F + ascended * 0.18F
                 + beam * 0.12F + dash * 0.2F - phaseShift * 0.25F;
         wingRight.xRot = -wingLeft.xRot;
-        wingTipLeft.zRot = -0.28F - awakened * 0.12F - ascended * 0.22F
+        wingTipLeft.zRot = -0.28F - awakened * 0.20F - ascended * 0.34F
                 - dashCharge * 0.3F + dash * 0.2F;
         wingTipRight.zRot = -wingTipLeft.zRot;
         wingTipLeft.xRot = -awakened * 0.16F - ascended * 0.3F + dash * 0.18F;
@@ -176,7 +183,7 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
 
         sideEyeLeft.xRot = MathHelper.sin(ageInTicks * 0.09F) * 0.08F + cast * 0.16F;
         sideEyeRight.xRot = -sideEyeLeft.xRot;
-        sideEyeLeft.yRot = -awakened * 0.18F - ascended * 0.24F
+        sideEyeLeft.yRot = -awakened * 0.30F - ascended * 0.42F
                 + MathHelper.sin(ageInTicks * 0.07F) * 0.08F;
         sideEyeRight.yRot = -sideEyeLeft.yRot;
         for (int i = 0; i < tendrils.length; i++) {
@@ -188,7 +195,7 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
                     + phaseShift * (i % 2 == 0 ? -0.5F : 0.5F) + death * 0.85F;
             float fan = i % 2 == 0 ? -1.0F : 1.0F;
             tendrils[i].zRot = MathHelper.cos(wave * 0.8F) * (0.18F + awakened * 0.12F + ascended * 0.1F)
-                    + fan * (awakened * 0.16F + ascended * 0.24F + dash * 0.32F + pull * 0.22F);
+                    + fan * (awakened * 0.25F + ascended * 0.38F + dash * 0.32F + pull * 0.22F);
             tendrils[i].yRot = fan * (awakened * 0.12F + ascended * 0.2F);
         }
         for (int i = 0; i < barbs.length; i++) {
@@ -204,6 +211,8 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
                                com.mojang.blaze3d.vertex.IVertexBuilder buffer,
                                int packedLight, int packedOverlay,
                                float red, float green, float blue, float alpha) {
-        eyeShell.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        eyeShell.render(stack, buffer, packedLight, packedOverlay,
+                red * this.phaseTintRed, green * this.phaseTintGreen,
+                blue * this.phaseTintBlue, alpha);
     }
 }
