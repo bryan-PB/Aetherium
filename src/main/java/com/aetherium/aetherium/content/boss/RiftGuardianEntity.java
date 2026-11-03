@@ -139,9 +139,32 @@ public class RiftGuardianEntity extends MonsterEntity {
                 this.performGreatswordChargeStep();
             }
             if (slamTicks == 1) {
-                this.entityData.set(ATTACK_STATE, 0);
-                this.setDeltaMovement(this.getDeltaMovement().scale(0.25D));
+                if (this.entityData.get(ATTACK_STATE) == 4 && !this.chargeHitApplied) {
+                    this.entityData.set(ATTACK_STATE, 5);
+                    this.entityData.set(SLAM_TICKS, 50);
+                    this.setDeltaMovement(this.getDeltaMovement().scale(0.08D));
+                    this.getNavigation().stop();
+                    if (this.level instanceof ServerWorld) {
+                        ServerWorld server = (ServerWorld) this.level;
+                        server.sendParticles(ParticleTypes.END_ROD,
+                                this.getX(), this.getY() + 1.15D, this.getZ(),
+                                22, 0.55D, 0.7D, 0.55D, 0.035D);
+                        server.sendParticles(ParticleTypes.CRIT,
+                                this.getX(), this.getY() + 0.8D, this.getZ(),
+                                14, 0.45D, 0.45D, 0.45D, 0.04D);
+                    }
+                    this.playSound(SoundEvents.IRON_GOLEM_HURT, 0.9F, 0.72F);
+                } else {
+                    this.entityData.set(ATTACK_STATE, 0);
+                    this.setDeltaMovement(this.getDeltaMovement().scale(0.25D));
+                }
             }
+        }
+
+        if (this.entityData.get(ATTACK_STATE) == 5) {
+            this.getNavigation().stop();
+            this.setDeltaMovement(this.getDeltaMovement().scale(0.35D));
+            this.hasImpulse = true;
         }
 
         this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
@@ -463,6 +486,13 @@ public class RiftGuardianEntity extends MonsterEntity {
 
     public int getPhase() {
         return this.entityData.get(PHASE);
+    }
+
+    /** A failed greatsword charge leaves the Warden open to counterattacks. */
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        if (this.entityData.get(ATTACK_STATE) == 5) amount *= 1.45F;
+        return super.hurt(source, amount);
     }
 
     @Override

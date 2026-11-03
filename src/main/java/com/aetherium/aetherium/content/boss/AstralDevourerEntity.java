@@ -52,6 +52,7 @@ public class AstralDevourerEntity extends MonsterEntity {
     private int dashRecoveryTicks = 0;
     private int dashesRemaining = 0;
     private boolean dashHitRegistered = false;
+    private boolean dashChainHitRegistered = false;
     private double dashDirX;
     private double dashDirY;
     private double dashDirZ;
@@ -317,6 +318,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.dashTarget = target;
         this.dashesRemaining = this.phase >= 3 ? 3 : 2;
         this.dashRecoveryTicks = 0;
+        this.dashChainHitRegistered = false;
         this.beginDashCharge(target);
     }
 
@@ -383,9 +385,7 @@ public class AstralDevourerEntity extends MonsterEntity {
                     this.entityData.set(ATTACK_STATE, 6);
                     this.entityData.set(ATTACK_TICKS, this.dashRecoveryTicks);
                 } else {
-                    this.entityData.set(ATTACK_STATE, 0);
-                    this.entityData.set(ATTACK_TICKS, 0);
-                    this.dashTarget = null;
+                    this.finishDashPattern();
                 }
             }
             return true;
@@ -399,14 +399,39 @@ public class AstralDevourerEntity extends MonsterEntity {
                     this.beginDashCharge(this.dashTarget);
                 } else {
                     this.dashesRemaining = 0;
-                    this.dashTarget = null;
-                    this.entityData.set(ATTACK_STATE, 0);
-                    this.entityData.set(ATTACK_TICKS, 0);
+                    this.finishDashPattern();
                 }
             }
             return true;
         }
         return false;
+    }
+
+    /** Ends the dash combo; a clean miss creates a brief counterattack window. */
+    private void finishDashPattern() {
+        this.dashChargeTicks = 0;
+        this.dashTicks = 0;
+        this.dashRecoveryTicks = 0;
+        this.dashTarget = null;
+        if (!this.dashChainHitRegistered) {
+            this.entityData.set(ATTACK_STATE, 8);
+            this.entityData.set(ATTACK_TICKS, 50);
+            this.setDeltaMovement(this.getDeltaMovement().scale(0.18D));
+            this.hasImpulse = true;
+            if (this.level instanceof ServerWorld) {
+                ServerWorld server = (ServerWorld) this.level;
+                server.sendParticles(ParticleTypes.END_ROD,
+                        this.getX(), this.getY() + this.getBbHeight() * 0.55D, this.getZ(),
+                        26, 0.65D, 0.5D, 0.65D, 0.035D);
+                server.sendParticles(ParticleTypes.PORTAL,
+                        this.getX(), this.getY() + this.getBbHeight() * 0.55D, this.getZ(),
+                        16, 0.45D, 0.4D, 0.45D, 0.04D);
+            }
+            this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.95F, 0.86F);
+        } else {
+            this.entityData.set(ATTACK_STATE, 0);
+            this.entityData.set(ATTACK_TICKS, 0);
+        }
     }
 
     private void beginDashBurst() {
@@ -432,6 +457,7 @@ public class AstralDevourerEntity extends MonsterEntity {
             player.hurtMarked = true;
             player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 30, 0, true, true));
             this.dashHitRegistered = true;
+            this.dashChainHitRegistered = true;
             if (this.level instanceof ServerWorld) {
                 ((ServerWorld) this.level).sendParticles(ParticleTypes.CRIT,
                         player.getX(), player.getY(0.55D), player.getZ(), 16,
@@ -691,6 +717,13 @@ public class AstralDevourerEntity extends MonsterEntity {
 
     public int getPhase() {
         return this.entityData.get(PHASE);
+    }
+
+    /** A fully dodged dash combo briefly exposes the Devourer's core. */
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        if (this.entityData.get(ATTACK_STATE) == 8) amount *= 1.35F;
+        return super.hurt(source, amount);
     }
 
     @Override
