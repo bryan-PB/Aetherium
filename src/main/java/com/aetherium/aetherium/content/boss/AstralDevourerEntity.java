@@ -110,6 +110,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         super.tick();
         this.setNoGravity(true);
         if (this.level.isClientSide) return;
+        if (this.phase >= 2 && this.tickCount % 6 == 0) this.sendPhaseAuraParticles();
 
         LivingEntity target = this.getTarget();
         boolean phaseTransitionActive = this.entityData.get(ATTACK_STATE) == 9;
@@ -636,6 +637,27 @@ public class AstralDevourerEntity extends MonsterEntity {
     }
 
     /** Emits restrained orbiting pulses while the Devourer changes form. */
+    /** Keeps the awakened silhouette readable with a low-cost orbit of client-visible particles. */
+    private void sendPhaseAuraParticles() {
+        if (!(this.level instanceof ServerWorld)) return;
+        ServerWorld server = (ServerWorld) this.level;
+        double angle = this.tickCount * 0.11D;
+        double radius = this.phase >= 3 ? 1.45D : 1.15D;
+        double height = this.getY() + this.getBbHeight() * 0.58D;
+        for (int i = 0; i < 4; i++) {
+            double orbit = angle + Math.PI * 0.5D * i;
+            double x = this.getX() + Math.cos(orbit) * radius;
+            double z = this.getZ() + Math.sin(orbit) * radius;
+            double y = height + Math.sin(orbit * 1.7D) * 0.32D;
+            server.sendParticles(ParticleTypes.END_ROD, x, y, z, 1,
+                    0.015D, 0.025D, 0.015D, 0.0D);
+            if (this.phase >= 3 && i % 2 == 0) {
+                server.sendParticles(ParticleTypes.PORTAL, x, y, z, 1,
+                        0.025D, 0.025D, 0.025D, 0.01D);
+            }
+        }
+    }
+
     private void sendPhaseTransitionPulse(int remainingTicks) {
         if (!(this.level instanceof ServerWorld)) return;
         ServerWorld server = (ServerWorld) this.level;
