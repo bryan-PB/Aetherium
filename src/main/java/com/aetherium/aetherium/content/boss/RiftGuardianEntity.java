@@ -125,7 +125,9 @@ public class RiftGuardianEntity extends MonsterEntity {
             }
         }
         if (this.level.isClientSide) return;
-        if (this.phase >= 2 && this.tickCount % 6 == 0) this.sendRageAuraParticles();
+        if (this.phase >= 2 && this.entityData.get(ATTACK_STATE) == 0 && this.tickCount % 6 == 0) {
+            this.sendRageAuraParticles();
+        }
         int slamTicks = this.entityData.get(SLAM_TICKS);
         if (slamTicks > 0) {
             int nextSlamTick = slamTicks - 1;
@@ -536,8 +538,8 @@ public class RiftGuardianEntity extends MonsterEntity {
             server.sendParticles(ParticleTypes.CRIT, x, height + Math.sin(orbit) * 0.18D, z,
                     1, 0.025D, 0.035D, 0.025D, 0.0D);
             if (i == 0) {
-                server.sendParticles(ParticleTypes.FLAME, x, height, z, 1,
-                        0.02D, 0.025D, 0.02D, 0.0D);
+                server.sendParticles(ParticleTypes.PORTAL, x, height, z, 1,
+                        0.02D, 0.025D, 0.02D, 0.01D);
             }
         }
     }
