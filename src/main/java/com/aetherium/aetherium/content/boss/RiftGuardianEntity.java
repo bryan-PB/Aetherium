@@ -50,6 +50,7 @@ public class RiftGuardianEntity extends MonsterEntity {
     private double sweepDirectionX;
     private double sweepDirectionZ;
     private boolean sweepHitApplied = false;
+    private boolean chargeHitApplied = false;
     private boolean slamDamagePending = false;
     private double pendingSlamRadius;
     private float pendingSlamDamage;
@@ -134,7 +135,13 @@ public class RiftGuardianEntity extends MonsterEntity {
             if (this.entityData.get(ATTACK_STATE) == 1 && nextSlamTick == 11 && this.slamDamagePending) {
                 this.resolveGroundSlam();
             }
-            if (slamTicks == 1) this.entityData.set(ATTACK_STATE, 0);
+            if (this.entityData.get(ATTACK_STATE) == 4 && nextSlamTick <= 12) {
+                this.performGreatswordChargeStep();
+            }
+            if (slamTicks == 1) {
+                this.entityData.set(ATTACK_STATE, 0);
+                this.setDeltaMovement(this.getDeltaMovement().scale(0.25D));
+            }
         }
 
         this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
@@ -168,16 +175,30 @@ public class RiftGuardianEntity extends MonsterEntity {
 
         double distanceSq = this.distanceToSqr(target);
         if (phase >= 2 && distanceSq > 8.0D * 8.0D) {
-            this.fireRiftVolley(target);
-            this.attackCooldown = 78;
+            // Phase II alternates volleys with a committed rush when the player is within charge range.
+            if (distanceSq <= 15.0D * 15.0D && this.attackPattern % 3 == 2) {
+                this.startGreatswordCharge(target);
+                this.attackCooldown = 112;
+            } else {
+                this.fireRiftVolley(target);
+                this.attackCooldown = 78;
+            }
+            this.attackPattern++;
         } else if (distanceSq > 3.8D * 3.8D && distanceSq <= 8.0D * 8.0D) {
-            this.greatswordSweep(target);
-            this.attackCooldown = phase == 1 ? 82 : 66;
+            if (phase >= 2 && this.attackPattern % 2 == 1) {
+                this.startGreatswordCharge(target);
+                this.attackCooldown = 112;
+            } else {
+                this.greatswordSweep(target);
+                this.attackCooldown = phase == 1 ? 82 : 72;
+            }
+            this.attackPattern++;
         } else if (distanceSq <= 3.8D * 3.8D) {
             this.groundSlam(phase == 1 ? 3.5D : 4.35D,
                     phase == 1 ? 8.0F : 10.0F,
                     phase == 1 ? 0.78D : 1.15D);
-            this.attackCooldown = phase == 1 ? 96 : 76;
+            this.attackCooldown = phase == 1 ? 96 : 82;
+            this.attackPattern++;
         }
 
         if (phase == 2 && this.minionCooldown <= 0 && this.random.nextInt(3) == 0) {
@@ -208,6 +229,64 @@ public class RiftGuardianEntity extends MonsterEntity {
         server.sendParticles(ParticleTypes.PORTAL,
                 this.getX() + 0.85D, this.getY() + 1.7D, this.getZ() - 0.35D, 8, 0.12D, 0.12D, 0.12D, 0.01D);
         this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.9F, 0.65F);
+    }
+
+    /** Locks direction and raises the greatsword before a fast, punishable lunge. */
+    private void startGreatswordCharge(LivingEntity target) {
+        double dx = target.getX() - this.getX();
+        double dz = target.getZ() - this.getZ();
+        double length = Math.max(0.001D, Math.sqrt(dx * dx + dz * dz));
+        this.sweepDirectionX = dx / length;
+        this.sweepDirectionZ = dz / length;
+        this.chargeHitApplied = false;
+        this.entityData.set(ATTACK_STATE, 4);
+        this.entityData.set(SLAM_TICKS, 24);
+        this.getNavigation().stop();
+        this.setDeltaMovement(this.getDeltaMovement().scale(0.2D));
+        if (this.level instanceof ServerWorld) {
+            ServerWorld server = (ServerWorld) this.level;
+            for (int i = 1; i <= 6; i++) {
+                double x = this.getX() + this.sweepDirectionX * i * 1.2D;
+                double z = this.getZ() + this.sweepDirectionZ * i * 1.2D;
+                server.sendParticles(ParticleTypes.CRIT, x, this.getY() + 0.18D, z,
+                        3, 0.12D, 0.04D, 0.12D, 0.01D);
+            }
+            server.sendParticles(ParticleTypes.FLAME,
+                    this.getX(), this.getY() + 0.25D, this.getZ(), 8,
+                    0.25D, 0.10D, 0.25D, 0.015D);
+        }
+        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.9F, 0.72F);
+    }
+
+    /** Carries the Warden forward after the telegraph and resolves at most one player hit. */
+    private void performGreatswordChargeStep() {
+        if (this.entityData.get(ATTACK_STATE) != 4) return;
+        this.setDeltaMovement(this.sweepDirectionX * 0.78D,
+                Math.max(-0.08D, this.getDeltaMovement().y),
+                this.sweepDirectionZ * 0.78D);
+        this.hasImpulse = true;
+        if (this.chargeHitApplied) return;
+
+        AxisAlignedBB hitBox = this.getBoundingBox().inflate(0.52D, 0.24D, 0.52D);
+        List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, hitBox, PlayerEntity::isAlive);
+        for (PlayerEntity player : players) {
+            if (!this.getBoundingBox().inflate(0.52D, 0.24D, 0.52D).intersects(player.getBoundingBox())) continue;
+            player.hurt(DamageSource.mobAttack(this), this.phase >= 2 ? 14.0F : 11.0F);
+            player.setDeltaMovement(player.getDeltaMovement().add(
+                    this.sweepDirectionX * 1.0D, 0.32D, this.sweepDirectionZ * 1.0D));
+            player.hurtMarked = true;
+            this.chargeHitApplied = true;
+            if (this.level instanceof ServerWorld) {
+                ServerWorld server = (ServerWorld) this.level;
+                server.sendParticles(ParticleTypes.CRIT, player.getX(), player.getY(0.55D), player.getZ(),
+                        20, 0.3D, 0.34D, 0.3D, 0.07D);
+                server.sendParticles(ParticleTypes.SWEEP_ATTACK,
+                        player.getX(), player.getY(0.5D), player.getZ(), 2,
+                        0.0D, 0.0D, 0.0D, 0.0D);
+            }
+            this.playSound(SoundEvents.PLAYER_ATTACK_KNOCKBACK, 1.0F, 0.7F);
+            break;
+        }
     }
 
     /** A broad, telegraphed cleave that sweeps the space in front of the Guardian. */
@@ -300,7 +379,6 @@ public class RiftGuardianEntity extends MonsterEntity {
         }
         this.playSound(SoundEvents.PLAYER_ATTACK_SWEEP, 1.15F, 0.58F);
         this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.75F, 0.82F);
-        this.attackPattern++;
     }
 
     /** Telegraphs the overhead hammer blow; damage is delayed until the impact animation. */

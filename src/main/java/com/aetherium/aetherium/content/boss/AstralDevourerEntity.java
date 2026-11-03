@@ -58,6 +58,8 @@ public class AstralDevourerEntity extends MonsterEntity {
     private LivingEntity dashTarget;
     private BlockPos waterExitTarget;
     private int waterSearchCooldown = 0;
+    private boolean gravityDamagePending = false;
+    private boolean novaDamagePending = false;
 
     public AstralDevourerEntity(EntityType<? extends AstralDevourerEntity> type, World world) {
         super(type, world);
@@ -557,15 +559,54 @@ public class AstralDevourerEntity extends MonsterEntity {
     private void tickAttackAnimation() {
         int ticks = this.entityData.get(ATTACK_TICKS);
         if (ticks > 0) {
-            ticks--;
-            this.entityData.set(ATTACK_TICKS, ticks);
-            if (ticks == 0) this.entityData.set(ATTACK_STATE, 0);
+            int nextTicks = ticks - 1;
+            this.entityData.set(ATTACK_TICKS, nextTicks);
+            int state = this.entityData.get(ATTACK_STATE);
+            if (state == 4 && nextTicks == 12 && this.gravityDamagePending) {
+                this.resolveGravityWell();
+            } else if (state == 5 && nextTicks == 12 && this.novaDamagePending) {
+                this.resolveCosmicNova();
+            }
+            if (state == 4 || state == 5) this.sendAreaAttackTelegraph(state, nextTicks);
+            if (nextTicks == 0) {
+                this.entityData.set(ATTACK_STATE, 0);
+                this.gravityDamagePending = false;
+                this.novaDamagePending = false;
+            }
         }
     }
 
+    /** Maintains an expanding warning ring so the player can read the radius before the attack lands. */
+    private void sendAreaAttackTelegraph(int state, int remainingTicks) {
+        if (!(this.level instanceof ServerWorld) || remainingTicks <= 0) return;
+        ServerWorld server = (ServerWorld) this.level;
+        double maxRadius = state == 4 ? 6.0D : 5.4D;
+        double radius = maxRadius * (1.0D - remainingTicks / 24.0D);
+        if (remainingTicks % 2 != 0) return;
+        for (int i = 0; i < 20; i++) {
+            double angle = Math.PI * 2.0D * i / 20.0D + this.tickCount * 0.025D;
+            double x = this.getX() + Math.cos(angle) * radius;
+            double z = this.getZ() + Math.sin(angle) * radius;
+            server.sendParticles(state == 4 ? ParticleTypes.PORTAL : ParticleTypes.DRAGON_BREATH,
+                    x, this.getY() + 0.18D, z, 1, 0.015D, 0.025D, 0.015D, 0.0D);
+        }
+        server.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + this.getBbHeight() * 0.56D,
+                this.getZ(), state == 4 ? 3 : 5, 0.32D, 0.22D, 0.32D, 0.01D);
+    }
+
+    /** Starts a 24-tick gravity warning; the pull only happens on the release frame. */
     private void gravityWell() {
+        this.gravityDamagePending = true;
+        this.novaDamagePending = false;
         this.entityData.set(ATTACK_STATE, 4);
         this.entityData.set(ATTACK_TICKS, 24);
+        this.sendAreaAttackTelegraph(4, 24);
+        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.9F, 0.92F);
+    }
+
+    /** Applies the pull and slow after the warning ring has reached its full radius. */
+    private void resolveGravityWell() {
+        this.gravityDamagePending = false;
         double radius = 6.0D;
         AxisAlignedBB area = new AxisAlignedBB(this.getX() - radius, this.getY() - 3.0D,
                 this.getZ() - radius, this.getX() + radius,
@@ -582,22 +623,33 @@ public class AstralDevourerEntity extends MonsterEntity {
             player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 45, 0, true, true));
         }
         if (this.level instanceof ServerWorld) {
-            ServerWorld server = (ServerWorld)this.level;
+            ServerWorld server = (ServerWorld) this.level;
             for (int i = 0; i < 36; i++) {
                 double angle = Math.PI * 2.0D * i / 36.0D;
                 server.sendParticles(ParticleTypes.PORTAL,
                         this.getX() + Math.cos(angle) * radius, this.getY() + 0.15D,
-                        this.getZ() + Math.sin(angle) * radius, 1, 0.02D, 0.05D, 0.02D, 0.0D);
+                        this.getZ() + Math.sin(angle) * radius, 2, 0.02D, 0.05D, 0.02D, 0.0D);
             }
             server.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.8D, this.getZ(),
-                    24, 1.8D, 0.7D, 1.8D, 0.12D);
+                    28, 1.8D, 0.7D, 1.8D, 0.12D);
+            server.sendParticles(ParticleTypes.EXPLOSION, this.getX(), this.getY() + 0.7D, this.getZ(),
+                    2, 0.35D, 0.22D, 0.35D, 0.0D);
         }
-        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.9F, 0.72F);
+        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.95F, 0.72F);
     }
 
+    /** Starts a ring warning before the final phase nova; damage is delayed to the slam frame. */
     private void cosmicNova() {
+        this.gravityDamagePending = false;
+        this.novaDamagePending = true;
         this.entityData.set(ATTACK_STATE, 5);
         this.entityData.set(ATTACK_TICKS, 24);
+        this.sendAreaAttackTelegraph(5, 24);
+        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, 0.7F);
+    }
+
+    private void resolveCosmicNova() {
+        this.novaDamagePending = false;
         double radius = 5.4D;
         AxisAlignedBB area = new AxisAlignedBB(this.getX() - radius, this.getY() - 2.5D,
                 this.getZ() - radius, this.getX() + radius,
@@ -621,12 +673,14 @@ public class AstralDevourerEntity extends MonsterEntity {
                 double angle = Math.PI * 2.0D * i / 48.0D;
                 server.sendParticles(ParticleTypes.PORTAL,
                         this.getX() + Math.cos(angle) * radius, this.getY() + 0.16D,
-                        this.getZ() + Math.sin(angle) * radius, 1, 0.025D, 0.04D, 0.025D, 0.0D);
+                        this.getZ() + Math.sin(angle) * radius, 2, 0.025D, 0.04D, 0.025D, 0.0D);
             }
             server.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + 0.5D, this.getZ(),
-                    34, 2.0D, 0.9D, 2.0D, 0.08D);
+                    42, 2.0D, 0.9D, 2.0D, 0.08D);
             server.sendParticles(ParticleTypes.CRIT, this.getX(), this.getY() + 0.5D, this.getZ(),
-                    20, 1.4D, 0.8D, 1.4D, 0.12D);
+                    28, 1.4D, 0.8D, 1.4D, 0.12D);
+            server.sendParticles(ParticleTypes.EXPLOSION, this.getX(), this.getY() + 0.5D, this.getZ(),
+                    3, 0.35D, 0.35D, 0.35D, 0.0D);
         }
         this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, 0.48F);
     }

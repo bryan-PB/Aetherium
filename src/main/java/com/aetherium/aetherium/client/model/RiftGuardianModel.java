@@ -167,6 +167,8 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         float windup = state == 1 ? MathHelper.clamp((timer - 12.0F) / 12.0F, 0.0F, 1.0F) : 0.0F;
         float impact = state == 1 ? MathHelper.clamp((12.0F - timer) / 12.0F, 0.0F, 1.0F) : 0.0F;
         float volley = state == 2 ? 1.0F : 0.0F;
+        float chargeWindup = state == 4 ? MathHelper.clamp((timer - 12.0F) / 12.0F, 0.0F, 1.0F) : 0.0F;
+        float chargeRush = state == 4 ? 1.0F - chargeWindup : 0.0F;
         float sweepWindup = state == 3 ? MathHelper.clamp((timer - 12.0F) / 12.0F, 0.0F, 1.0F) : 0.0F;
         float sweep = state == 3 ? MathHelper.sin(MathHelper.clamp((12.0F - timer) / 12.0F, 0.0F, 1.0F) * (float)Math.PI) : 0.0F;
         float rage = entity.getPhase() >= 2 ? 1.0F : 0.0F;
@@ -178,7 +180,7 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         hornRight.zRot = -hornLeft.zRot;
 
         body.y = idle * 0.14F + windup * 0.35F - impact * 0.4F;
-        body.xRot = -windup * 0.14F + impact * 0.24F;
+        body.xRot = -windup * 0.14F + impact * 0.24F + chargeWindup * 0.12F - chargeRush * 0.48F;
         chestPlate.xRot = -windup * 0.05F + impact * 0.1F;
         core.y = -0.2F + MathHelper.sin(ageInTicks * (0.16F + rage * 0.12F)) * (0.3F + rage * 0.25F);
         core.zRot = ageInTicks * (0.025F + rage * 0.035F);
@@ -188,9 +190,9 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         }
 
         leftArm.xRot = -MathHelper.cos(gait) * 0.3F * walk - windup * 1.25F + impact * 1.45F - volley * 0.45F;
-        rightArm.xRot = MathHelper.cos(gait) * 0.3F * walk - windup * 1.55F + impact * 1.65F - volley * 0.35F - sweepWindup * 1.35F + sweep * 2.0F;
+        rightArm.xRot = MathHelper.cos(gait) * 0.3F * walk - windup * 1.55F + impact * 1.65F - volley * 0.35F - sweepWindup * 1.35F + sweep * 2.0F - chargeWindup * 1.5F + chargeRush * 1.0F;
         leftArm.zRot = -0.06F - rage * 0.12F + sweep * 0.42F;
-        rightArm.zRot = 0.08F + rage * 0.08F + sweepWindup * 0.32F - sweep * 1.45F;
+        rightArm.zRot = 0.08F + rage * 0.08F + sweepWindup * 0.32F - sweep * 1.45F + chargeWindup * 0.18F - chargeRush * 0.12F;
         leftForearm.xRot = 0.1F + windup * 0.45F + impact * 0.45F;
         rightForearm.xRot = 0.12F + windup * 0.5F + impact * 0.5F + sweepWindup * 0.55F - sweep * 0.45F;
         leftHand.xRot = -0.05F - impact * 0.12F;
@@ -206,7 +208,7 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         rightShin.xRot = Math.max(0.0F, -rightLeg.xRot) * 0.5F;
         leftBoot.xRot = -leftShin.xRot * 0.35F;
         rightBoot.xRot = -rightShin.xRot * 0.35F;
-        greatsword.zRot = -0.12F + sweep * 0.12F;
+        greatsword.zRot = -0.12F + sweep * 0.12F + chargeWindup * 0.28F - chargeRush * 0.18F;
     }
 
     @Override
