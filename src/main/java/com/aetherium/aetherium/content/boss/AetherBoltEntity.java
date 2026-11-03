@@ -3,9 +3,7 @@ package com.aetherium.aetherium.content.boss;
 import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.particles.IParticleData;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraft.entity.projectile.ProjectileItemEntity;
 import net.minecraft.item.Item;
@@ -29,7 +27,8 @@ public class AetherBoltEntity extends ProjectileItemEntity {
 
     @Override
     protected Item getDefaultItem() {
-        if (this.getOwner() instanceof RiftGuardianEntity) return RegistryHandler.RIFT_FRAGMENT.get();
+        // Keep the default constant. Rift shots set their item explicitly so the sprite
+        // is synchronized even when the client has not resolved the projectile owner.
         return RegistryHandler.ASTRAL_FRAGMENT.get();
     }
 
