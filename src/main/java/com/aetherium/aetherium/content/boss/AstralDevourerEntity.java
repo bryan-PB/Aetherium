@@ -183,20 +183,24 @@ public class AstralDevourerEntity extends MonsterEntity {
             if (distanceSq > 9.0D * 9.0D) {
                 this.shootBolt(target, 0.35F, 1.0F);
                 this.attackCooldown = 72;
-            } else {
+            } else if (this.attackCycle % 2 == 0) {
                 this.gravityWell();
+                this.attackCooldown = 102;
+            } else {
                 this.shootBolt(target, 0.75F, 0.94F);
-                this.attackCooldown = 92;
+                this.attackCooldown = 82;
             }
         } else {
             // Final phase closes distance quickly and explodes if the player stays underneath it.
             if (distanceSq > 7.5D * 7.5D) {
                 this.shootBolt(target, 0.9F, 1.08F);
                 this.attackCooldown = 66;
-            } else {
+            } else if (this.attackCycle % 2 == 0) {
                 this.cosmicNova();
+                this.attackCooldown = 94;
+            } else {
                 this.shootBolt(target, 0.85F, 0.98F);
-                this.attackCooldown = 82;
+                this.attackCooldown = 72;
             }
         }
     }
@@ -562,12 +566,12 @@ public class AstralDevourerEntity extends MonsterEntity {
             int nextTicks = ticks - 1;
             this.entityData.set(ATTACK_TICKS, nextTicks);
             int state = this.entityData.get(ATTACK_STATE);
-            if (state == 4 && nextTicks == 12 && this.gravityDamagePending) {
+            if (state == 4 || state == 5) this.sendAreaAttackTelegraph(state, nextTicks);
+            if (state == 4 && nextTicks == 1 && this.gravityDamagePending) {
                 this.resolveGravityWell();
-            } else if (state == 5 && nextTicks == 12 && this.novaDamagePending) {
+            } else if (state == 5 && nextTicks == 1 && this.novaDamagePending) {
                 this.resolveCosmicNova();
             }
-            if (state == 4 || state == 5) this.sendAreaAttackTelegraph(state, nextTicks);
             if (nextTicks == 0) {
                 this.entityData.set(ATTACK_STATE, 0);
                 this.gravityDamagePending = false;
