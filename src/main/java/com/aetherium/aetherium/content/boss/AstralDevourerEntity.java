@@ -98,6 +98,11 @@ public class AstralDevourerEntity extends MonsterEntity {
 
         LivingEntity target = this.getTarget();
         this.updateHoverMovement(target);
+        if (this.isInWater()) {
+            Vector3d motion = this.getDeltaMovement();
+            this.setDeltaMovement(motion.x * 0.92D, Math.max(motion.y, 0.20D), motion.z * 0.92D);
+            this.hasImpulse = true;
+        }
 
         this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
         int nextPhase = this.getHealth() <= this.getMaxHealth() * 0.33F ? 3
@@ -138,7 +143,7 @@ public class AstralDevourerEntity extends MonsterEntity {
 
         double distanceSq = this.distanceToSqr(target);
         this.attackCycle++;
-        if (phase >= 2 && distanceSq > 8.0D * 8.0D && this.attackCycle % 3 == 0) {
+        if (phase >= 2 && distanceSq > 8.0D * 8.0D && this.attackCycle % 2 == 0) {
             this.prepareAstralRay(target);
             this.attackCooldown = 136;
             return;
@@ -181,14 +186,15 @@ public class AstralDevourerEntity extends MonsterEntity {
         Vector3d velocity = this.getDeltaMovement();
         double desiredX = 0.0D;
         double desiredZ = 0.0D;
-        double desiredY = Math.sin(this.tickCount * 0.075D) * 0.012D;
+        double desiredY = this.isInWater() ? 0.24D : Math.sin(this.tickCount * 0.075D) * 0.012D;
 
         if (target != null && target.isAlive()) {
             double dx = target.getX() - this.getX();
             double dz = target.getZ() - this.getZ();
             double horizontalDistance = Math.max(0.001D, Math.sqrt(dx * dx + dz * dz));
             double hoverY = target.getY() + 0.45D;
-            desiredY = Math.max(-0.14D, Math.min(0.14D, (hoverY - this.getY()) * 0.075D));
+            desiredY = Math.max(this.isInWater() ? 0.20D : -0.14D,
+                    Math.min(this.isInWater() ? 0.30D : 0.14D, (hoverY - this.getY()) * 0.075D));
 
             double preferredDistance = this.phase == 1 ? 10.5D : (this.phase == 2 ? 8.5D : 7.0D);
             if (horizontalDistance > preferredDistance + 1.0D) {
@@ -216,11 +222,11 @@ public class AstralDevourerEntity extends MonsterEntity {
         if (!(this.level instanceof ServerWorld)) return;
         this.entityData.set(ATTACK_STATE, 1);
         this.entityData.set(ATTACK_TICKS, 16);
-        int count = phase == 1 ? 1 : (phase == 2 ? 2 : 3);
+        int count = phase == 1 ? 3 : (phase == 2 ? 4 : 5);
         for (int i = 0; i < count; i++) {
             AetherBoltEntity bolt = new AetherBoltEntity(this.level, this);
             bolt.setPos(this.getX(), this.getY() + this.getEyeHeight() * 0.72D, this.getZ());
-            double offset = (i - (count - 1) / 2.0D) * 0.9D;
+            double offset = (i - (count - 1) / 2.0D) * (phase == 1 ? 0.85D : 0.95D);
             double dx = target.getX() + offset - this.getX();
             double dy = target.getY(0.45D) - bolt.getY();
             double dz = target.getZ() - this.getZ() - offset * 0.45D;
@@ -276,6 +282,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.beamTicks = 10;
         this.entityData.set(ATTACK_STATE, 3);
         this.entityData.set(ATTACK_TICKS, this.beamTicks);
+        this.sendAstralRayParticles(1.0D, true);
         this.damageAlongAstralRay();
         if (this.level instanceof ServerWorld) {
             ServerWorld server = (ServerWorld) this.level;
@@ -300,21 +307,21 @@ public class AstralDevourerEntity extends MonsterEntity {
         double sideLength = Math.max(0.001D, Math.sqrt(dx * dx + dz * dz));
         double sideX = -dz / sideLength;
         double sideZ = dx / sideLength;
-        for (int i = 0; i <= 18; i++) {
-            double progress = i / 18.0D;
+        for (int i = 0; i <= 28; i++) {
+            double progress = i / 28.0D;
             if (progress > reach) continue;
             double wave = Math.sin(this.tickCount * 0.72D + i * 0.9D) * (firing ? 0.11D : 0.035D);
             double px = sx + dx * progress + sideX * wave;
             double py = sy + dy * progress + Math.cos(this.tickCount * 0.5D + i) * wave;
             double pz = sz + dz * progress + sideZ * wave;
-            server.sendParticles(firing ? ParticleTypes.END_ROD : ParticleTypes.PORTAL,
-                    px, py, pz, 1, 0.018D, 0.018D, 0.018D, 0.0D);
-            if (firing && i % 3 == 0) {
-                server.sendParticles(ParticleTypes.CRIT, px, py, pz, 1, 0.025D, 0.025D, 0.025D, 0.0D);
-            }
-            if (firing && i % 6 == 0) {
-                server.sendParticles(ParticleTypes.PORTAL, px + sideX * 0.12D, py,
-                        pz + sideZ * 0.12D, 1, 0.015D, 0.015D, 0.015D, 0.0D);
+            // A layered ribbon is easier to see than a single strand of tiny end-rod particles.
+            server.sendParticles(firing ? ParticleTypes.END_ROD : ParticleTypes.DRAGON_BREATH,
+                    px, py, pz, firing ? 2 : 3, 0.035D, 0.035D, 0.035D, 0.0D);
+            server.sendParticles(firing ? ParticleTypes.CRIT : ParticleTypes.PORTAL,
+                    px, py, pz, firing ? 1 : 2, 0.025D, 0.025D, 0.025D, 0.0D);
+            if (firing && i % 2 == 0) {
+                server.sendParticles(ParticleTypes.DRAGON_BREATH, px + sideX * 0.16D, py,
+                        pz + sideZ * 0.16D, 2, 0.025D, 0.025D, 0.025D, 0.0D);
             }
         }
     }

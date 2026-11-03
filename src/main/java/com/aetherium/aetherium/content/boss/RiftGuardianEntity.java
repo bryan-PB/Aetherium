@@ -9,6 +9,7 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.ai.goal.FloatGoal;
 import net.minecraft.entity.ai.goal.HurtByTargetGoal;
 import net.minecraft.entity.ai.goal.LookAtGoal;
 import net.minecraft.entity.ai.goal.MeleeAttackGoal;
@@ -44,6 +45,7 @@ public class RiftGuardianEntity extends MonsterEntity {
     private static final DataParameter<Integer> ATTACK_STATE = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
     private int phase = 1;
     private int minionCooldown = 0;
+    private int attackPattern = 0;
 
     public RiftGuardianEntity(EntityType<? extends RiftGuardianEntity> type, World world) {
         super(type, world);
@@ -84,6 +86,7 @@ public class RiftGuardianEntity extends MonsterEntity {
 
     @Override
     protected void registerGoals() {
+        this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.05D, true));
         this.goalSelector.addGoal(2, new WaterAvoidingRandomWalkingGoal(this, 0.62D));
         this.goalSelector.addGoal(3, new LookAtGoal(this, PlayerEntity.class, 16.0F));
@@ -95,6 +98,11 @@ public class RiftGuardianEntity extends MonsterEntity {
     @Override
     public void tick() {
         super.tick();
+        if (this.isInWater()) {
+            Vector3d motion = this.getDeltaMovement();
+            this.setDeltaMovement(motion.x * 0.92D, Math.max(motion.y, 0.24D), motion.z * 0.92D);
+            this.hasImpulse = true;
+        }
         if (this.level.isClientSide) return;
         int slamTicks = this.entityData.get(SLAM_TICKS);
         if (slamTicks > 0) {
@@ -132,14 +140,17 @@ public class RiftGuardianEntity extends MonsterEntity {
                 || this.distanceToSqr(target) > 20.0D * 20.0D) return;
 
         double distanceSq = this.distanceToSqr(target);
-        if (phase == 2 && distanceSq > 8.0D * 8.0D) {
+        if (phase >= 2 && distanceSq > 8.0D * 8.0D) {
             this.fireRiftVolley(target);
-            this.attackCooldown = 92;
-        } else {
-            this.groundSlam(phase == 1 ? 3.35D : 4.45D,
-                    phase == 1 ? 8.0F : 11.0F,
-                    phase == 1 ? 0.8D : 1.25D);
-            this.attackCooldown = phase == 1 ? 105 : 78;
+            this.attackCooldown = 78;
+        } else if (distanceSq > 3.8D * 3.8D && distanceSq <= 8.0D * 8.0D) {
+            this.greatswordSweep(target);
+            this.attackCooldown = phase == 1 ? 82 : 66;
+        } else if (distanceSq <= 3.8D * 3.8D) {
+            this.groundSlam(phase == 1 ? 3.5D : 4.35D,
+                    phase == 1 ? 8.0F : 10.0F,
+                    phase == 1 ? 0.78D : 1.15D);
+            this.attackCooldown = phase == 1 ? 96 : 76;
         }
 
         if (phase == 2 && this.minionCooldown <= 0 && this.random.nextInt(3) == 0) {
@@ -170,6 +181,56 @@ public class RiftGuardianEntity extends MonsterEntity {
         server.sendParticles(ParticleTypes.PORTAL,
                 this.getX() + 0.85D, this.getY() + 1.7D, this.getZ() - 0.35D, 8, 0.12D, 0.12D, 0.12D, 0.01D);
         this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.9F, 0.65F);
+    }
+
+    /** A broad, telegraphed cleave that sweeps the space in front of the Guardian. */
+    private void greatswordSweep(LivingEntity target) {
+        this.entityData.set(ATTACK_STATE, 3);
+        this.entityData.set(SLAM_TICKS, 24);
+        double aimX = target.getX() - this.getX();
+        double aimZ = target.getZ() - this.getZ();
+        double aimLength = Math.max(0.001D, Math.sqrt(aimX * aimX + aimZ * aimZ));
+        aimX /= aimLength;
+        aimZ /= aimLength;
+
+        AxisAlignedBB area = this.getBoundingBox().inflate(6.0D, 1.8D, 6.0D);
+        List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, area, PlayerEntity::isAlive);
+        for (PlayerEntity player : players) {
+            double dx = player.getX() - this.getX();
+            double dz = player.getZ() - this.getZ();
+            double distance = Math.sqrt(dx * dx + dz * dz);
+            if (distance > 5.8D || distance < 0.001D
+                    || Math.abs(player.getY() - this.getY()) > this.getBbHeight() + 1.0D) continue;
+            double dot = (dx * aimX + dz * aimZ) / distance;
+            if (dot < 0.28D) continue;
+            player.hurt(DamageSource.mobAttack(this), this.phase == 1 ? 9.0F : 12.0F);
+            player.setDeltaMovement(player.getDeltaMovement().add(
+                    aimX * 0.95D, 0.22D, aimZ * 0.95D));
+            player.hurtMarked = true;
+            if (this.phase >= 2) player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 32, 0, true, true));
+        }
+
+        if (this.level instanceof ServerWorld) {
+            ServerWorld server = (ServerWorld) this.level;
+            double baseAngle = Math.atan2(aimZ, aimX);
+            for (int i = 0; i <= 24; i++) {
+                double angle = baseAngle - 1.08D + 2.16D * i / 24.0D;
+                double radius = 2.2D + (i % 3) * 0.12D;
+                double px = this.getX() + Math.cos(angle) * radius;
+                double pz = this.getZ() + Math.sin(angle) * radius;
+                server.sendParticles(ParticleTypes.SWEEP_ATTACK, px, this.getY() + 1.05D, pz,
+                        1, 0.0D, 0.0D, 0.0D, 0.0D);
+                server.sendParticles(ParticleTypes.CRIT, px, this.getY() + 1.0D, pz,
+                        2, 0.06D, 0.12D, 0.06D, 0.025D);
+                server.sendParticles(ParticleTypes.END_ROD, px, this.getY() + 1.0D, pz,
+                        1, 0.025D, 0.025D, 0.025D, 0.0D);
+            }
+            server.sendParticles(ParticleTypes.EXPLOSION, this.getX() + aimX * 3.6D,
+                    this.getY() + 1.0D, this.getZ() + aimZ * 3.6D, 2, 0.25D, 0.25D, 0.25D, 0.0D);
+        }
+        this.playSound(SoundEvents.PLAYER_ATTACK_SWEEP, 1.15F, 0.58F);
+        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.75F, 0.82F);
+        this.attackPattern++;
     }
 
     private void groundSlam(double radius, float damage, double knockback) {
