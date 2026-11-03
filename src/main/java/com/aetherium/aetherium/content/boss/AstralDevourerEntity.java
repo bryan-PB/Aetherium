@@ -127,7 +127,8 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
         int nextPhase = this.getHealth() <= this.getMaxHealth() * 0.33F ? 3
                 : this.getHealth() <= this.getMaxHealth() * 0.66F ? 2 : 1;
-        if (nextPhase != this.phase) {
+        // Boss phases only advance: healing must not roll back awakened attacks or stats.
+        if (nextPhase > this.phase) {
             this.phase = nextPhase;
             this.entityData.set(PHASE, nextPhase);
             if (phase == 2) {
