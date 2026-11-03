@@ -19,6 +19,7 @@ import net.minecraft.entity.ai.goal.WaterAvoidingRandomWalkingGoal;
 import net.minecraft.world.BossInfo;
 import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundEvents;
@@ -297,6 +298,8 @@ public class RiftGuardianEntity extends MonsterEntity {
         for (int i = -halfSpread; i <= halfSpread; i++) {
             double offset = i * (secondWave ? 0.85D : 1.2D);
             AetherBoltEntity bolt = new AetherBoltEntity(this.level, this);
+            // Sync the rift sprite explicitly; a remote client may not know the owner yet.
+            bolt.setItem(new ItemStack(RegistryHandler.RIFT_FRAGMENT.get()));
             bolt.setPos(this.getX(), this.getY() + this.getBbHeight() * 0.72D, this.getZ());
             double dx = target.getX() + sideX * offset - bolt.getX();
             double dy = target.getY(0.45D) - bolt.getY();
