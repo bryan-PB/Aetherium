@@ -138,6 +138,12 @@ public class RiftGuardianEntity extends MonsterEntity {
                     && nextSlamTick > 11 && nextSlamTick % 4 == 0) {
                 this.sendGreatswordWindupTelegraph(state);
             }
+            if (state == 2 && (nextSlamTick == 21 || nextSlamTick == 11)) {
+                LivingEntity volleyTarget = this.getTarget();
+                if (volleyTarget != null && volleyTarget.isAlive()) {
+                    this.launchRiftVolley(volleyTarget, nextSlamTick == 11);
+                }
+            }
             if (this.entityData.get(ATTACK_STATE) == 3 && nextSlamTick == 11 && !this.sweepHitApplied) {
                 this.resolveGreatswordSweep();
             }
@@ -226,29 +232,35 @@ public class RiftGuardianEntity extends MonsterEntity {
 
         double distanceSq = this.distanceToSqr(target);
         if (phase >= 2 && distanceSq > 8.0D * 8.0D) {
-            // Phase II alternates volleys with a committed rush when the player is within charge range.
+            // A ranged target sees two staggered volleys, interleaved with a committed rush.
             if (distanceSq <= 15.0D * 15.0D && this.attackPattern % 3 == 2) {
                 this.startGreatswordCharge(target);
-                this.attackCooldown = 112;
+                this.attackCooldown = 90;
             } else {
                 this.fireRiftVolley(target);
-                this.attackCooldown = 78;
+                this.attackCooldown = 64;
             }
+            this.attackPattern++;
+        } else if (phase >= 2 && distanceSq > 4.2D * 4.2D
+                && this.attackPattern % 3 == 1) {
+            // Bring the projectile pattern into midrange rather than reserving it for kiting.
+            this.fireRiftVolley(target);
+            this.attackCooldown = 68;
             this.attackPattern++;
         } else if (distanceSq > 3.8D * 3.8D && distanceSq <= 8.0D * 8.0D) {
             if (phase >= 2 && this.attackPattern % 2 == 1) {
                 this.startGreatswordCharge(target);
-                this.attackCooldown = 112;
+                this.attackCooldown = 90;
             } else {
                 this.greatswordSweep(target);
-                this.attackCooldown = phase == 1 ? 82 : 72;
+                this.attackCooldown = phase == 1 ? 82 : 60;
             }
             this.attackPattern++;
         } else if (distanceSq <= 3.8D * 3.8D) {
             this.groundSlam(phase == 1 ? 3.5D : 4.35D,
                     phase == 1 ? 8.0F : 10.0F,
                     phase == 1 ? 0.78D : 1.15D);
-            this.attackCooldown = phase == 1 ? 96 : 82;
+            this.attackCooldown = phase == 1 ? 96 : 70;
             this.attackPattern++;
         }
 
@@ -258,28 +270,46 @@ public class RiftGuardianEntity extends MonsterEntity {
         }
     }
 
-    /** Three visible rift bolts force players to dodge when they try to kite phase II. */
+    /** Starts a visible cast; two offset volleys fire on subsequent animation frames. */
     private void fireRiftVolley(LivingEntity target) {
         this.entityData.set(ATTACK_STATE, 2);
-        this.entityData.set(SLAM_TICKS, 22);
+        this.entityData.set(SLAM_TICKS, 28);
         if (!(this.level instanceof ServerWorld)) return;
-        for (int i = -2; i <= 2; i++) {
+        ServerWorld server = (ServerWorld) this.level;
+        server.sendParticles(ParticleTypes.END_ROD,
+                this.getX(), this.getY() + this.getBbHeight() * 0.72D, this.getZ(),
+                14, 0.5D, 0.45D, 0.5D, 0.04D);
+        server.sendParticles(ParticleTypes.PORTAL,
+                this.getX(), this.getY() + this.getBbHeight() * 0.72D, this.getZ(),
+                10, 0.45D, 0.35D, 0.45D, 0.025D);
+        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.9F, 0.8F);
+    }
+
+    /** Uses aim-relative offsets so the fan points toward the player at every angle. */
+    private void launchRiftVolley(LivingEntity target, boolean secondWave) {
+        if (!(this.level instanceof ServerWorld)) return;
+        double directionX = target.getX() - this.getX();
+        double directionZ = target.getZ() - this.getZ();
+        double length = Math.max(0.001D, Math.sqrt(directionX * directionX + directionZ * directionZ));
+        double sideX = -directionZ / length;
+        double sideZ = directionX / length;
+        int halfSpread = secondWave ? 2 : 1;
+        for (int i = -halfSpread; i <= halfSpread; i++) {
+            double offset = i * (secondWave ? 0.85D : 1.2D);
             AetherBoltEntity bolt = new AetherBoltEntity(this.level, this);
             bolt.setPos(this.getX(), this.getY() + this.getBbHeight() * 0.72D, this.getZ());
-            double dx = target.getX() + i * 1.05D - this.getX();
+            double dx = target.getX() + sideX * offset - bolt.getX();
             double dy = target.getY(0.45D) - bolt.getY();
-            double dz = target.getZ() + i * 0.72D - this.getZ();
-            bolt.shoot(dx, dy, dz, 0.96F, 2.4F);
+            double dz = target.getZ() + sideZ * offset - bolt.getZ();
+            bolt.shoot(dx, dy, dz, secondWave ? 1.38F : 1.22F, 1.0F);
             this.level.addFreshEntity(bolt);
         }
         ServerWorld server = (ServerWorld) this.level;
         server.sendParticles(ParticleTypes.END_ROD,
-                this.getX(), this.getY() + 1.2D, this.getZ(), 24, 0.75D, 0.65D, 0.75D, 0.10D);
-        server.sendParticles(ParticleTypes.PORTAL,
-                this.getX() - 0.85D, this.getY() + 1.7D, this.getZ() - 0.35D, 8, 0.12D, 0.12D, 0.12D, 0.01D);
-        server.sendParticles(ParticleTypes.PORTAL,
-                this.getX() + 0.85D, this.getY() + 1.7D, this.getZ() - 0.35D, 8, 0.12D, 0.12D, 0.12D, 0.01D);
-        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.9F, 0.65F);
+                this.getX(), this.getY() + this.getBbHeight() * 0.72D, this.getZ(),
+                secondWave ? 18 : 12, 0.35D, 0.32D, 0.35D, 0.055D);
+        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.65F,
+                secondWave ? 1.16F : 1.0F);
     }
 
     /** Locks direction and raises the greatsword before a fast, punishable lunge. */
@@ -291,7 +321,7 @@ public class RiftGuardianEntity extends MonsterEntity {
         this.sweepDirectionZ = dz / length;
         this.chargeHitApplied = false;
         this.entityData.set(ATTACK_STATE, 4);
-        this.entityData.set(SLAM_TICKS, 24);
+        this.entityData.set(SLAM_TICKS, this.phase >= 2 ? 20 : 24);
         this.getNavigation().stop();
         this.setDeltaMovement(this.getDeltaMovement().scale(0.2D));
         if (this.level instanceof ServerWorld) {
@@ -312,7 +342,7 @@ public class RiftGuardianEntity extends MonsterEntity {
     /** Carries the Warden forward after the telegraph and resolves at most one player hit. */
     private void performGreatswordChargeStep() {
         if (this.entityData.get(ATTACK_STATE) != 4) return;
-        this.setDeltaMovement(this.sweepDirectionX * 0.78D,
+        this.setDeltaMovement(this.sweepDirectionX * (this.phase >= 2 ? 0.92D : 0.78D),
                 Math.max(-0.08D, this.getDeltaMovement().y),
                 this.sweepDirectionZ * 0.78D);
         this.hasImpulse = true;
@@ -430,7 +460,7 @@ public class RiftGuardianEntity extends MonsterEntity {
     /** Raises the greatsword and locks the facing direction before the cleave lands. */
     private void greatswordSweep(LivingEntity target) {
         this.entityData.set(ATTACK_STATE, 3);
-        this.entityData.set(SLAM_TICKS, 24);
+        this.entityData.set(SLAM_TICKS, this.phase >= 2 ? 20 : 24);
         double aimX = target.getX() - this.getX();
         double aimZ = target.getZ() - this.getZ();
         double aimLength = Math.max(0.001D, Math.sqrt(aimX * aimX + aimZ * aimZ));
@@ -495,7 +525,7 @@ public class RiftGuardianEntity extends MonsterEntity {
     /** Telegraphs the overhead hammer blow; damage is delayed until the impact animation. */
     private void groundSlam(double radius, float damage, double knockback) {
         this.entityData.set(ATTACK_STATE, 1);
-        this.entityData.set(SLAM_TICKS, 24);
+        this.entityData.set(SLAM_TICKS, this.phase >= 2 ? 20 : 24);
         this.pendingSlamRadius = radius;
         this.pendingSlamDamage = damage;
         this.pendingSlamKnockback = knockback;
