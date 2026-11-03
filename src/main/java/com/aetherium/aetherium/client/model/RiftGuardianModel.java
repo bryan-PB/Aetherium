@@ -13,6 +13,8 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
     private final ModelRenderer leftHand, rightHand, leftLeg, rightLeg, leftShin, rightShin;
     private final ModelRenderer leftBoot, rightBoot, greatsword, swordGuard, swordGrip, swordPommel;
     private final ModelRenderer[] chestRibs = new ModelRenderer[3];
+    private float phaseTintRed = 1.0F;
+    private float phaseTintGreen = 1.0F;
 
     public RiftGuardianModel() {
         texWidth = 64;
@@ -182,13 +184,16 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         float sweepWindup = state == 3 ? weaponRaise : 0.0F;
         float sweep = state == 3 ? weaponStrike : 0.0F;
         float rage = entity.getPhase() >= 2 ? 1.0F : 0.0F;
+        // A colder void hue makes the second phase apparent even between attacks.
+        this.phaseTintRed = rage > 0.0F ? 0.78F : 1.0F;
+        this.phaseTintGreen = rage > 0.0F ? 0.68F : 1.0F;
         float death = MathHelper.clamp(entity.deathTime / 20.0F, 0.0F, 1.0F);
 
         head.yRot = netHeadYaw * ((float)Math.PI / 180.0F);
         head.xRot = headPitch * ((float)Math.PI / 180.0F) - windup * 0.12F
                 + impact * 0.2F + stagger * 0.18F + death * 0.28F;
         jaw.xRot = MathHelper.sin(ageInTicks * 0.08F) * 0.035F + rage * 0.1F;
-        hornLeft.zRot = -0.2F - rage * 0.22F + idle * 0.025F;
+        hornLeft.zRot = -0.2F - rage * 0.45F + idle * 0.025F;
         hornRight.zRot = -hornLeft.zRot;
         hornLeft.xRot = -rage * 0.12F;
         hornRight.xRot = -rage * 0.12F;
@@ -203,12 +208,12 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
                 + MathHelper.sin(ageInTicks * (0.16F + rage * 0.12F)) * (0.3F + rage * 0.25F);
         core.xRot = phaseShift * 0.7F;
         core.zRot = ageInTicks * (0.025F + rage * 0.035F + phaseShift * 0.13F);
-        backPlate.xRot = 0.08F + rage * 0.42F + phaseShift * 0.18F;
+        backPlate.xRot = 0.08F + rage * 0.62F + phaseShift * 0.18F;
         backPlate.yRot = MathHelper.sin(ageInTicks * 0.045F) * rage * 0.08F;
         for (int i = 0; i < chestRibs.length; i++) {
             float ribSide = i == 1 ? 0.0F : (i == 0 ? -1.0F : 1.0F);
             chestRibs[i].zRot = MathHelper.sin(ageInTicks * (0.05F + rage * 0.035F) + i) * 0.025F
-                    + ribSide * (rage * 0.12F + phaseShift * 0.08F);
+                    + ribSide * (rage * 0.20F + phaseShift * 0.08F);
         }
 
         leftArm.xRot = -MathHelper.cos(gait) * 0.3F * walk - windup * 1.25F
@@ -230,11 +235,11 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         rightShoulder.zRot = rage * 0.1F;
         leftSpike.xRot = -0.12F - rage * 0.42F;
         rightSpike.xRot = -0.12F - rage * 0.42F;
-        leftSpike.zRot = -rage * 0.16F;
-        rightSpike.zRot = rage * 0.16F;
+        leftSpike.zRot = -rage * 0.28F;
+        rightSpike.zRot = rage * 0.28F;
 
-        leftLeg.x = 3.6F + rage * 0.55F;
-        rightLeg.x = -3.6F - rage * 0.55F;
+        leftLeg.x = 3.6F + rage * 0.80F;
+        rightLeg.x = -3.6F - rage * 0.80F;
         leftLeg.xRot = MathHelper.cos(gait) * 0.46F * walk + impact * 0.15F;
         rightLeg.xRot = MathHelper.cos(gait + (float)Math.PI) * 0.46F * walk + impact * 0.15F;
         leftShin.xRot = Math.max(0.0F, -leftLeg.xRot) * 0.5F;
@@ -261,14 +266,16 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
                                com.mojang.blaze3d.vertex.IVertexBuilder buffer,
                                int packedLight, int packedOverlay,
                                float red, float green, float blue, float alpha) {
-        head.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        neck.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        body.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        leftShoulder.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        rightShoulder.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        leftArm.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        rightArm.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        leftLeg.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        rightLeg.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        float tintedRed = red * this.phaseTintRed;
+        float tintedGreen = green * this.phaseTintGreen;
+        head.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        neck.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        body.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        leftShoulder.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        rightShoulder.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        leftArm.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        rightArm.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        leftLeg.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        rightLeg.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
     }
 }
