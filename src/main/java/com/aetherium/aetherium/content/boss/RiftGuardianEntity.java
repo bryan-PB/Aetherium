@@ -47,6 +47,9 @@ public class RiftGuardianEntity extends MonsterEntity {
     private int phase = 1;
     private int minionCooldown = 0;
     private int attackPattern = 0;
+    private double sweepDirectionX;
+    private double sweepDirectionZ;
+    private boolean sweepHitApplied = false;
 
     public RiftGuardianEntity(EntityType<? extends RiftGuardianEntity> type, World world) {
         super(type, world);
@@ -114,7 +117,11 @@ public class RiftGuardianEntity extends MonsterEntity {
         if (this.level.isClientSide) return;
         int slamTicks = this.entityData.get(SLAM_TICKS);
         if (slamTicks > 0) {
-            this.entityData.set(SLAM_TICKS, slamTicks - 1);
+            int nextSlamTick = slamTicks - 1;
+            this.entityData.set(SLAM_TICKS, nextSlamTick);
+            if (this.entityData.get(ATTACK_STATE) == 3 && nextSlamTick == 11 && !this.sweepHitApplied) {
+                this.resolveGreatswordSweep();
+            }
             if (slamTicks == 1) this.entityData.set(ATTACK_STATE, 0);
         }
 
@@ -218,15 +225,31 @@ public class RiftGuardianEntity extends MonsterEntity {
         return best;
     }
 
+    /** Raises the greatsword and locks the facing direction before the cleave lands. */
     private void greatswordSweep(LivingEntity target) {
         this.entityData.set(ATTACK_STATE, 3);
         this.entityData.set(SLAM_TICKS, 24);
         double aimX = target.getX() - this.getX();
         double aimZ = target.getZ() - this.getZ();
         double aimLength = Math.max(0.001D, Math.sqrt(aimX * aimX + aimZ * aimZ));
-        aimX /= aimLength;
-        aimZ /= aimLength;
+        this.sweepDirectionX = aimX / aimLength;
+        this.sweepDirectionZ = aimZ / aimLength;
+        this.sweepHitApplied = false;
+        if (this.level instanceof ServerWorld) {
+            ServerWorld server = (ServerWorld) this.level;
+            server.sendParticles(ParticleTypes.CRIT, this.getX(), this.getY() + 1.5D, this.getZ(),
+                    8, 0.35D, 0.28D, 0.35D, 0.015D);
+            server.sendParticles(ParticleTypes.END_ROD,
+                    this.getX() + this.sweepDirectionX * 1.8D, this.getY() + 1.5D,
+                    this.getZ() + this.sweepDirectionZ * 1.8D, 5,
+                    0.12D, 0.10D, 0.12D, 0.01D);
+        }
+        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.8F, 0.95F);
+    }
 
+    /** Resolves the sweep at the visible follow-through frame, not at the start of the wind-up. */
+    private void resolveGreatswordSweep() {
+        this.sweepHitApplied = true;
         AxisAlignedBB area = this.getBoundingBox().inflate(6.0D, 1.8D, 6.0D);
         List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, area, PlayerEntity::isAlive);
         for (PlayerEntity player : players) {
@@ -235,18 +258,18 @@ public class RiftGuardianEntity extends MonsterEntity {
             double distance = Math.sqrt(dx * dx + dz * dz);
             if (distance > 5.8D || distance < 0.001D
                     || Math.abs(player.getY() - this.getY()) > this.getBbHeight() + 1.0D) continue;
-            double dot = (dx * aimX + dz * aimZ) / distance;
+            double dot = (dx * this.sweepDirectionX + dz * this.sweepDirectionZ) / distance;
             if (dot < 0.28D) continue;
             player.hurt(DamageSource.mobAttack(this), this.phase == 1 ? 9.0F : 12.0F);
             player.setDeltaMovement(player.getDeltaMovement().add(
-                    aimX * 0.95D, 0.22D, aimZ * 0.95D));
+                    this.sweepDirectionX * 0.95D, 0.22D, this.sweepDirectionZ * 0.95D));
             player.hurtMarked = true;
             if (this.phase >= 2) player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 32, 0, true, true));
         }
 
         if (this.level instanceof ServerWorld) {
             ServerWorld server = (ServerWorld) this.level;
-            double baseAngle = Math.atan2(aimZ, aimX);
+            double baseAngle = Math.atan2(this.sweepDirectionZ, this.sweepDirectionX);
             for (int i = 0; i <= 24; i++) {
                 double angle = baseAngle - 1.08D + 2.16D * i / 24.0D;
                 double radius = 2.2D + (i % 3) * 0.12D;
@@ -259,8 +282,9 @@ public class RiftGuardianEntity extends MonsterEntity {
                 server.sendParticles(ParticleTypes.END_ROD, px, this.getY() + 1.0D, pz,
                         1, 0.025D, 0.025D, 0.025D, 0.0D);
             }
-            server.sendParticles(ParticleTypes.EXPLOSION, this.getX() + aimX * 3.6D,
-                    this.getY() + 1.0D, this.getZ() + aimZ * 3.6D, 2, 0.25D, 0.25D, 0.25D, 0.0D);
+            server.sendParticles(ParticleTypes.EXPLOSION, this.getX() + this.sweepDirectionX * 3.6D,
+                    this.getY() + 1.0D, this.getZ() + this.sweepDirectionZ * 3.6D,
+                    2, 0.25D, 0.25D, 0.25D, 0.0D);
         }
         this.playSound(SoundEvents.PLAYER_ATTACK_SWEEP, 1.15F, 0.58F);
         this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.75F, 0.82F);
