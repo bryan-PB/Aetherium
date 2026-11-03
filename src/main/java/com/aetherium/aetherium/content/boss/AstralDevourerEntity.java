@@ -566,12 +566,17 @@ public class AstralDevourerEntity extends MonsterEntity {
             double pz = sz + dz * progress + sideZ * wave;
             // A layered ribbon is easier to see than a single strand of tiny end-rod particles.
             server.sendParticles(firing ? ParticleTypes.END_ROD : ParticleTypes.DRAGON_BREATH,
-                    px, py, pz, firing ? 2 : 3, 0.035D, 0.035D, 0.035D, 0.0D);
+                    px, py, pz, firing ? 3 : 3, 0.045D, 0.045D, 0.045D, 0.0D);
             server.sendParticles(firing ? ParticleTypes.CRIT : ParticleTypes.PORTAL,
-                    px, py, pz, firing ? 1 : 2, 0.025D, 0.025D, 0.025D, 0.0D);
-            if (firing && i % 2 == 0) {
-                server.sendParticles(ParticleTypes.DRAGON_BREATH, px + sideX * 0.16D, py,
-                        pz + sideZ * 0.16D, 2, 0.025D, 0.025D, 0.025D, 0.0D);
+                    px, py, pz, firing ? 2 : 2, 0.035D, 0.035D, 0.035D, 0.0D);
+            if (firing) {
+                // A warm, unmistakable core separates the ray from the boss model and background.
+                server.sendParticles(ParticleTypes.FLAME, px, py, pz,
+                        1, 0.012D, 0.012D, 0.012D, 0.0D);
+                if (i % 2 == 0) {
+                    server.sendParticles(ParticleTypes.DRAGON_BREATH, px + sideX * 0.18D, py,
+                            pz + sideZ * 0.18D, 2, 0.035D, 0.035D, 0.035D, 0.0D);
+                }
             }
         }
     }
