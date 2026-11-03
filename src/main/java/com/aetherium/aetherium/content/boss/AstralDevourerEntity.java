@@ -112,9 +112,10 @@ public class AstralDevourerEntity extends MonsterEntity {
         if (this.level.isClientSide) return;
 
         LivingEntity target = this.getTarget();
-        boolean dashActive = this.tickDashPattern();
-        if (!dashActive) this.updateHoverMovement(target);
-        if (this.isInWater()) {
+        boolean phaseTransitionActive = this.entityData.get(ATTACK_STATE) == 9;
+        boolean dashActive = phaseTransitionActive ? false : this.tickDashPattern();
+        if (!phaseTransitionActive && !dashActive) this.updateHoverMovement(target);
+        if (this.isInWater() && !phaseTransitionActive) {
             Vector3d motion = this.getDeltaMovement();
             this.setDeltaMovement(motion.x * 0.92D, Math.max(motion.y, 0.20D), motion.z * 0.92D);
             this.hasImpulse = true;
@@ -137,17 +138,40 @@ public class AstralDevourerEntity extends MonsterEntity {
                 this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.34D);
                 this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(12.0D);
             }
-            this.attackCooldown = 24;
+            this.attackCooldown = 0;
+            this.dashChargeTicks = 0;
+            this.dashTicks = 0;
+            this.dashRecoveryTicks = 0;
+            this.dashesRemaining = 0;
+            this.dashTarget = null;
+            this.beamChargeTicks = 0;
+            this.beamTicks = 0;
+            this.gravityDamagePending = false;
+            this.novaDamagePending = false;
+            this.entityData.set(ATTACK_STATE, 9);
+            this.entityData.set(ATTACK_TICKS, 54);
+            this.setDeltaMovement(Vector3d.ZERO);
+            this.hasImpulse = true;
             if (this.level instanceof ServerWorld) {
                 ServerWorld server = (ServerWorld) this.level;
                 server.sendParticles(ParticleTypes.PORTAL,
-                        this.getX(), this.getY() + 1.0D, this.getZ(), 44, 1.45D, 1.0D, 1.45D, 0.25D);
+                        this.getX(), this.getY() + 1.0D, this.getZ(), 36, 1.35D, 0.9D, 1.35D, 0.18D);
                 server.sendParticles(ParticleTypes.END_ROD,
-                        this.getX(), this.getY() + 1.0D, this.getZ(), 24, 1.0D, 0.9D, 1.0D, 0.09D);
+                        this.getX(), this.getY() + 1.0D, this.getZ(), 28, 1.0D, 0.9D, 1.0D, 0.09D);
                 if (phase == 3) server.sendParticles(ParticleTypes.CRIT,
-                        this.getX(), this.getY() + 1.0D, this.getZ(), 36, 1.5D, 1.0D, 1.5D, 0.2D);
+                        this.getX(), this.getY() + 1.0D, this.getZ(), 32, 1.5D, 1.0D, 1.5D, 0.16D);
             }
             this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, phase == 3 ? 0.62F : 0.82F);
+        }
+
+        if (this.entityData.get(ATTACK_STATE) == 9) {
+            this.getNavigation().stop();
+            this.setDeltaMovement(this.getDeltaMovement().scale(0.18D));
+            this.hasImpulse = true;
+            int remaining = this.entityData.get(ATTACK_TICKS);
+            if (remaining > 0 && remaining % 9 == 0) this.sendPhaseTransitionPulse(remaining);
+            this.tickAttackAnimation();
+            return;
         }
 
         if (dashActive) return;
@@ -604,6 +628,25 @@ public class AstralDevourerEntity extends MonsterEntity {
                 this.novaDamagePending = false;
             }
         }
+    }
+
+    /** Emits restrained orbiting pulses while the Devourer changes form. */
+    private void sendPhaseTransitionPulse(int remainingTicks) {
+        if (!(this.level instanceof ServerWorld)) return;
+        ServerWorld server = (ServerWorld) this.level;
+        double progress = 1.0D - remainingTicks / 54.0D;
+        double radius = 0.8D + progress * 3.8D;
+        for (int i = 0; i < 20; i++) {
+            double angle = Math.PI * 2.0D * i / 20.0D + this.tickCount * 0.035D;
+            server.sendParticles(ParticleTypes.PORTAL,
+                    this.getX() + Math.cos(angle) * radius,
+                    this.getY() + this.getBbHeight() * 0.52D + Math.sin(angle * 2.0D) * 0.2D,
+                    this.getZ() + Math.sin(angle) * radius, 1,
+                    0.02D, 0.02D, 0.02D, 0.0D);
+        }
+        server.sendParticles(ParticleTypes.END_ROD,
+                this.getX(), this.getY() + this.getBbHeight() * 0.55D, this.getZ(),
+                5, 0.32D, 0.3D, 0.32D, 0.02D);
     }
 
     /** Maintains an expanding warning ring so the player can read the radius before the attack lands. */

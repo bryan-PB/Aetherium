@@ -170,6 +170,9 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         float chargeWindup = state == 4 ? MathHelper.clamp((timer - 12.0F) / 12.0F, 0.0F, 1.0F) : 0.0F;
         float chargeRush = state == 4 ? 1.0F - chargeWindup : 0.0F;
         float stagger = state == 5 ? MathHelper.clamp(timer / 50.0F, 0.0F, 1.0F) : 0.0F;
+        float phaseShift = state == 6
+                ? MathHelper.sin(MathHelper.clamp(1.0F - timer / 48.0F, 0.0F, 1.0F) * (float)Math.PI)
+                : 0.0F;
         float sweepWindup = state == 3 ? MathHelper.clamp((timer - 12.0F) / 12.0F, 0.0F, 1.0F) : 0.0F;
         float sweep = state == 3 ? MathHelper.sin(MathHelper.clamp((12.0F - timer) / 12.0F, 0.0F, 1.0F) * (float)Math.PI) : 0.0F;
         float rage = entity.getPhase() >= 2 ? 1.0F : 0.0F;
@@ -183,22 +186,25 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
 
         body.y = idle * 0.14F + windup * 0.35F - impact * 0.4F;
         body.xRot = -windup * 0.14F + impact * 0.24F + chargeWindup * 0.12F
-                - chargeRush * 0.48F + stagger * 0.22F;
-        chestPlate.xRot = -windup * 0.05F + impact * 0.1F;
-        core.y = -0.2F + MathHelper.sin(ageInTicks * (0.16F + rage * 0.12F)) * (0.3F + rage * 0.25F);
-        core.zRot = ageInTicks * (0.025F + rage * 0.035F);
+                - chargeRush * 0.48F + stagger * 0.22F - phaseShift * 0.24F;
+        chestPlate.xRot = -windup * 0.05F + impact * 0.1F - phaseShift * 0.32F;
+        core.y = -0.2F - phaseShift * 0.62F
+                + MathHelper.sin(ageInTicks * (0.16F + rage * 0.12F)) * (0.3F + rage * 0.25F);
+        core.xRot = phaseShift * 0.7F;
+        core.zRot = ageInTicks * (0.025F + rage * 0.035F + phaseShift * 0.13F);
         backPlate.xRot = 0.08F + rage * 0.2F;
         for (int i = 0; i < chestRibs.length; i++) {
             chestRibs[i].zRot = MathHelper.sin(ageInTicks * 0.05F + i) * 0.025F;
         }
 
         leftArm.xRot = -MathHelper.cos(gait) * 0.3F * walk - windup * 1.25F
-                + impact * 1.45F - volley * 0.45F + stagger * 0.72F;
+                + impact * 1.45F - volley * 0.45F + stagger * 0.72F - phaseShift * 0.9F;
         rightArm.xRot = MathHelper.cos(gait) * 0.3F * walk - windup * 1.55F + impact * 1.65F
                 - volley * 0.35F - sweepWindup * 1.35F + sweep * 2.0F - chargeWindup * 1.5F
-                + chargeRush * 1.0F + stagger * 0.78F;
-        leftArm.zRot = -0.06F - rage * 0.12F + sweep * 0.42F;
-        rightArm.zRot = 0.08F + rage * 0.08F + sweepWindup * 0.32F - sweep * 1.45F + chargeWindup * 0.18F - chargeRush * 0.12F;
+                + chargeRush * 1.0F + stagger * 0.78F + phaseShift * 0.9F;
+        leftArm.zRot = -0.06F - rage * 0.12F + sweep * 0.42F - phaseShift * 0.42F;
+        rightArm.zRot = 0.08F + rage * 0.08F + sweepWindup * 0.32F - sweep * 1.45F
+                + chargeWindup * 0.18F - chargeRush * 0.12F + phaseShift * 0.42F;
         leftForearm.xRot = 0.1F + windup * 0.45F + impact * 0.45F;
         rightForearm.xRot = 0.12F + windup * 0.5F + impact * 0.5F + sweepWindup * 0.55F - sweep * 0.45F;
         leftHand.xRot = -0.05F - impact * 0.12F;

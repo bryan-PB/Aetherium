@@ -138,6 +138,10 @@ public class RiftGuardianEntity extends MonsterEntity {
             if (this.entityData.get(ATTACK_STATE) == 4 && nextSlamTick <= 12) {
                 this.performGreatswordChargeStep();
             }
+            if (this.entityData.get(ATTACK_STATE) == 6 && nextSlamTick > 0
+                    && nextSlamTick % 8 == 0) {
+                this.sendPhaseTransitionPulse(nextSlamTick);
+            }
             if (slamTicks == 1) {
                 if (this.entityData.get(ATTACK_STATE) == 4 && !this.chargeHitApplied) {
                     this.entityData.set(ATTACK_STATE, 5);
@@ -165,6 +169,11 @@ public class RiftGuardianEntity extends MonsterEntity {
             this.getNavigation().stop();
             this.setDeltaMovement(this.getDeltaMovement().scale(0.35D));
             this.hasImpulse = true;
+        } else if (this.entityData.get(ATTACK_STATE) == 6) {
+            this.getNavigation().stop();
+            this.setDeltaMovement(this.getDeltaMovement().scale(0.18D));
+            this.hasImpulse = true;
+            return;
         }
 
         this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
@@ -176,15 +185,23 @@ public class RiftGuardianEntity extends MonsterEntity {
             this.bossInfo.setName(new TranslationTextComponent("entity.aetherium.rift_guardian.phase_two"));
             this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.32D);
             this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(11.0D);
-            this.attackCooldown = 24;
+            this.attackCooldown = 0;
+            this.slamDamagePending = false;
+            this.sweepHitApplied = false;
+            this.entityData.set(ATTACK_STATE, 6);
+            this.entityData.set(SLAM_TICKS, 48);
+            this.getNavigation().stop();
+            this.setDeltaMovement(Vector3d.ZERO);
             if (this.level instanceof ServerWorld) {
                 ServerWorld server = (ServerWorld) this.level;
                 server.sendParticles(ParticleTypes.EXPLOSION,
-                        this.getX(), this.getY() + 1.0D, this.getZ(), 2, 0.35D, 0.35D, 0.35D, 0.0D);
+                        this.getX(), this.getY() + 1.0D, this.getZ(), 3, 0.45D, 0.45D, 0.45D, 0.0D);
                 server.sendParticles(ParticleTypes.CRIT,
-                        this.getX(), this.getY() + 1.0D, this.getZ(), 34, 1.4D, 0.9D, 1.4D, 0.16D);
+                        this.getX(), this.getY() + 1.0D, this.getZ(), 42, 1.4D, 0.9D, 1.4D, 0.16D);
                 server.sendParticles(ParticleTypes.FLAME,
-                        this.getX(), this.getY() + 1.0D, this.getZ(), 22, 1.0D, 0.6D, 1.0D, 0.035D);
+                        this.getX(), this.getY() + 1.0D, this.getZ(), 26, 1.0D, 0.6D, 1.0D, 0.035D);
+                server.sendParticles(ParticleTypes.END_ROD,
+                        this.getX(), this.getY() + 1.2D, this.getZ(), 16, 0.8D, 0.8D, 0.8D, 0.04D);
             }
             this.playSound(SoundEvents.RAVAGER_ROAR, 1.0F, 0.62F);
         }
@@ -486,6 +503,23 @@ public class RiftGuardianEntity extends MonsterEntity {
 
     public int getPhase() {
         return this.entityData.get(PHASE);
+    }
+
+    /** Emits a modest expanding ring during the Warden's phase-two awakening. */
+    private void sendPhaseTransitionPulse(int remainingTicks) {
+        if (!(this.level instanceof ServerWorld)) return;
+        ServerWorld server = (ServerWorld) this.level;
+        double progress = 1.0D - remainingTicks / 48.0D;
+        double radius = 1.0D + progress * 3.5D;
+        for (int i = 0; i < 18; i++) {
+            double angle = Math.PI * 2.0D * i / 18.0D;
+            server.sendParticles(ParticleTypes.END_ROD,
+                    this.getX() + Math.cos(angle) * radius, this.getY() + 0.12D,
+                    this.getZ() + Math.sin(angle) * radius, 1,
+                    0.015D, 0.035D, 0.015D, 0.0D);
+        }
+        server.sendParticles(ParticleTypes.CRIT, this.getX(), this.getY() + 1.0D, this.getZ(),
+                4, 0.28D, 0.38D, 0.28D, 0.025D);
     }
 
     /** A failed greatsword charge leaves the Warden open to counterattacks. */
