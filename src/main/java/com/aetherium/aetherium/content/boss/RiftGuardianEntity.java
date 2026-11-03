@@ -125,6 +125,7 @@ public class RiftGuardianEntity extends MonsterEntity {
             }
         }
         if (this.level.isClientSide) return;
+        if (this.phase >= 2 && this.tickCount % 6 == 0) this.sendRageAuraParticles();
         int slamTicks = this.entityData.get(SLAM_TICKS);
         if (slamTicks > 0) {
             int nextSlamTick = slamTicks - 1;
@@ -519,6 +520,26 @@ public class RiftGuardianEntity extends MonsterEntity {
 
     public int getPhase() {
         return this.entityData.get(PHASE);
+    }
+
+    /** Adds sparse sparks around the awakened armor without flooding the particle budget. */
+    private void sendRageAuraParticles() {
+        if (!(this.level instanceof ServerWorld)) return;
+        ServerWorld server = (ServerWorld) this.level;
+        double angle = this.tickCount * 0.17D;
+        double radius = 0.72D;
+        double height = this.getY() + this.getBbHeight() * 0.72D;
+        for (int i = 0; i < 3; i++) {
+            double orbit = angle + Math.PI * 2.0D * i / 3.0D;
+            double x = this.getX() + Math.cos(orbit) * radius;
+            double z = this.getZ() + Math.sin(orbit) * radius;
+            server.sendParticles(ParticleTypes.CRIT, x, height + Math.sin(orbit) * 0.18D, z,
+                    1, 0.025D, 0.035D, 0.025D, 0.0D);
+            if (i == 0) {
+                server.sendParticles(ParticleTypes.FLAME, x, height, z, 1,
+                        0.02D, 0.025D, 0.02D, 0.0D);
+            }
+        }
     }
 
     /** Emits a modest expanding ring during the Warden's phase-two awakening. */
