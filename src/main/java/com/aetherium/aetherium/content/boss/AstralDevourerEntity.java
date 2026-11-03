@@ -190,46 +190,46 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.attackCycle++;
         if (distanceSq > 4.5D * 4.5D && distanceSq < 18.0D * 18.0D && this.attackCycle % 3 == 0) {
             this.startDashPattern(target);
-            this.attackCooldown = phase >= 3 ? 118 : 132;
+            this.attackCooldown = phase >= 3 ? 100 : 112;
             return;
         }
         if (phase >= 2 && distanceSq > 8.0D * 8.0D && this.attackCycle % 2 == 0) {
             this.prepareAstralRay(target);
-            this.attackCooldown = 136;
+            this.attackCooldown = phase >= 3 ? 105 : 116;
             return;
         }
         if (phase == 1) {
-            // The first phase teaches players to dodge a precise lance, then punishes close pursuit.
+            // The opening phase teaches dodging with quick shots and a readable gravity pull.
             if (distanceSq > 6.5D * 6.5D) {
-                this.shootBolt(target, 0.0F, 1.05F);
-                this.attackCooldown = 78;
+                this.shootBolt(target, 0.0F, 1.16F);
+                this.attackCooldown = 62;
             } else {
                 this.gravityWell();
-                this.attackCooldown = 102;
+                this.attackCooldown = 86;
             }
         } else if (phase == 2) {
-            // The awakened phase mixes double volleys with a pull-in when players get near.
+            // Phase II follows an initial spread with a later, tighter fan.
             if (distanceSq > 9.0D * 9.0D) {
-                this.shootBolt(target, 0.35F, 1.0F);
-                this.attackCooldown = 72;
+                this.shootBolt(target, 0.25F, 1.18F);
+                this.attackCooldown = 59;
             } else if (this.attackCycle % 2 == 0) {
                 this.gravityWell();
-                this.attackCooldown = 102;
+                this.attackCooldown = 88;
             } else {
-                this.shootBolt(target, 0.75F, 0.94F);
-                this.attackCooldown = 82;
+                this.shootBolt(target, 0.45F, 1.16F);
+                this.attackCooldown = 64;
             }
         } else {
-            // Final phase closes distance quickly and explodes if the player stays underneath it.
+            // Phase III pressures with faster projectiles and close-range novas.
             if (distanceSq > 7.5D * 7.5D) {
-                this.shootBolt(target, 0.9F, 1.08F);
-                this.attackCooldown = 66;
+                this.shootBolt(target, 0.35F, 1.30F);
+                this.attackCooldown = 50;
             } else if (this.attackCycle % 2 == 0) {
                 this.cosmicNova();
-                this.attackCooldown = 94;
+                this.attackCooldown = 78;
             } else {
-                this.shootBolt(target, 0.85F, 0.98F);
-                this.attackCooldown = 72;
+                this.shootBolt(target, 0.45F, 1.24F);
+                this.attackCooldown = 56;
             }
         }
     }
@@ -316,30 +316,43 @@ public class AstralDevourerEntity extends MonsterEntity {
         return best;
     }
 
-    /** Fires an animated volley of bright astral projectiles. */
+    /** Casts one fan immediately; awakened phases add a second fan during the animation. */
     private void shootBolt(LivingEntity target, float inaccuracy, float velocity) {
         if (!(this.level instanceof ServerWorld)) return;
         this.entityData.set(ATTACK_STATE, 1);
         this.entityData.set(ATTACK_TICKS, 16);
-        int count = phase == 1 ? 3 : (phase == 2 ? 4 : 5);
+        this.launchAstralFan(target, this.phase == 1 ? 3 : (this.phase == 2 ? 4 : 5),
+                velocity, inaccuracy, false);
+    }
+
+    /** Fans spread perpendicular to the actual aim vector, not along world X/Z axes. */
+    private void launchAstralFan(LivingEntity target, int count, float velocity,
+                                float inaccuracy, boolean followUp) {
+        if (!(this.level instanceof ServerWorld)) return;
+        double aimX = target.getX() - this.getX();
+        double aimZ = target.getZ() - this.getZ();
+        double length = Math.max(0.001D, Math.sqrt(aimX * aimX + aimZ * aimZ));
+        double sideX = -aimZ / length;
+        double sideZ = aimX / length;
         for (int i = 0; i < count; i++) {
+            double spread = (i - (count - 1) / 2.0D) * (followUp ? 0.7D : 1.05D);
             AetherBoltEntity bolt = new AetherBoltEntity(this.level, this);
             bolt.setPos(this.getX(), this.getY() + this.getEyeHeight() * 0.72D, this.getZ());
-            double offset = (i - (count - 1) / 2.0D) * (phase == 1 ? 0.85D : 0.95D);
-            double dx = target.getX() + offset - this.getX();
+            double dx = target.getX() + sideX * spread - bolt.getX();
             double dy = target.getY(0.45D) - bolt.getY();
-            double dz = target.getZ() - this.getZ() - offset * 0.45D;
+            double dz = target.getZ() + sideZ * spread - bolt.getZ();
             bolt.shoot(dx, dy, dz, velocity, inaccuracy);
             this.level.addFreshEntity(bolt);
         }
         ServerWorld server = (ServerWorld) this.level;
-        server.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + this.getBbHeight() * 0.58D,
-                this.getZ(), 18, 0.35D, 0.3D, 0.35D, 0.02D);
-        server.sendParticles(ParticleTypes.PORTAL, this.getX(), this.getY() + this.getBbHeight() * 0.58D,
-                this.getZ(), 12, 0.25D, 0.25D, 0.25D, 0.03D);
+        server.sendParticles(ParticleTypes.END_ROD,
+                this.getX(), this.getY() + this.getBbHeight() * 0.58D, this.getZ(),
+                followUp ? 22 : 18, 0.35D, 0.3D, 0.35D, 0.025D);
+        server.sendParticles(ParticleTypes.PORTAL,
+                this.getX(), this.getY() + this.getBbHeight() * 0.58D, this.getZ(),
+                12, 0.25D, 0.25D, 0.25D, 0.035D);
+        if (followUp) this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.7F, 1.32F);
     }
-
-
 
     /** Starts two or three Eye-like charges with a readable pause between each rush. */
     private void startDashPattern(LivingEntity target) {
@@ -361,7 +374,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.dashDirX = direction.x;
         this.dashDirY = direction.y;
         this.dashDirZ = direction.z;
-        this.dashChargeTicks = this.phase >= 3 ? 10 : 14;
+        this.dashChargeTicks = this.phase >= 3 ? 9 : 12;
         this.dashHitRegistered = false;
         this.entityData.set(ATTACK_STATE, 6);
         this.entityData.set(ATTACK_TICKS, this.dashChargeTicks);
@@ -389,7 +402,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         }
 
         if (this.dashTicks > 0) {
-            double speed = this.phase >= 3 ? 1.02D : 0.86D;
+            double speed = this.phase >= 3 ? 1.14D : 0.96D;
             this.setDeltaMovement(this.dashDirX * speed, this.dashDirY * speed,
                     this.dashDirZ * speed);
             this.hasImpulse = true;
@@ -409,7 +422,7 @@ public class AstralDevourerEntity extends MonsterEntity {
                 this.setDeltaMovement(this.getDeltaMovement().scale(0.32D));
                 this.hasImpulse = true;
                 if (this.dashesRemaining > 0) {
-                    this.dashRecoveryTicks = 8;
+                    this.dashRecoveryTicks = 6;
                     this.entityData.set(ATTACK_STATE, 6);
                     this.entityData.set(ATTACK_TICKS, this.dashRecoveryTicks);
                 } else {
@@ -443,7 +456,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.dashTarget = null;
         if (!this.dashChainHitRegistered) {
             this.entityData.set(ATTACK_STATE, 8);
-            this.entityData.set(ATTACK_TICKS, 50);
+            this.entityData.set(ATTACK_TICKS, 42);
             this.setDeltaMovement(this.getDeltaMovement().scale(0.18D));
             this.hasImpulse = true;
             if (this.level instanceof ServerWorld) {
@@ -467,7 +480,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.dashesRemaining = Math.max(0, this.dashesRemaining - 1);
         this.entityData.set(ATTACK_STATE, 7);
         this.entityData.set(ATTACK_TICKS, this.dashTicks);
-        double speed = this.phase >= 3 ? 1.02D : 0.86D;
+        double speed = this.phase >= 3 ? 1.14D : 0.96D;
         this.setDeltaMovement(this.dashDirX * speed, this.dashDirY * speed,
                 this.dashDirZ * speed);
         this.hasImpulse = true;
@@ -500,7 +513,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.beamEndX = target.getX();
         this.beamEndY = target.getY() + target.getBbHeight() * 0.55D;
         this.beamEndZ = target.getZ();
-        this.beamChargeTicks = 22;
+        this.beamChargeTicks = 20;
         this.entityData.set(ATTACK_STATE, 2);
         this.entityData.set(ATTACK_TICKS, this.beamChargeTicks);
         this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.9F, 1.18F);
@@ -625,6 +638,13 @@ public class AstralDevourerEntity extends MonsterEntity {
             int nextTicks = ticks - 1;
             this.entityData.set(ATTACK_TICKS, nextTicks);
             int state = this.entityData.get(ATTACK_STATE);
+            if (state == 1 && nextTicks == 9 && this.phase >= 2) {
+                LivingEntity volleyTarget = this.getTarget();
+                if (volleyTarget != null && volleyTarget.isAlive()) {
+                    this.launchAstralFan(volleyTarget, this.phase == 2 ? 3 : 5,
+                            this.phase == 2 ? 1.28F : 1.38F, 0.25F, true);
+                }
+            }
             if (state == 4 || state == 5) this.sendAreaAttackTelegraph(state, nextTicks);
             if (state == 4 && nextTicks == 1 && this.gravityDamagePending) {
                 this.resolveGravityWell();
