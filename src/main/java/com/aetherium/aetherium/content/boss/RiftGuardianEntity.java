@@ -50,6 +50,10 @@ public class RiftGuardianEntity extends MonsterEntity {
     private double sweepDirectionX;
     private double sweepDirectionZ;
     private boolean sweepHitApplied = false;
+    private boolean slamDamagePending = false;
+    private double pendingSlamRadius;
+    private float pendingSlamDamage;
+    private double pendingSlamKnockback;
 
     public RiftGuardianEntity(EntityType<? extends RiftGuardianEntity> type, World world) {
         super(type, world);
@@ -121,6 +125,9 @@ public class RiftGuardianEntity extends MonsterEntity {
             this.entityData.set(SLAM_TICKS, nextSlamTick);
             if (this.entityData.get(ATTACK_STATE) == 3 && nextSlamTick == 11 && !this.sweepHitApplied) {
                 this.resolveGreatswordSweep();
+            }
+            if (this.entityData.get(ATTACK_STATE) == 1 && nextSlamTick == 11 && this.slamDamagePending) {
+                this.resolveGroundSlam();
             }
             if (slamTicks == 1) this.entityData.set(ATTACK_STATE, 0);
         }
@@ -291,9 +298,35 @@ public class RiftGuardianEntity extends MonsterEntity {
         this.attackPattern++;
     }
 
+    /** Telegraphs the overhead hammer blow; damage is delayed until the impact animation. */
     private void groundSlam(double radius, float damage, double knockback) {
         this.entityData.set(ATTACK_STATE, 1);
         this.entityData.set(SLAM_TICKS, 24);
+        this.pendingSlamRadius = radius;
+        this.pendingSlamDamage = damage;
+        this.pendingSlamKnockback = knockback;
+        this.slamDamagePending = true;
+        if (this.level instanceof ServerWorld) {
+            ServerWorld server = (ServerWorld) this.level;
+            for (int i = 0; i < 20; i++) {
+                double angle = Math.PI * 2.0D * i / 20.0D;
+                double x = this.getX() + Math.cos(angle) * radius;
+                double z = this.getZ() + Math.sin(angle) * radius;
+                server.sendParticles(ParticleTypes.PORTAL, x, this.getY() + 0.12D, z,
+                        1, 0.015D, 0.02D, 0.015D, 0.0D);
+            }
+            server.sendParticles(ParticleTypes.CRIT, this.getX(), this.getY() + 0.5D, this.getZ(),
+                    8, 0.25D, 0.2D, 0.25D, 0.015D);
+        }
+        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.75F, 1.12F);
+    }
+
+    /** Resolves the ground shockwave on the same frame the raised weapon comes down. */
+    private void resolveGroundSlam() {
+        this.slamDamagePending = false;
+        double radius = this.pendingSlamRadius;
+        float damage = this.pendingSlamDamage;
+        double knockback = this.pendingSlamKnockback;
         AxisAlignedBB area = new AxisAlignedBB(
                 this.getX() - radius, this.getY() - 0.5D, this.getZ() - radius,
                 this.getX() + radius, this.getY() + this.getBbHeight() + 1.0D, this.getZ() + radius);
@@ -315,9 +348,12 @@ public class RiftGuardianEntity extends MonsterEntity {
             ServerWorld server = (ServerWorld) this.level;
             for (int i = 0; i < 36; i++) {
                 double angle = Math.PI * 2.0D * i / 36.0D;
-                server.sendParticles(ParticleTypes.END_ROD,
-                        this.getX() + Math.cos(angle) * radius, this.getY() + 0.12D,
-                        this.getZ() + Math.sin(angle) * radius, 1, 0.02D, 0.03D, 0.02D, 0.0D);
+                double x = this.getX() + Math.cos(angle) * radius;
+                double z = this.getZ() + Math.sin(angle) * radius;
+                server.sendParticles(ParticleTypes.SWEEP_ATTACK, x, this.getY() + 0.15D, z,
+                        1, 0.0D, 0.0D, 0.0D, 0.0D);
+                server.sendParticles(ParticleTypes.END_ROD, x, this.getY() + 0.15D, z,
+                        1, 0.02D, 0.03D, 0.02D, 0.0D);
             }
             server.sendParticles(ParticleTypes.CRIT, this.getX(), this.getY() + 0.25D, this.getZ(),
                     phase == 1 ? 24 : 38, radius * 0.38D, 0.10D, radius * 0.38D, 0.05D);
