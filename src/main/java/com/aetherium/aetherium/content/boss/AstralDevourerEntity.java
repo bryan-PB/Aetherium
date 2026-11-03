@@ -106,7 +106,8 @@ public class AstralDevourerEntity extends MonsterEntity {
         if (this.level.isClientSide) return;
 
         LivingEntity target = this.getTarget();
-        if (!this.tickDashPattern()) this.updateHoverMovement(target);
+        boolean dashActive = this.tickDashPattern();
+        if (!dashActive) this.updateHoverMovement(target);
         if (this.isInWater()) {
             Vector3d motion = this.getDeltaMovement();
             this.setDeltaMovement(motion.x * 0.92D, Math.max(motion.y, 0.20D), motion.z * 0.92D);
@@ -143,7 +144,7 @@ public class AstralDevourerEntity extends MonsterEntity {
             this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, phase == 3 ? 0.62F : 0.82F);
         }
 
-        if (this.tickDashPattern()) return;
+        if (dashActive) return;
         if (this.tickAstralBeam()) return;
         this.tickAttackAnimation();
 
