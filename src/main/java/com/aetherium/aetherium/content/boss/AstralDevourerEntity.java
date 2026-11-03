@@ -110,7 +110,9 @@ public class AstralDevourerEntity extends MonsterEntity {
         super.tick();
         this.setNoGravity(true);
         if (this.level.isClientSide) return;
-        if (this.phase >= 2 && this.tickCount % 6 == 0) this.sendPhaseAuraParticles();
+        if (this.phase >= 2 && this.entityData.get(ATTACK_STATE) == 0 && this.tickCount % 6 == 0) {
+            this.sendPhaseAuraParticles();
+        }
 
         LivingEntity target = this.getTarget();
         boolean phaseTransitionActive = this.entityData.get(ATTACK_STATE) == 9;
@@ -636,7 +638,6 @@ public class AstralDevourerEntity extends MonsterEntity {
         }
     }
 
-    /** Emits restrained orbiting pulses while the Devourer changes form. */
     /** Keeps the awakened silhouette readable with a low-cost orbit of client-visible particles. */
     private void sendPhaseAuraParticles() {
         if (!(this.level instanceof ServerWorld)) return;
