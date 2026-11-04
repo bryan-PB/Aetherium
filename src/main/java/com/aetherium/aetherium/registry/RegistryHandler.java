@@ -15,6 +15,7 @@ import com.aetherium.aetherium.content.item.AstralSwordItem;
 import com.aetherium.aetherium.content.entity.RiftStalkerEntity;
 import com.aetherium.aetherium.content.entity.LumiveloEntity;
 import com.aetherium.aetherium.content.boss.AetherBoltEntity;
+import com.aetherium.aetherium.content.boss.BossMirageEntity;
 import com.aetherium.aetherium.content.boss.RiftGuardianEntity;
 import com.aetherium.aetherium.content.boss.AstralDevourerEntity;
 import com.aetherium.aetherium.content.item.BossSummoningItem;
@@ -98,6 +99,12 @@ public final class RegistryHandler {
     public static final RegistryObject<EntityType<AetherBoltEntity>> AETHER_BOLT = ENTITIES.register("aether_bolt",
             () -> EntityType.Builder.<AetherBoltEntity>of(AetherBoltEntity::new, EntityClassification.MISC)
                     .sized(0.32F, 0.32F).clientTrackingRange(8).updateInterval(2).build("aetherium:aether_bolt"));
+
+    /** Attackable phantom hitboxes; the parent boss renderer draws their copies. */
+    public static final RegistryObject<EntityType<BossMirageEntity>> BOSS_MIRAGE = ENTITIES.register("boss_mirage",
+            () -> EntityType.Builder.<BossMirageEntity>of(BossMirageEntity::new, EntityClassification.MISC)
+                    .sized(2.0F, 3.1F).clientTrackingRange(12).updateInterval(1)
+                    .build("aetherium:boss_mirage"));
 
     // Block items
     public static final RegistryObject<Item> AETHERIUM_ORE_ITEM = ITEMS.register("aetherium_ore",
