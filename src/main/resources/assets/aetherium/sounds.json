@@ -232,5 +232,23 @@
         "volume": 0.65
       }
     ]
+  },
+  "astral_awaken": {
+    "subtitle": "subtitles.aetherium.astral_awaken",
+    "sounds": [
+      {
+        "name": "aetherium:astral_awaken",
+        "volume": 0.96
+      }
+    ]
+  },
+  "guardian_awaken": {
+    "subtitle": "subtitles.aetherium.guardian_awaken",
+    "sounds": [
+      {
+        "name": "aetherium:guardian_awaken",
+        "volume": 0.95
+      }
+    ]
   }
 }
