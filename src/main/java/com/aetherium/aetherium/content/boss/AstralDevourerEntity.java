@@ -43,6 +43,8 @@ public class AstralDevourerEntity extends MonsterEntity {
     private static final DataParameter<Integer> ATTACK_TICKS = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> ATTACK_STATE = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.INT);
     // A locked endpoint is synchronized so every client can draw the full beam.
+    private static final DataParameter<Integer> MIRAGE_ID =
+            EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.INT);
     private static final DataParameter<Float> BEAM_X = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.FLOAT);
     private static final DataParameter<Float> BEAM_Y = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.FLOAT);
     private static final DataParameter<Float> BEAM_Z = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.FLOAT);
@@ -50,6 +52,7 @@ public class AstralDevourerEntity extends MonsterEntity {
     private int attackCooldown = 70;
     private int attackCycle = 0;
     private int minionCooldown = 200;
+    private int mirageCooldown = 155;
     private int beamChargeTicks = 0;
     private int beamTicks = 0;
     private double beamEndX;
@@ -83,6 +86,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.entityData.define(PHASE, 1);
         this.entityData.define(ATTACK_TICKS, 0);
         this.entityData.define(ATTACK_STATE, 0);
+        this.entityData.define(MIRAGE_ID, -1);
         this.entityData.define(BEAM_X, 0.0F);
         this.entityData.define(BEAM_Y, 0.0F);
         this.entityData.define(BEAM_Z, 0.0F);
@@ -94,6 +98,16 @@ public class AstralDevourerEntity extends MonsterEntity {
 
     public int getAttackState() {
         return this.entityData.get(ATTACK_STATE);
+    }
+
+    /** Entity ID of the attackable copy, or -1 when the illusion has expired. */
+    public int getMirageEntityId() {
+        return this.entityData.get(MIRAGE_ID);
+    }
+
+    /** Called by the fake hitbox on timeout or when a player attacks the decoy. */
+    public void onMirageDispelled(int fakeId) {
+        if (this.entityData.get(MIRAGE_ID) == fakeId) this.entityData.set(MIRAGE_ID, -1);
     }
 
     /** World-space endpoint drawn by the client as an actual laser, not scattered particles. */
@@ -199,6 +213,14 @@ public class AstralDevourerEntity extends MonsterEntity {
         if (this.tickAstralBeam()) return;
         this.tickAttackAnimation();
 
+        if (this.mirageCooldown > 0) this.mirageCooldown--;
+        if (this.phase >= 2 && this.mirageCooldown <= 0
+                && this.entityData.get(ATTACK_STATE) == 0
+                && target != null && target.isAlive() && this.distanceToSqr(target) < 22.0D * 22.0D) {
+            this.summonMirage();
+            this.mirageCooldown = this.phase >= 3 ? 250 : 320;
+            this.attackCooldown = Math.max(this.attackCooldown, 24);
+        }
         if (this.minionCooldown > 0) this.minionCooldown--;
         if (this.phase >= 2 && this.minionCooldown <= 0 && target != null && target.isAlive()) {
             this.summonAstralServants(target);
@@ -832,6 +854,30 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, 0.48F);
     }
 
+    private void summonMirage() {
+        if (!(this.level instanceof ServerWorld)) return;
+        if (this.entityData.get(MIRAGE_ID) >= 0) return;
+        BossMirageEntity fake = RegistryHandler.BOSS_MIRAGE.get().create(this.level);
+        if (fake == null) return;
+        fake.setOwner(this);
+        fake.setPos(this.getX() + 3.7D, this.getY(), this.getZ() + 2.0D);
+        if (this.level.addFreshEntity(fake)) {
+            this.entityData.set(MIRAGE_ID, fake.getId());
+            ((ServerWorld)this.level).sendParticles(ParticleTypes.PORTAL,
+                    this.getX(), this.getY() + 1.2D, this.getZ(),
+                    30, 2.0D, 0.9D, 2.0D, 0.09D);
+            this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.92F, 1.45F);
+        }
+    }
+
+    private void dispelMirage() {
+        int id = this.entityData.get(MIRAGE_ID);
+        if (id < 0) return;
+        this.entityData.set(MIRAGE_ID, -1);
+        net.minecraft.entity.Entity fake = this.level.getEntity(id);
+        if (fake instanceof BossMirageEntity) ((BossMirageEntity)fake).expire();
+    }
+
     /** Phase-bound reinforcements on the arena floor, capped so they never snowball forever. */
     private void summonAstralServants(LivingEntity target) {
         if (!(this.level instanceof ServerWorld)) return;
@@ -869,7 +915,9 @@ public class AstralDevourerEntity extends MonsterEntity {
     @Override
     public boolean hurt(DamageSource source, float amount) {
         if (this.entityData.get(ATTACK_STATE) == 8) amount *= 1.35F;
-        return super.hurt(source, amount);
+        boolean damaged = super.hurt(source, amount);
+        if (damaged && !this.level.isClientSide) this.dispelMirage();
+        return damaged;
     }
 
     @Override
@@ -886,6 +934,7 @@ public class AstralDevourerEntity extends MonsterEntity {
 
     @Override
     public void die(DamageSource source) {
+        this.dispelMirage();
         super.die(source);
         this.bossInfo.removeAllPlayers();
     }
