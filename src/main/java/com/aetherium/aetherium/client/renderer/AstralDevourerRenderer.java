@@ -62,22 +62,28 @@ public class AstralDevourerRenderer extends MobRenderer<AstralDevourerEntity, As
         Vector3d up = forward.cross(side).normalize();
         boolean active = state == 3;
         float flicker = 0.94F + 0.06F * (float)Math.sin((entity.tickCount + partialTicks) * 1.7D);
+        // The telegraph thickens visibly as the firing time approaches.
+        float warningProgress = Math.max(0.0F, Math.min(1.0F,
+                1.0F - entity.getAttackAnimationTicks() / 26.0F));
         stack.pushPose();
         stack.translate(0.0D, originY, 0.0D);
         Matrix4f matrix = stack.last().pose();
         IVertexBuilder builder = buffers.getBuffer(RenderType.lightning());
+        float halo = active ? 0.46F * flicker : 0.11F + warningProgress * 0.11F;
+        float core = active ? 0.22F * flicker : 0.035F + warningProgress * 0.06F;
 
-        // Two crossed camera-independent ribbons give the laser actual screen width.
-        float halo = active ? 0.45F * flicker : 0.13F;
-        ribbon(builder, matrix, axis, side, halo, active ? 164 : 128,
-                active ? 44 : 70, active ? 222 : 198, active ? 220 : 115);
-        ribbon(builder, matrix, axis, up, halo, active ? 164 : 128,
-                active ? 44 : 70, active ? 222 : 198, active ? 220 : 115);
-        float core = active ? 0.20F * flicker : 0.045F;
-        ribbon(builder, matrix, axis, side, core, active ? 255 : 215,
-                active ? 194 : 130, active ? 240 : 245, 255);
-        ribbon(builder, matrix, axis, up, core, active ? 255 : 215,
-                active ? 194 : 130, active ? 240 : 245, 255);
+        // Four crossed planes form a readable, bright eight-sided energy column,
+        // including when viewed from directly above or along the ground.
+        for (int i = 0; i < 4; i++) {
+            double angle = Math.PI * i / 4.0D;
+            Vector3d normal = side.scale(Math.cos(angle)).add(up.scale(Math.sin(angle)));
+            ribbon(builder, matrix, axis, normal, halo,
+                    active ? 164 : 128, active ? 44 : 70,
+                    active ? 222 : 198, active ? 220 : 115);
+            ribbon(builder, matrix, axis, normal, core,
+                    active ? 255 : 215, active ? 194 : 130,
+                    active ? 240 : 245, 255);
+        }
         stack.popPose();
     }
 
