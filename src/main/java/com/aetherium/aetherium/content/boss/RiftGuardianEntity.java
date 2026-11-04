@@ -246,7 +246,9 @@ public class RiftGuardianEntity extends MonsterEntity {
         if (this.minionCooldown > 0) this.minionCooldown--;
 
         LivingEntity target = this.getTarget();
-        if (phase >= 2 && target != null && target.isAlive() && this.minionCooldown <= 0) {
+        // Summons take place between attacks, not during a stagger or a warning.
+        if (phase >= 2 && target != null && target.isAlive() && this.minionCooldown <= 0
+                && this.entityData.get(ATTACK_STATE) == 0) {
             this.trySpawnMinion();
             this.minionCooldown = 180;
         }
@@ -258,6 +260,7 @@ public class RiftGuardianEntity extends MonsterEntity {
             this.attackCooldown = Math.max(this.attackCooldown, 22);
         }
         if (target == null || !target.isAlive() || this.attackCooldown > 0
+                || this.entityData.get(ATTACK_STATE) != 0
                 || this.distanceToSqr(target) > 20.0D * 20.0D) return;
 
         double distanceSq = this.distanceToSqr(target);
@@ -349,7 +352,8 @@ public class RiftGuardianEntity extends MonsterEntity {
         this.sweepDirectionZ = dz / length;
         this.chargeHitApplied = false;
         this.entityData.set(ATTACK_STATE, 4);
-        this.entityData.set(SLAM_TICKS, this.phase >= 2 ? 20 : 24);
+        // 0.7 seconds of warning before the phase-II rush.
+        this.entityData.set(SLAM_TICKS, this.phase >= 2 ? 26 : 24);
         this.getNavigation().stop();
         this.setDeltaMovement(this.getDeltaMovement().scale(0.2D));
         if (this.level instanceof ServerWorld) {
@@ -370,9 +374,10 @@ public class RiftGuardianEntity extends MonsterEntity {
     /** Carries the Warden forward after the telegraph and resolves at most one player hit. */
     private void performGreatswordChargeStep() {
         if (this.entityData.get(ATTACK_STATE) != 4) return;
-        this.setDeltaMovement(this.sweepDirectionX * (this.phase >= 2 ? 0.92D : 0.78D),
+        double rushSpeed = this.phase >= 2 ? 0.90D : 0.78D;
+        this.setDeltaMovement(this.sweepDirectionX * rushSpeed,
                 Math.max(-0.08D, this.getDeltaMovement().y),
-                this.sweepDirectionZ * 0.78D);
+                this.sweepDirectionZ * rushSpeed);
         this.hasImpulse = true;
 
         // Leave a directional rift wake during the charge so its path reads clearly at combat speed.
@@ -396,9 +401,10 @@ public class RiftGuardianEntity extends MonsterEntity {
         List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, hitBox, PlayerEntity::isAlive);
         for (PlayerEntity player : players) {
             if (!this.getBoundingBox().inflate(0.52D, 0.24D, 0.52D).intersects(player.getBoundingBox())) continue;
-            player.hurt(DamageSource.mobAttack(this), this.phase >= 2 ? 14.0F : 11.0F);
+            if (!player.hurt(DamageSource.mobAttack(this), this.phase >= 2 ? 13.0F : 11.0F))
+                continue;
             player.setDeltaMovement(player.getDeltaMovement().add(
-                    this.sweepDirectionX * 1.0D, 0.32D, this.sweepDirectionZ * 1.0D));
+                    this.sweepDirectionX * 0.85D, 0.32D, this.sweepDirectionZ * 0.85D));
             player.hurtMarked = true;
             this.chargeHitApplied = true;
             if (this.level instanceof ServerWorld) {
@@ -488,7 +494,7 @@ public class RiftGuardianEntity extends MonsterEntity {
     /** Raises the greatsword and locks the facing direction before the cleave lands. */
     private void greatswordSweep(LivingEntity target) {
         this.entityData.set(ATTACK_STATE, 3);
-        this.entityData.set(SLAM_TICKS, this.phase >= 2 ? 20 : 24);
+        this.entityData.set(SLAM_TICKS, 24);
         double aimX = target.getX() - this.getX();
         double aimZ = target.getZ() - this.getZ();
         double aimLength = Math.max(0.001D, Math.sqrt(aimX * aimX + aimZ * aimZ));
@@ -520,11 +526,13 @@ public class RiftGuardianEntity extends MonsterEntity {
                     || Math.abs(player.getY() - this.getY()) > this.getBbHeight() + 1.0D) continue;
             double dot = (dx * this.sweepDirectionX + dz * this.sweepDirectionZ) / distance;
             if (dot < 0.28D) continue;
-            player.hurt(DamageSource.mobAttack(this), this.phase == 1 ? 9.0F : 12.0F);
-            player.setDeltaMovement(player.getDeltaMovement().add(
-                    this.sweepDirectionX * 0.95D, 0.22D, this.sweepDirectionZ * 0.95D));
-            player.hurtMarked = true;
-            if (this.phase >= 2) player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 32, 0, true, true));
+            if (player.hurt(DamageSource.mobAttack(this), this.phase == 1 ? 9.0F : 12.0F)) {
+                player.setDeltaMovement(player.getDeltaMovement().add(
+                        this.sweepDirectionX * 0.95D, 0.22D, this.sweepDirectionZ * 0.95D));
+                player.hurtMarked = true;
+                if (this.phase >= 2)
+                    player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 32, 0, true, true));
+            }
         }
 
         if (this.level instanceof ServerWorld) {
@@ -532,7 +540,8 @@ public class RiftGuardianEntity extends MonsterEntity {
             double baseAngle = Math.atan2(this.sweepDirectionZ, this.sweepDirectionX);
             for (int i = 0; i <= 24; i++) {
                 double angle = baseAngle - 1.08D + 2.16D * i / 24.0D;
-                double radius = 2.2D + (i % 3) * 0.12D;
+                // Match the actual 5.8-block sweep reach, not a misleading 2.2-block arc.
+                double radius = 5.25D + (i % 3) * 0.20D;
                 double px = this.getX() + Math.cos(angle) * radius;
                 double pz = this.getZ() + Math.sin(angle) * radius;
                 server.sendParticles(ParticleTypes.SWEEP_ATTACK, px, this.getY() + 1.05D, pz,
@@ -553,7 +562,7 @@ public class RiftGuardianEntity extends MonsterEntity {
     /** Telegraphs the overhead hammer blow; damage is delayed until the impact animation. */
     private void groundSlam(double radius, float damage, double knockback) {
         this.entityData.set(ATTACK_STATE, 1);
-        this.entityData.set(SLAM_TICKS, this.phase >= 2 ? 20 : 24);
+        this.entityData.set(SLAM_TICKS, 24);
         this.pendingSlamRadius = radius;
         this.pendingSlamDamage = damage;
         this.pendingSlamKnockback = knockback;
@@ -586,14 +595,17 @@ public class RiftGuardianEntity extends MonsterEntity {
         for (PlayerEntity player : players) {
             double dx = player.getX() - this.getX();
             double dz = player.getZ() - this.getZ();
+            // The floor mark is a ground shockwave: a player clearly above it is safe.
             if (dx * dx + dz * dz > radius * radius
-                    || Math.abs(player.getY() - this.getY()) > this.getBbHeight() + 1.2D) continue;
+                    || Math.abs(player.getY() - this.getY()) > 1.9D) continue;
             double length = Math.max(0.001D, Math.sqrt(dx * dx + dz * dz));
-            player.hurt(DamageSource.mobAttack(this), damage);
-            player.setDeltaMovement(player.getDeltaMovement().add(
-                    dx / length * knockback, 0.32D, dz / length * knockback));
-            player.hurtMarked = true;
-            if (phase == 2) player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 45, 0, true, true));
+            if (player.hurt(DamageSource.mobAttack(this), damage)) {
+                player.setDeltaMovement(player.getDeltaMovement().add(
+                        dx / length * knockback, 0.32D, dz / length * knockback));
+                player.hurtMarked = true;
+                if (phase == 2)
+                    player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 45, 0, true, true));
+            }
         }
 
         if (this.level instanceof ServerWorld) {
