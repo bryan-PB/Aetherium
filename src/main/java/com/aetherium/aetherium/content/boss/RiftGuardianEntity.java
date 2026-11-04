@@ -22,7 +22,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.Heightmap;
@@ -170,6 +169,9 @@ public class RiftGuardianEntity extends MonsterEntity {
                 this.resolveGroundSlam();
             }
             if (this.entityData.get(ATTACK_STATE) == 4 && nextSlamTick <= 12) {
+                // The dash sound starts exactly when the warning line becomes dangerous.
+                if (nextSlamTick == 12)
+                    this.playSound(RegistryHandler.GUARDIAN_CHARGE.get(), 0.96F, 1.0F);
                 this.performGreatswordChargeStep();
             }
             if (this.entityData.get(ATTACK_STATE) == 6 && nextSlamTick > 0
@@ -191,7 +193,7 @@ public class RiftGuardianEntity extends MonsterEntity {
                                 this.getX(), this.getY() + 0.8D, this.getZ(),
                                 14, 0.45D, 0.45D, 0.45D, 0.04D);
                     }
-                    this.playSound(SoundEvents.IRON_GOLEM_HURT, 0.9F, 0.72F);
+                    this.playSound(RegistryHandler.GUARDIAN_HURT.get(), 0.78F, 0.85F);
                 } else {
                     this.entityData.set(ATTACK_STATE, 0);
                     this.setDeltaMovement(this.getDeltaMovement().scale(0.25D));
@@ -237,7 +239,7 @@ public class RiftGuardianEntity extends MonsterEntity {
                 server.sendParticles(ParticleTypes.END_ROD,
                         this.getX(), this.getY() + 1.2D, this.getZ(), 16, 0.8D, 0.8D, 0.8D, 0.04D);
             }
-            this.playSound(SoundEvents.RAVAGER_ROAR, 1.0F, 0.62F);
+            this.playSound(RegistryHandler.GUARDIAN_AWAKEN.get(), 1.0F, 0.92F);
             // Keep the awakening animation intact even if a target is in melee range.
             return;
         }
@@ -311,7 +313,7 @@ public class RiftGuardianEntity extends MonsterEntity {
         server.sendParticles(ParticleTypes.PORTAL,
                 this.getX(), this.getY() + this.getBbHeight() * 0.72D, this.getZ(),
                 10, 0.45D, 0.35D, 0.45D, 0.025D);
-        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.9F, 0.8F);
+        this.playSound(RegistryHandler.GUARDIAN_WINDUP.get(), 0.74F, 0.94F);
     }
 
     /** Uses aim-relative offsets so the fan points toward the player at every angle. */
@@ -339,8 +341,9 @@ public class RiftGuardianEntity extends MonsterEntity {
         server.sendParticles(ParticleTypes.END_ROD,
                 this.getX(), this.getY() + this.getBbHeight() * 0.72D, this.getZ(),
                 secondWave ? 18 : 12, 0.35D, 0.32D, 0.35D, 0.055D);
-        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.65F,
-                secondWave ? 1.16F : 1.0F);
+        // One short, distinct release cue: do not restart a long sound on each wave.
+        if (!secondWave)
+            this.playSound(RegistryHandler.GUARDIAN_SWEEP.get(), 0.65F, 1.22F);
     }
 
     /** Locks direction and raises the greatsword before a fast, punishable lunge. */
@@ -368,7 +371,7 @@ public class RiftGuardianEntity extends MonsterEntity {
                     this.getX(), this.getY() + 0.25D, this.getZ(), 8,
                     0.25D, 0.10D, 0.25D, 0.015D);
         }
-        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.9F, 0.72F);
+        this.playSound(RegistryHandler.GUARDIAN_WINDUP.get(), 0.82F, 0.83F);
     }
 
     /** Carries the Warden forward after the telegraph and resolves at most one player hit. */
@@ -415,7 +418,7 @@ public class RiftGuardianEntity extends MonsterEntity {
                         player.getX(), player.getY(0.5D), player.getZ(), 2,
                         0.0D, 0.0D, 0.0D, 0.0D);
             }
-            this.playSound(SoundEvents.PLAYER_ATTACK_KNOCKBACK, 1.0F, 0.7F);
+            this.playSound(RegistryHandler.GUARDIAN_SWEEP.get(), 0.78F, 0.89F);
             break;
         }
     }
@@ -510,7 +513,7 @@ public class RiftGuardianEntity extends MonsterEntity {
                     this.getZ() + this.sweepDirectionZ * 1.8D, 5,
                     0.12D, 0.10D, 0.12D, 0.01D);
         }
-        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.8F, 0.95F);
+        this.playSound(RegistryHandler.GUARDIAN_WINDUP.get(), 0.78F, 1.05F);
     }
 
     /** Resolves the sweep at the visible follow-through frame, not at the start of the wind-up. */
@@ -555,8 +558,7 @@ public class RiftGuardianEntity extends MonsterEntity {
                     this.getY() + 1.0D, this.getZ() + this.sweepDirectionZ * 3.6D,
                     2, 0.25D, 0.25D, 0.25D, 0.0D);
         }
-        this.playSound(SoundEvents.PLAYER_ATTACK_SWEEP, 1.15F, 0.58F);
-        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.75F, 0.82F);
+        this.playSound(RegistryHandler.GUARDIAN_SWEEP.get(), 1.0F, 0.94F);
     }
 
     /** Telegraphs the overhead hammer blow; damage is delayed until the impact animation. */
@@ -579,7 +581,7 @@ public class RiftGuardianEntity extends MonsterEntity {
             server.sendParticles(ParticleTypes.CRIT, this.getX(), this.getY() + 0.5D, this.getZ(),
                     8, 0.25D, 0.2D, 0.25D, 0.015D);
         }
-        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.75F, 1.12F);
+        this.playSound(RegistryHandler.GUARDIAN_WINDUP.get(), 0.85F, 0.86F);
     }
 
     /** Resolves the ground shockwave on the same frame the raised weapon comes down. */
@@ -638,7 +640,7 @@ public class RiftGuardianEntity extends MonsterEntity {
             ((ServerWorld)this.level).sendParticles(ParticleTypes.PORTAL,
                     this.getX(), this.getY() + 1.4D, this.getZ(),
                     28, 1.6D, 0.95D, 1.6D, 0.08D);
-            this.playSound(SoundEvents.ENDERMAN_TELEPORT, 0.9F, 0.75F);
+            this.playSound(RegistryHandler.GUARDIAN_MIRAGE.get(), 0.80F, 1.05F);
         }
     }
 
@@ -756,16 +758,17 @@ public class RiftGuardianEntity extends MonsterEntity {
 
     @Override
     protected net.minecraft.util.SoundEvent getAmbientSound() {
-        return SoundEvents.RAVAGER_AMBIENT;
+        return this.entityData.get(ATTACK_STATE) == 0 && this.getTarget() == null
+                ? RegistryHandler.GUARDIAN_AMBIENT.get() : null;
     }
 
     @Override
     protected net.minecraft.util.SoundEvent getHurtSound(DamageSource source) {
-        return SoundEvents.RAVAGER_HURT;
+        return RegistryHandler.GUARDIAN_HURT.get();
     }
 
     @Override
     protected net.minecraft.util.SoundEvent getDeathSound() {
-        return SoundEvents.RAVAGER_DEATH;
+        return RegistryHandler.GUARDIAN_DEATH.get();
     }
 }
