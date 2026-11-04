@@ -706,7 +706,9 @@ public class RiftGuardianEntity extends MonsterEntity {
     @Override
     public boolean hurt(DamageSource source, float amount) {
         if (this.entityData.get(ATTACK_STATE) == 5) amount *= 1.45F;
-        return super.hurt(source, amount);
+        boolean damaged = super.hurt(source, amount);
+        if (damaged && !this.level.isClientSide) this.dispelMirage();
+        return damaged;
     }
 
     @Override
@@ -719,13 +721,6 @@ public class RiftGuardianEntity extends MonsterEntity {
     public void stopSeenByPlayer(ServerPlayerEntity player) {
         super.stopSeenByPlayer(player);
         this.bossInfo.removePlayer(player);
-    }
-
-    @Override
-    public boolean hurt(DamageSource source, float amount) {
-        boolean damaged = super.hurt(source, amount);
-        if (damaged && !this.level.isClientSide) this.dispelMirage();
-        return damaged;
     }
 
     @Override
