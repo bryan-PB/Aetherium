@@ -250,5 +250,68 @@
         "volume": 0.95
       }
     ]
+  },
+  "aetherium_equip": {
+    "subtitle": "subtitles.aetherium.aetherium_equip",
+    "sounds": [
+      {
+        "name": "aetherium:aetherium_equip",
+        "volume": 0.72
+      }
+    ]
+  },
+  "astral_equip": {
+    "subtitle": "subtitles.aetherium.astral_equip",
+    "sounds": [
+      {
+        "name": "aetherium:astral_equip",
+        "volume": 0.64
+      }
+    ]
+  },
+  "relic_activation": {
+    "subtitle": "subtitles.aetherium.relic_activation",
+    "sounds": [
+      {
+        "name": "aetherium:relic_activation",
+        "volume": 0.75
+      }
+    ]
+  },
+  "flare_activation": {
+    "subtitle": "subtitles.aetherium.flare_activation",
+    "sounds": [
+      {
+        "name": "aetherium:flare_activation",
+        "volume": 0.81
+      }
+    ]
+  },
+  "magnet_on": {
+    "subtitle": "subtitles.aetherium.magnet_on",
+    "sounds": [
+      {
+        "name": "aetherium:magnet_on",
+        "volume": 0.54
+      }
+    ]
+  },
+  "magnet_off": {
+    "subtitle": "subtitles.aetherium.magnet_off",
+    "sounds": [
+      {
+        "name": "aetherium:magnet_off",
+        "volume": 0.52
+      }
+    ]
+  },
+  "boss_summon": {
+    "subtitle": "subtitles.aetherium.boss_summon",
+    "sounds": [
+      {
+        "name": "aetherium:boss_summon",
+        "volume": 0.92
+      }
+    ]
   }
 }
