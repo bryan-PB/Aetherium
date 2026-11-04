@@ -198,7 +198,7 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         ascendedHornRight.zRot = -ascendedHornLeft.zRot;
         float idle = MathHelper.sin(ageInTicks * 0.08F);
         float cast = state == 1 ? 1.0F : 0.0F;
-        float charge = state == 2 ? MathHelper.clamp(timer / 22.0F, 0.0F, 1.0F) : 0.0F;
+        float charge = state == 2 ? MathHelper.clamp(timer / 26.0F, 0.0F, 1.0F) : 0.0F;
         float beam = state == 3 ? 1.0F : 0.0F;
         float pull = state == 4 ? 1.0F : 0.0F;
         float nova = state == 5 ? 1.0F : 0.0F;
