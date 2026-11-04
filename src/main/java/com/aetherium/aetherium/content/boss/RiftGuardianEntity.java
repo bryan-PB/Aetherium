@@ -25,6 +25,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.gen.Heightmap;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
@@ -228,6 +229,10 @@ public class RiftGuardianEntity extends MonsterEntity {
         if (this.minionCooldown > 0) this.minionCooldown--;
 
         LivingEntity target = this.getTarget();
+        if (phase >= 2 && target != null && target.isAlive() && this.minionCooldown <= 0) {
+            this.trySpawnMinion();
+            this.minionCooldown = 180;
+        }
         if (target == null || !target.isAlive() || this.attackCooldown > 0
                 || this.distanceToSqr(target) > 20.0D * 20.0D) return;
 
@@ -265,10 +270,6 @@ public class RiftGuardianEntity extends MonsterEntity {
             this.attackPattern++;
         }
 
-        if (phase == 2 && this.minionCooldown <= 0 && this.random.nextInt(3) == 0) {
-            this.trySpawnMinion();
-            this.minionCooldown = 240;
-        }
     }
 
     /** Starts a visible cast; two offset volleys fire on subsequent animation frames. */
@@ -590,18 +591,31 @@ public class RiftGuardianEntity extends MonsterEntity {
         this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.95F, phase == 1 ? 0.92F : 0.68F);
     }
 
+    /** Invokes up to two stalkers per wave, with a strict four-minion arena cap. */
     private void trySpawnMinion() {
         if (!(this.level instanceof ServerWorld)) return;
-        AxisAlignedBB area = this.getBoundingBox().inflate(14.0D);
+        AxisAlignedBB area = this.getBoundingBox().inflate(20.0D);
         List<RiftStalkerEntity> existing = this.level.getEntitiesOfClass(RiftStalkerEntity.class, area,
                 RiftStalkerEntity::isAlive);
-        if (existing.size() >= 1) return;
-
-        RiftStalkerEntity minion = RegistryHandler.RIFT_STALKER.get().create(this.level);
-        if (minion != null) {
-            minion.moveTo(this.getX() + 2.0D, this.getY(), this.getZ() + 1.0D,
+        int count = Math.min(2, 4 - existing.size());
+        if (count <= 0) return;
+        LivingEntity target = this.getTarget();
+        ServerWorld server = (ServerWorld) this.level;
+        for (int i = 0; i < count; i++) {
+            double angle = this.tickCount * 0.12D + i * Math.PI;
+            int x = (int)Math.floor(this.getX() + Math.cos(angle) * 4.0D);
+            int z = (int)Math.floor(this.getZ() + Math.sin(angle) * 4.0D);
+            BlockPos spawn = this.level.getHeightmapPos(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                    new BlockPos(x, this.getY(), z));
+            if (!this.level.getFluidState(spawn).isEmpty() || !this.level.getBlockState(spawn).isAir()) continue;
+            RiftStalkerEntity minion = RegistryHandler.RIFT_STALKER.get().create(this.level);
+            if (minion == null) continue;
+            minion.moveTo(spawn.getX() + 0.5D, spawn.getY(), spawn.getZ() + 0.5D,
                     this.yRot, 0.0F);
+            if (target != null && target.isAlive()) minion.setTarget(target);
             this.level.addFreshEntity(minion);
+            server.sendParticles(ParticleTypes.PORTAL, minion.getX(), minion.getY() + 0.7D,
+                    minion.getZ(), 20, 0.45D, 0.4D, 0.45D, 0.05D);
         }
     }
 
