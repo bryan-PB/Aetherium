@@ -1,6 +1,7 @@
 package com.aetherium.aetherium.content.boss;
 
 import com.aetherium.aetherium.registry.RegistryHandler;
+import com.aetherium.aetherium.content.entity.RiftStalkerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.network.IPacket;
@@ -48,9 +49,15 @@ public class AetherBoltEntity extends ProjectileItemEntity {
 
     @Override
     protected boolean canHitEntity(Entity candidate) {
+        if (this.getOwner() instanceof AstralDevourerEntity
+                || this.getOwner() instanceof RiftGuardianEntity) {
+            if (candidate instanceof RiftStalkerEntity) {
+                // Bosses should not have their shots absorbed by their summoned reinforcements.
+                return false;
+            }
+        }
         if (candidate instanceof BossMirageEntity
                 && ((BossMirageEntity)candidate).getBoss() == this.getOwner()) {
-            // A boss cannot destroy or block its own projectile with its decoy.
             return false;
         }
         return super.canHitEntity(candidate);
@@ -128,7 +135,7 @@ public class AetherBoltEntity extends ProjectileItemEntity {
                     this.getX(), trailY, this.getZ(), 2, 0.035D, 0.035D, 0.035D, 0.005D);
             server.sendParticles(ParticleTypes.DRAGON_BREATH,
                     this.getX(), trailY, this.getZ(), 2, 0.045D, 0.045D, 0.045D, 0.002D);
-            server.sendParticles(ParticleTypes.FLAME,
+            server.sendParticles(ParticleTypes.PORTAL,
                     this.getX(), trailY, this.getZ(), 1, 0.015D, 0.015D, 0.015D, 0.0D);
         }
         if (!this.level.isClientSide && this.tickCount > 80) {
