@@ -1,6 +1,8 @@
 package com.aetherium.aetherium.content.boss;
 
 import com.aetherium.aetherium.registry.RegistryHandler;
+import com.aetherium.aetherium.content.entity.RiftStalkerEntity;
+import net.minecraft.world.gen.Heightmap;
 import net.minecraft.entity.EntityType;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
@@ -40,9 +42,14 @@ public class AstralDevourerEntity extends MonsterEntity {
     private static final DataParameter<Integer> PHASE = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> ATTACK_TICKS = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> ATTACK_STATE = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.INT);
+    // A locked endpoint is synchronized so every client can draw the full beam.
+    private static final DataParameter<Float> BEAM_X = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.FLOAT);
+    private static final DataParameter<Float> BEAM_Y = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.FLOAT);
+    private static final DataParameter<Float> BEAM_Z = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.FLOAT);
     private int phase = 1;
     private int attackCooldown = 70;
     private int attackCycle = 0;
+    private int minionCooldown = 200;
     private int beamChargeTicks = 0;
     private int beamTicks = 0;
     private double beamEndX;
@@ -76,6 +83,9 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.entityData.define(PHASE, 1);
         this.entityData.define(ATTACK_TICKS, 0);
         this.entityData.define(ATTACK_STATE, 0);
+        this.entityData.define(BEAM_X, 0.0F);
+        this.entityData.define(BEAM_Y, 0.0F);
+        this.entityData.define(BEAM_Z, 0.0F);
     }
 
     public int getAttackAnimationTicks() {
@@ -84,6 +94,12 @@ public class AstralDevourerEntity extends MonsterEntity {
 
     public int getAttackState() {
         return this.entityData.get(ATTACK_STATE);
+    }
+
+    /** World-space endpoint drawn by the client as an actual laser, not scattered particles. */
+    public Vector3d getBeamRenderTarget() {
+        return new Vector3d(this.entityData.get(BEAM_X),
+                this.entityData.get(BEAM_Y), this.entityData.get(BEAM_Z));
     }
 
     public static AttributeModifierMap.MutableAttribute createAttributes() {
@@ -183,13 +199,19 @@ public class AstralDevourerEntity extends MonsterEntity {
         if (this.tickAstralBeam()) return;
         this.tickAttackAnimation();
 
+        if (this.minionCooldown > 0) this.minionCooldown--;
+        if (this.phase >= 2 && this.minionCooldown <= 0 && target != null && target.isAlive()) {
+            this.summonAstralServants(target);
+            this.minionCooldown = this.phase >= 3 ? 190 : 250;
+        }
         if (this.attackCooldown > 0) this.attackCooldown--;
         if (target == null || !target.isAlive() || this.distanceToSqr(target) > 28.0D * 28.0D
                 || this.attackCooldown > 0) return;
 
         double distanceSq = this.distanceToSqr(target);
         this.attackCycle++;
-        if (distanceSq > 4.5D * 4.5D && distanceSq < 18.0D * 18.0D && this.attackCycle % 3 == 0) {
+        if (distanceSq > 3.6D * 3.6D && distanceSq < 22.0D * 22.0D
+                && this.attackCycle % (this.phase >= 3 ? 2 : 3) == 0) {
             this.startDashPattern(target);
             this.attackCooldown = phase >= 3 ? 100 : 112;
             return;
@@ -247,22 +269,19 @@ public class AstralDevourerEntity extends MonsterEntity {
             double dx = target.getX() - this.getX();
             double dz = target.getZ() - this.getZ();
             double horizontalDistance = Math.max(0.001D, Math.sqrt(dx * dx + dz * dz));
-            double hoverY = target.getY() + 0.45D;
+            // Float above the target instead of hovering almost motionless at its feet.
+            double hoverY = target.getY() + (this.phase >= 2 ? 3.3D : 2.8D);
             desiredY = Math.max(this.isInWater() ? 0.20D : -0.14D,
                     Math.min(this.isInWater() ? 0.30D : 0.14D, (hoverY - this.getY()) * 0.075D));
 
-            double preferredDistance = this.phase == 1 ? 10.5D : (this.phase == 2 ? 8.5D : 7.0D);
-            if (horizontalDistance > preferredDistance + 1.0D) {
-                desiredX = dx / horizontalDistance * 0.105D;
-                desiredZ = dz / horizontalDistance * 0.105D;
-            } else if (horizontalDistance < preferredDistance - 1.0D) {
-                desiredX = -dx / horizontalDistance * 0.075D;
-                desiredZ = -dz / horizontalDistance * 0.075D;
-            } else {
-                // A slow orbit makes the ranged phases harder to kite without teleporting.
-                desiredX = -dz / horizontalDistance * 0.045D;
-                desiredZ = dx / horizontalDistance * 0.045D;
-            }
+            double preferredDistance = this.phase == 1 ? 9.0D : (this.phase == 2 ? 7.0D : 5.8D);
+            double side = this.attackCycle % 4 < 2 ? 1.0D : -1.0D;
+            double orbitSpeed = this.phase == 1 ? 0.10D : (this.phase == 2 ? 0.17D : 0.22D);
+            double approach = horizontalDistance > preferredDistance + 1.2D
+                    ? (this.phase >= 2 ? 0.20D : 0.15D)
+                    : horizontalDistance < preferredDistance - 1.5D ? -0.12D : 0.0D;
+            desiredX = dx / horizontalDistance * approach - dz / horizontalDistance * orbitSpeed * side;
+            desiredZ = dz / horizontalDistance * approach + dx / horizontalDistance * orbitSpeed * side;
             this.getLookControl().setLookAt(target, 30.0F, 30.0F);
         }
 
@@ -516,7 +535,10 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.beamEndX = target.getX();
         this.beamEndY = target.getY() + target.getBbHeight() * 0.55D;
         this.beamEndZ = target.getZ();
-        this.beamChargeTicks = 20;
+        this.entityData.set(BEAM_X, (float)this.beamEndX);
+        this.entityData.set(BEAM_Y, (float)this.beamEndY);
+        this.entityData.set(BEAM_Z, (float)this.beamEndZ);
+        this.beamChargeTicks = 18;
         this.entityData.set(ATTACK_STATE, 2);
         this.entityData.set(ATTACK_TICKS, this.beamChargeTicks);
         this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.9F, 1.18F);
@@ -549,7 +571,7 @@ public class AstralDevourerEntity extends MonsterEntity {
     }
 
     private void beginAstralRay() {
-        this.beamTicks = 10;
+        this.beamTicks = 14;
         this.entityData.set(ATTACK_STATE, 3);
         this.entityData.set(ATTACK_TICKS, this.beamTicks);
         this.sendAstralRayParticles(1.0D, true);
@@ -808,6 +830,35 @@ public class AstralDevourerEntity extends MonsterEntity {
                     3, 0.35D, 0.35D, 0.35D, 0.0D);
         }
         this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, 0.48F);
+    }
+
+    /** Phase-bound reinforcements on the arena floor, capped so they never snowball forever. */
+    private void summonAstralServants(LivingEntity target) {
+        if (!(this.level instanceof ServerWorld)) return;
+        AxisAlignedBB area = this.getBoundingBox().inflate(22.0D);
+        List<RiftStalkerEntity> existing = this.level.getEntitiesOfClass(
+                RiftStalkerEntity.class, area, RiftStalkerEntity::isAlive);
+        int remaining = (this.phase >= 3 ? 5 : 3) - existing.size();
+        if (remaining <= 0) return;
+        int count = Math.min(remaining, this.phase >= 3 ? 2 : 1);
+        ServerWorld server = (ServerWorld) this.level;
+        for (int i = 0; i < count; i++) {
+            double angle = this.tickCount * 0.32D + i * Math.PI;
+            int x = (int)Math.floor(target.getX() + Math.cos(angle) * 5.0D);
+            int z = (int)Math.floor(target.getZ() + Math.sin(angle) * 5.0D);
+            BlockPos spawn = this.level.getHeightmapPos(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                    new BlockPos(x, target.getY(), z));
+            if (!this.level.getFluidState(spawn).isEmpty() || !this.level.getBlockState(spawn).isAir()) continue;
+            RiftStalkerEntity servant = RegistryHandler.RIFT_STALKER.get().create(this.level);
+            if (servant == null) continue;
+            servant.moveTo(spawn.getX() + 0.5D, spawn.getY(), spawn.getZ() + 0.5D,
+                    this.yRot, 0.0F);
+            servant.setTarget(target);
+            this.level.addFreshEntity(servant);
+            server.sendParticles(ParticleTypes.PORTAL,
+                    servant.getX(), servant.getY() + 0.7D, servant.getZ(),
+                    24, 0.45D, 0.5D, 0.45D, 0.06D);
+        }
     }
 
     public int getPhase() {
