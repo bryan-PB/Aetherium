@@ -1,8 +1,8 @@
-# Audio de Umbralith (Forge 1.16.5)
+# Audio de Kryzorae (Forge 1.16.5)
 
 ## Identidad sonora
 
-Umbralith usa sonidos creados mediante síntesis procedural original en lugar de copiar
+Kryzorae usa sonidos creados mediante síntesis procedural original en lugar de copiar
 sonidos de Enderman, Ravager, gólem de hierro, zorro u otras criaturas de Minecraft.
 La biblioteca contiene 35 eventos: 6 eventos históricos reconstruidos y otros 29
 con funciones específicas (ambiente, transformación, herida, muerte, preparación,
@@ -45,7 +45,7 @@ fórmulas y parámetros de todas las pistas; no requiere bibliotecas de Python e
   Lumivelo; comprobar equilibrio de volumen con música y sonidos del juego.
 - Comprobar que las ilusiones se manifiestan y se disipan con efectos reconocibles.
 - Equipar armaduras, activar accesorios, bengalas e imanes e invocar jefes: cada
-  acción debe utilizar un efecto de Umbralith, sin el de Netherite, beacon o portal.
+  acción debe utilizar un efecto de Kryzorae, sin el de Netherite, beacon o portal.
 - Probar las opciones de subtítulos con los idiomas español de Chile, España,
   México y Argentina.
 
@@ -54,7 +54,7 @@ verificación auditiva en el juego real.
 
 ## Renombrado visible
 
-Desde la versión comercial **Umbralith**, las entradas en pantalla, descripciones,
+Desde la versión comercial **Kryzorae**, las entradas en pantalla, descripciones,
 mod metadata y nombre del JAR utilizan la nueva marca. El identificador técnico
 `aetherium` se conserva para que los mundos anteriores sigan cargando sus objetos,
 recetas y criaturas. Los nombres internos de recursos como

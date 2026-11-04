@@ -1,10 +1,10 @@
-# Umbralith
+# Kryzorae
 
 Mod de fantasía oscura y grietas dimensionales para Minecraft 1.16.5 (Forge 36.2.42), con jefes, cristales, criaturas y equipo propio.
 
 ## Compatibilidad
 
-El nombre público ahora es **Umbralith**. El identificador técnico del mod sigue siendo `aetherium` y los IDs de registro de los objetos, bloques, sonidos y entidades no cambian, para conservar la compatibilidad con los mundos ya creados. No elimines el mod anterior de un mundo existente sin una copia de seguridad.
+El nombre público ahora es **Kryzorae**. El identificador técnico del mod sigue siendo `aetherium` y los IDs de registro de los objetos, bloques, sonidos y entidades no cambian, para conservar la compatibilidad con los mundos ya creados. No elimines el mod anterior de un mundo existente sin una copia de seguridad.
 
 ## Compilación
 

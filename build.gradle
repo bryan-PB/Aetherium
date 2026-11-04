@@ -14,7 +14,7 @@ apply plugin: 'maven-publish'
 
 version = mod_version
 group = mod_group
-archivesBaseName = 'umbralith'
+archivesBaseName = 'kryzorae'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
@@ -79,11 +79,11 @@ jar {
     manifest {
         attributes([
             'Specification-Title': mod_id,
-            'Specification-Vendor': 'Umbralith Team',
+            'Specification-Vendor': 'Kryzorae Team',
             'Specification-Version': '1',
             'Implementation-Title': project.name,
             'Implementation-Version': project.version,
-            'Implementation-Vendor': 'Umbralith Team'
+            'Implementation-Vendor': 'Kryzorae Team'
         ])
     }
 }

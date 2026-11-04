@@ -1,4 +1,4 @@
-name: Compilar Umbralith
+name: Compilar Kryzorae
 
 on:
   push:
@@ -134,7 +134,7 @@ jobs:
       - name: Preparar codificador de audio
         uses: AnimMouse/setup-ffmpeg@v1
 
-      - name: Generar audio original de Umbralith
+      - name: Generar audio original de Kryzorae
         shell: bash
         run: |
           set -euo pipefail
@@ -202,6 +202,6 @@ jobs:
       - name: Subir JAR compilado
         uses: actions/upload-artifact@v7
         with:
-          name: Umbralith-jar
+          name: Kryzorae-jar
           path: ${{ env.AETHERIUM_PROJECT_DIR }}/build/libs/*.jar
           if-no-files-found: error

@@ -5,9 +5,9 @@ license="MIT"
 [[mods]]
 modId="aetherium"
 version="${file.jarVersion}"
-displayName="Umbralith"
-authors="Umbralith Team"
-description="""Umbralith is a dark fantasy mod for Minecraft 1.16.5. Discover rare crystals, forge powerful gear, and face ancient guardians of dimensional rifts."""
+displayName="Kryzorae"
+authors="Kryzorae Team"
+description="""Kryzorae is a dark fantasy mod for Minecraft 1.16.5. Discover rare crystals, forge powerful gear, and face ancient guardians of dimensional rifts."""
 
 [[dependencies.aetherium]]
     modId="forge"

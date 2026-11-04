@@ -30,6 +30,6 @@ public class AetheriumMod {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(AetheriumCuriosIntegration::onInterModEnqueue);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGH, AetheriumWorldGen::onBiomeLoading);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGH, AetheriumEntityEvents::onBiomeLoading);
-        LOGGER.info("Umbralith is loading (legacy mod id: aetherium).");
+        LOGGER.info("Kryzorae is loading (legacy mod id: aetherium).");
     }
 }
