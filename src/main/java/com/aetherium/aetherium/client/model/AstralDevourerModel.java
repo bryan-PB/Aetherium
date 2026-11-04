@@ -11,6 +11,8 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
     private final ModelRenderer wingLeft, wingRight, wingTipLeft, wingTipRight, sideEyeLeft, sideEyeRight;
     private final ModelRenderer[] tendrils = new ModelRenderer[6];
     private final ModelRenderer[] barbs = new ModelRenderer[4];
+    private final ModelRenderer[] awakenedCrown = new ModelRenderer[5];
+    private final ModelRenderer wingRibLeft, wingRibRight, ascendedHornLeft, ascendedHornRight;
     private float phaseTintRed = 1.0F;
     private float phaseTintGreen = 1.0F;
     private float phaseTintBlue = 1.0F;
@@ -84,6 +86,37 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         wingTipRight.addBox(0.0F, -1.0F, -0.4F, 4.0F, 7.0F, 0.8F);
         wingRight.addChild(wingTipRight);
 
+        // An articulated crown rises above the central eye in the awakened forms.
+        for (int i = 0; i < awakenedCrown.length; i++) {
+            float x = (i - 2) * 3.1F;
+            awakenedCrown[i] = new ModelRenderer(this, 52, 0);
+            awakenedCrown[i].setPos(x, -6.5F, -2.7F);
+            awakenedCrown[i].addBox(-0.65F, -3.8F - (2 - Math.abs(i - 2)) * 1.1F,
+                    -0.65F, 1.3F, 4.0F + (2 - Math.abs(i - 2)) * 1.1F, 1.3F);
+            awakenedCrown[i].zRot = (i - 2) * 0.19F;
+            eyeShell.addChild(awakenedCrown[i]);
+        }
+
+        // Ribs give the otherwise flat wings a segmented insect-like profile.
+        wingRibLeft = new ModelRenderer(this, 40, 32);
+        wingRibLeft.setPos(-1.0F, 0.0F, -0.4F);
+        wingRibLeft.addBox(-8.4F, -0.6F, -0.6F, 8.4F, 1.2F, 1.2F);
+        wingLeft.addChild(wingRibLeft);
+        wingRibRight = new ModelRenderer(this, 40, 32);
+        wingRibRight.setPos(1.0F, 0.0F, -0.4F);
+        wingRibRight.addBox(0.0F, -0.6F, -0.6F, 8.4F, 1.2F, 1.2F);
+        wingRight.addChild(wingRibRight);
+
+        // Phase III grows a second pair of massive outward horns.
+        ascendedHornLeft = new ModelRenderer(this, 52, 0);
+        ascendedHornLeft.setPos(-8.0F, -4.6F, -1.2F);
+        ascendedHornLeft.addBox(-1.2F, -7.5F, -0.8F, 2.4F, 8.0F, 1.6F);
+        eyeShell.addChild(ascendedHornLeft);
+        ascendedHornRight = new ModelRenderer(this, 52, 0);
+        ascendedHornRight.setPos(8.0F, -4.6F, -1.2F);
+        ascendedHornRight.addBox(-1.2F, -7.5F, -0.8F, 2.4F, 8.0F, 1.6F);
+        eyeShell.addChild(ascendedHornRight);
+
         for (int i = 0; i < tendrils.length; i++) {
             float side = i % 2 == 0 ? -1.0F : 1.0F;
             float x = side * (i < 2 ? 4.0F : (i < 4 ? 7.0F : 5.5F));
@@ -117,6 +150,16 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         this.phaseTintRed = phase == 2 ? 0.72F : 1.0F;
         this.phaseTintGreen = phase == 2 ? 0.78F : (phase == 3 ? 0.60F : 1.0F);
         this.phaseTintBlue = phase == 3 ? 0.76F : 1.0F;
+        for (int i = 0; i < awakenedCrown.length; i++) {
+            awakenedCrown[i].visible = phase >= 2;
+            awakenedCrown[i].xRot = MathHelper.sin(ageInTicks * 0.09F + i) * 0.08F;
+        }
+        wingRibLeft.visible = phase >= 2;
+        wingRibRight.visible = phase >= 2;
+        ascendedHornLeft.visible = phase >= 3;
+        ascendedHornRight.visible = phase >= 3;
+        ascendedHornLeft.zRot = -0.50F - MathHelper.sin(ageInTicks * 0.08F) * 0.05F;
+        ascendedHornRight.zRot = -ascendedHornLeft.zRot;
         float idle = MathHelper.sin(ageInTicks * 0.08F);
         float cast = state == 1 ? 1.0F : 0.0F;
         float charge = state == 2 ? MathHelper.clamp(timer / 22.0F, 0.0F, 1.0F) : 0.0F;
