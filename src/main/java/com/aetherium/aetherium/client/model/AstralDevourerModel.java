@@ -13,6 +13,8 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
     private final ModelRenderer[] barbs = new ModelRenderer[4];
     private final ModelRenderer[] awakenedCrown = new ModelRenderer[5];
     private final ModelRenderer wingRibLeft, wingRibRight, ascendedHornLeft, ascendedHornRight;
+    private final ModelRenderer astralHalo, wingEyeLeft, wingEyeRight;
+    private final ModelRenderer[] haloSegments = new ModelRenderer[10];
     private float phaseTintRed = 1.0F;
     private float phaseTintGreen = 1.0F;
     private float phaseTintBlue = 1.0F;
@@ -86,6 +88,27 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         wingTipRight.addBox(0.0F, -1.0F, -0.4F, 4.0F, 7.0F, 0.8F);
         wingRight.addChild(wingTipRight);
 
+        // Extra eyes emerge inside each wing membrane in the awakened forms.
+        // Using the existing atlas keeps these additions compatible with older packs.
+        wingEyeLeft = new ModelRenderer(this, 0, 42);
+        wingEyeLeft.setPos(-5.0F, 1.5F, -0.9F);
+        wingEyeLeft.addBox(-1.6F, -1.3F, -0.25F, 3.2F, 2.6F, 0.5F);
+        wingLeft.addChild(wingEyeLeft);
+        wingEyeRight = new ModelRenderer(this, 0, 42);
+        wingEyeRight.setPos(5.0F, 1.5F, -0.9F);
+        wingEyeRight.addBox(-1.6F, -1.3F, -0.25F, 3.2F, 2.6F, 0.5F);
+        wingRight.addChild(wingEyeRight);
+
+        // Segmented astral halo, reminiscent of an eclipsed orbit, grows in phase III.
+        astralHalo = new ModelRenderer(this, 52, 0);
+        astralHalo.setPos(0.0F, -0.6F, 5.6F);
+        eyeShell.addChild(astralHalo);
+        for (int i = 0; i < haloSegments.length; i++) {
+            haloSegments[i] = new ModelRenderer(this, 44, 32);
+            haloSegments[i].addBox(-1.9F, -0.55F, -0.55F, 3.8F, 1.1F, 1.1F);
+            astralHalo.addChild(haloSegments[i]);
+        }
+
         // An articulated crown rises above the central eye in the awakened forms.
         for (int i = 0; i < awakenedCrown.length; i++) {
             float x = (i - 2) * 3.1F;
@@ -156,6 +179,19 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         }
         wingRibLeft.visible = phase >= 2;
         wingRibRight.visible = phase >= 2;
+        wingEyeLeft.visible = phase >= 2;
+        wingEyeRight.visible = phase >= 2;
+        wingEyeLeft.yRot = MathHelper.sin(ageInTicks * 0.05F) * 0.12F;
+        wingEyeRight.yRot = -wingEyeLeft.yRot;
+        // The first halo is compact; the final form expands the broken orbit.
+        astralHalo.visible = phase >= 2;
+        astralHalo.zRot = ageInTicks * (phase >= 3 ? 0.022F : 0.012F);
+        for (int i = 0; i < haloSegments.length; i++) {
+            float angle = (float)(Math.PI * 2.0D * i / haloSegments.length);
+            haloSegments[i].x = MathHelper.cos(angle) * (phase >= 3 ? 13.2F : 11.0F);
+            haloSegments[i].y = MathHelper.sin(angle) * (phase >= 3 ? 10.5F : 8.8F);
+            haloSegments[i].zRot = angle + (float)Math.PI * 0.5F;
+        }
         ascendedHornLeft.visible = phase >= 3;
         ascendedHornRight.visible = phase >= 3;
         ascendedHornLeft.zRot = -0.50F - MathHelper.sin(ageInTicks * 0.08F) * 0.05F;
