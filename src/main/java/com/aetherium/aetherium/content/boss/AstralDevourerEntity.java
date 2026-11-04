@@ -152,7 +152,9 @@ public class AstralDevourerEntity extends MonsterEntity {
         boolean phaseTransitionActive = this.entityData.get(ATTACK_STATE) == 9;
         boolean dashActive = phaseTransitionActive ? false : this.tickDashPattern();
         if (!phaseTransitionActive && !dashActive) {
-            if (this.beamChargeTicks > 0 || this.beamTicks > 0) {
+            int activeState = this.entityData.get(ATTACK_STATE);
+            if (this.beamChargeTicks > 0 || this.beamTicks > 0
+                    || activeState == 4 || activeState == 5 || activeState == 8) {
                 // The warning line and damage line must share a stationary origin.
                 this.getNavigation().stop();
                 this.setDeltaMovement(Vector3d.ZERO);
@@ -185,7 +187,8 @@ public class AstralDevourerEntity extends MonsterEntity {
                 this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.34D);
                 this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(12.0D);
             }
-            this.attackCooldown = 0;
+            // The awakening itself is a safe breathing window for repositioning.
+            this.attackCooldown = 30;
             this.dashChargeTicks = 0;
             this.dashTicks = 0;
             this.dashRecoveryTicks = 0;
@@ -234,13 +237,15 @@ public class AstralDevourerEntity extends MonsterEntity {
             this.attackCooldown = Math.max(this.attackCooldown, 24);
         }
         if (this.minionCooldown > 0) this.minionCooldown--;
-        if (this.phase >= 2 && this.minionCooldown <= 0 && target != null && target.isAlive()) {
+        if (this.phase >= 2 && this.minionCooldown <= 0 && target != null && target.isAlive()
+                && this.entityData.get(ATTACK_STATE) == 0
+                && this.distanceToSqr(target) < 22.0D * 22.0D) {
             this.summonAstralServants(target);
             this.minionCooldown = this.phase >= 3 ? 190 : 250;
         }
         if (this.attackCooldown > 0) this.attackCooldown--;
         if (target == null || !target.isAlive() || this.distanceToSqr(target) > 28.0D * 28.0D
-                || this.attackCooldown > 0) return;
+                || this.attackCooldown > 0 || this.entityData.get(ATTACK_STATE) != 0) return;
 
         double distanceSq = this.distanceToSqr(target);
         this.attackCycle++;
@@ -250,12 +255,12 @@ public class AstralDevourerEntity extends MonsterEntity {
         boolean dashTurn = this.phase >= 3 ? (pattern == 0 || pattern == 2) : pattern == 0;
         if (dashTurn && distanceSq > 3.6D * 3.6D && distanceSq < 22.0D * 22.0D) {
             this.startDashPattern(target);
-            this.attackCooldown = phase >= 3 ? 80 : (phase >= 2 ? 95 : 112);
+            this.attackCooldown = phase >= 3 ? 52 : (phase >= 2 ? 68 : 96);
             return;
         }
         if (phase >= 2 && pattern == 1 && distanceSq > 5.6D * 5.6D) {
             this.prepareAstralRay(target);
-            this.attackCooldown = phase >= 3 ? 88 : 108;
+            this.attackCooldown = phase >= 3 ? 76 : 88;
             return;
         }
         if (phase == 1) {
@@ -433,7 +438,8 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.dashDirX = direction.x;
         this.dashDirY = direction.y;
         this.dashDirZ = direction.z;
-        this.dashChargeTicks = this.phase >= 3 ? 9 : 12;
+        // Keep the triple dash threatening but give players 0.6s to read each direction.
+        this.dashChargeTicks = this.phase >= 3 ? 12 : 15;
         this.dashHitRegistered = false;
         this.entityData.set(ATTACK_STATE, 6);
         this.entityData.set(ATTACK_TICKS, this.dashChargeTicks);
@@ -461,7 +467,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         }
 
         if (this.dashTicks > 0) {
-            double speed = this.phase >= 3 ? 1.14D : 0.96D;
+            double speed = this.phase >= 3 ? 1.08D : 0.94D;
             this.setDeltaMovement(this.dashDirX * speed, this.dashDirY * speed,
                     this.dashDirZ * speed);
             this.hasImpulse = true;
@@ -539,7 +545,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.dashesRemaining = Math.max(0, this.dashesRemaining - 1);
         this.entityData.set(ATTACK_STATE, 7);
         this.entityData.set(ATTACK_TICKS, this.dashTicks);
-        double speed = this.phase >= 3 ? 1.14D : 0.96D;
+        double speed = this.phase >= 3 ? 1.08D : 0.94D;
         this.setDeltaMovement(this.dashDirX * speed, this.dashDirY * speed,
                 this.dashDirZ * speed);
         this.hasImpulse = true;
@@ -551,11 +557,12 @@ public class AstralDevourerEntity extends MonsterEntity {
         List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, hitBox, PlayerEntity::isAlive);
         for (PlayerEntity player : players) {
             if (!this.getBoundingBox().inflate(0.42D, 0.30D, 0.42D).intersects(player.getBoundingBox())) continue;
-            player.hurt(DamageSource.mobAttack(this), this.phase >= 3 ? 14.0F : 10.0F);
+            if (!player.hurt(DamageSource.mobAttack(this), this.phase >= 3 ? 12.0F : 10.0F))
+                continue;
             player.setDeltaMovement(player.getDeltaMovement().add(
-                    this.dashDirX * 0.72D, 0.28D + this.dashDirY * 0.25D, this.dashDirZ * 0.72D));
+                    this.dashDirX * 0.62D, 0.26D + this.dashDirY * 0.22D, this.dashDirZ * 0.62D));
             player.hurtMarked = true;
-            player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 30, 0, true, true));
+            player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 20, 0, true, true));
             this.dashHitRegistered = true;
             this.dashChainHitRegistered = true;
             if (this.level instanceof ServerWorld) {
@@ -789,13 +796,16 @@ public class AstralDevourerEntity extends MonsterEntity {
         ServerWorld server = (ServerWorld) this.level;
         double maxRadius = state == 4 ? 6.0D : 5.4D;
         double radius = maxRadius * (1.0D - remainingTicks / 24.0D);
+        LivingEntity target = this.getTarget();
+        double markerY = target != null && target.isAlive()
+                ? target.getY() + 0.12D : this.getY() - 2.4D;
         if (remainingTicks % 2 != 0) return;
         for (int i = 0; i < 20; i++) {
             double angle = Math.PI * 2.0D * i / 20.0D + this.tickCount * 0.025D;
             double x = this.getX() + Math.cos(angle) * radius;
             double z = this.getZ() + Math.sin(angle) * radius;
             server.sendParticles(state == 4 ? ParticleTypes.PORTAL : ParticleTypes.DRAGON_BREATH,
-                    x, this.getY() + 0.18D, z, 1, 0.015D, 0.025D, 0.015D, 0.0D);
+                    x, markerY, z, 1, 0.015D, 0.025D, 0.015D, 0.0D);
         }
         server.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY() + this.getBbHeight() * 0.56D,
                 this.getZ(), state == 4 ? 3 : 5, 0.32D, 0.22D, 0.32D, 0.01D);
@@ -867,12 +877,13 @@ public class AstralDevourerEntity extends MonsterEntity {
             double dz = player.getZ() - this.getZ();
             if (dx * dx + dz * dz > radius * radius || Math.abs(player.getY() - this.getY()) > 4.0D) continue;
             double length = Math.max(0.001D, Math.sqrt(dx * dx + dz * dz));
-            player.hurt(DamageSource.mobAttack(this), 11.0F);
-            player.setDeltaMovement(player.getDeltaMovement().add(
-                    dx / length * 1.25D, 0.52D, dz / length * 1.25D));
-            player.hurtMarked = true;
-            player.addEffect(new EffectInstance(Effects.BLINDNESS, 30, 0, true, true));
-            player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 45, 1, true, true));
+            if (player.hurt(DamageSource.mobAttack(this), 11.0F)) {
+                player.setDeltaMovement(player.getDeltaMovement().add(
+                        dx / length * 0.88D, 0.38D, dz / length * 0.88D));
+                player.hurtMarked = true;
+                player.addEffect(new EffectInstance(Effects.BLINDNESS, 16, 0, true, true));
+                player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 28, 0, true, true));
+            }
         }
         if (this.level instanceof ServerWorld) {
             ServerWorld server = (ServerWorld) this.level;
