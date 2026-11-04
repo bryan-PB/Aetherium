@@ -1,6 +1,7 @@
 package com.aetherium.aetherium.content.boss;
 
 import com.aetherium.aetherium.registry.RegistryHandler;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.network.IPacket;
 import net.minecraftforge.fml.network.NetworkHooks;
@@ -46,8 +47,24 @@ public class AetherBoltEntity extends ProjectileItemEntity {
     }
 
     @Override
+    protected boolean canHitEntity(Entity candidate) {
+        if (candidate instanceof BossMirageEntity
+                && ((BossMirageEntity)candidate).getBoss() == this.getOwner()) {
+            // A boss cannot destroy or block its own projectile with its decoy.
+            return false;
+        }
+        return super.canHitEntity(candidate);
+    }
+
+    @Override
     protected void onHitEntity(EntityRayTraceResult result) {
         super.onHitEntity(result);
+        if (!this.level.isClientSide && result.getEntity() instanceof BossMirageEntity
+                && this.getOwner() instanceof PlayerEntity) {
+            // Player-fired astral bolts can uncover decoys just like a melee hit.
+            ((BossMirageEntity)result.getEntity()).hurt(
+                    DamageSource.indirectMagic(this, (LivingEntity)this.getOwner()), 1.0F);
+        }
         if (!this.level.isClientSide && result.getEntity() instanceof LivingEntity
                 && result.getEntity() != this.getOwner()) {
             LivingEntity victim = (LivingEntity) result.getEntity();
