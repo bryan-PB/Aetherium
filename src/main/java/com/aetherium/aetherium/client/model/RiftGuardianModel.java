@@ -13,6 +13,7 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
     private final ModelRenderer leftHand, rightHand, leftLeg, rightLeg, leftShin, rightShin;
     private final ModelRenderer leftBoot, rightBoot, greatsword, swordGuard, swordGrip, swordPommel;
     private final ModelRenderer[] chestRibs = new ModelRenderer[3];
+    private final ModelRenderer rageCrest, backFinLeft, backFinRight, bladeFangLeft, bladeFangRight;
     private float phaseTintRed = 1.0F;
     private float phaseTintGreen = 1.0F;
 
@@ -51,6 +52,12 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         hornRight.zRot = 0.2F;
         head.addChild(hornRight);
 
+        // During phase II a central broken helm crest makes the head read as a war crown.
+        rageCrest = new ModelRenderer(this, 40, 8);
+        rageCrest.setPos(0.0F, -4.9F, -0.5F);
+        rageCrest.addBox(-1.3F, -6.5F, -1.0F, 2.6F, 6.7F, 2.0F);
+        head.addChild(rageCrest);
+
         neck = new ModelRenderer(this, 0, 0);
         neck.setPos(0.0F, -8.2F, 0.0F);
         neck.addBox(-2.8F, -0.4F, -2.8F, 5.6F, 4.0F, 5.6F);
@@ -70,6 +77,17 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         backPlate.setPos(0.0F, -4.5F, 4.2F);
         backPlate.addBox(-5.0F, -3.0F, 0.0F, 10.0F, 6.0F, 1.3F);
         body.addChild(backPlate);
+
+        // Armored void fins fold out from the back only when the armor awakens.
+        backFinLeft = new ModelRenderer(this, 40, 16);
+        backFinLeft.setPos(5.0F, -5.4F, 4.0F);
+        backFinLeft.addBox(0.0F, -10.0F, -0.8F, 2.0F, 10.0F, 1.6F);
+        body.addChild(backFinLeft);
+        backFinRight = new ModelRenderer(this, 40, 16);
+        backFinRight.setPos(-5.0F, -5.4F, 4.0F);
+        backFinRight.addBox(-2.0F, -10.0F, -0.8F, 2.0F, 10.0F, 1.6F);
+        body.addChild(backFinRight);
+
         for (int i = 0; i < chestRibs.length; i++) {
             chestRibs[i] = new ModelRenderer(this, 32, 20);
             chestRibs[i].setPos(0.0F, 2.0F + i * 2.0F, -4.62F);
@@ -132,6 +150,16 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         swordPommel.setPos(0.0F, 5.0F, 0.0F);
         swordPommel.addBox(-1.1F, -0.5F, -0.8F, 2.2F, 1.8F, 1.6F);
         greatsword.addChild(swordPommel);
+
+        // Two cleaving teeth extend from the awakened greatsword's midsection.
+        bladeFangLeft = new ModelRenderer(this, 40, 16);
+        bladeFangLeft.setPos(-1.5F, -9.0F, 0.0F);
+        bladeFangLeft.addBox(-2.5F, -3.1F, -0.6F, 2.5F, 3.1F, 1.2F);
+        greatsword.addChild(bladeFangLeft);
+        bladeFangRight = new ModelRenderer(this, 40, 16);
+        bladeFangRight.setPos(1.5F, -9.0F, 0.0F);
+        bladeFangRight.addBox(0.0F, -3.1F, -0.6F, 2.5F, 3.1F, 1.2F);
+        greatsword.addChild(bladeFangRight);
         rightHand.addChild(greatsword);
 
         leftLeg = new ModelRenderer(this, 0, 0);
@@ -184,6 +212,15 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         float sweepWindup = state == 3 ? weaponRaise : 0.0F;
         float sweep = state == 3 ? weaponStrike : 0.0F;
         float rage = entity.getPhase() >= 2 ? 1.0F : 0.0F;
+        rageCrest.visible = rage > 0.0F;
+        backFinLeft.visible = rage > 0.0F;
+        backFinRight.visible = rage > 0.0F;
+        bladeFangLeft.visible = rage > 0.0F;
+        bladeFangRight.visible = rage > 0.0F;
+        backFinLeft.zRot = 0.40F + MathHelper.sin(ageInTicks * 0.065F) * 0.045F;
+        backFinRight.zRot = -backFinLeft.zRot;
+        bladeFangLeft.zRot = 0.35F;
+        bladeFangRight.zRot = -0.35F;
         // A colder void hue makes the second phase apparent even between attacks.
         this.phaseTintRed = rage > 0.0F ? 0.78F : 1.0F;
         this.phaseTintGreen = rage > 0.0F ? 0.68F : 1.0F;
