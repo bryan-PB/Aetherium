@@ -88,6 +88,14 @@ public final class RegistryHandler {
     public static final RegistryObject<SoundEvent> LUMIVELO_HURT = sound("lumivelo_hurt");
     public static final RegistryObject<SoundEvent> LUMIVELO_DEATH = sound("lumivelo_death");
 
+    public static final RegistryObject<SoundEvent> AETHERIUM_EQUIP = sound("aetherium_equip");
+    public static final RegistryObject<SoundEvent> ASTRAL_EQUIP = sound("astral_equip");
+    public static final RegistryObject<SoundEvent> RELIC_ACTIVATION = sound("relic_activation");
+    public static final RegistryObject<SoundEvent> FLARE_ACTIVATION = sound("flare_activation");
+    public static final RegistryObject<SoundEvent> MAGNET_ON = sound("magnet_on");
+    public static final RegistryObject<SoundEvent> MAGNET_OFF = sound("magnet_off");
+    public static final RegistryObject<SoundEvent> BOSS_SUMMON = sound("boss_summon");
+
     // Blocks
     public static final RegistryObject<Block> AETHERIUM_ORE = BLOCKS.register("aetherium_ore",
             () -> new Block(Block.Properties.of(Material.STONE)
