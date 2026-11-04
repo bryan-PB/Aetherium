@@ -19,6 +19,7 @@ DEST = Path('src/main/resources/assets/aetherium/sounds')
 # attack seconds, release seconds, flutter rate, synthesis type
 SOUNDS = {
     'astral_ambient':       (2.30, 82, 62, 1.503, .095, .23, .55, 1.5, 'drone'),
+    'astral_awaken':        (2.55, 75, 265, 1.731, .21, .22, .55, 5.1, 'rise'),
     'astral_hurt':          (.65, 510, 105, 2.051, .40, .012, .24, 9.0, 'crack'),
     'astral_death':         (2.70, 190, 39, 1.505, .30, .026, .60, 2.4, 'collapse'),
     'astral_laser_charge':  (1.32, 92, 540, 2.037, .12, .12, .085, 14.0, 'rise'),
@@ -27,6 +28,7 @@ SOUNDS = {
     'astral_mirage':        (.88, 190, 310, 1.624, .16, .04, .28, 11.0, 'shimmer'),
     'astral_nova':          (1.04, 130, 42, 2.112, .35, .015, .32, 8.0, 'collapse'),
     'guardian_ambient':     (2.20, 62, 53, 1.681, .14, .25, .63, .8, 'drone'),
+    'guardian_awaken':      (2.25, 78, 235, 1.905, .23, .10, .65, 3.4, 'rise'),
     'guardian_hurt':        (.64, 325, 75, 2.765, .44, .004, .25, 8.0, 'crack'),
     'guardian_death':       (2.90, 115, 33, 2.224, .36, .01, .85, 1.4, 'collapse'),
     'guardian_windup':      (.85, 104, 250, 1.671, .16, .09, .15, 10.0, 'rise'),
