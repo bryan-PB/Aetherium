@@ -34,6 +34,18 @@ La captura del usuario mostró piel y colores de su personaje visibles en los ho
 
 **Pendiente de comprobar en el juego:** que al equipar solo la pechera se vean ambos brazos completos; que los hombros no dejen asomar la piel del jugador, en vistas frontal/trasera/3/4 y caminando.
 
+## Corrección de la franja de piel expuesta (captura de noviembre)
+
+La nueva captura del conjunto carmesí reveló una **franja turquesa procedente de la skin del jugador**, en la unión de brazo y torso. No procede de la paleta de la armadura. La causa geométrica estaba en el desplazamiento horizontal de los modelos originales de los brazos del jugador (Forge/Minecraft 1.16.5):
+
+- Brazo derecho: cubo vanilla en `x = -3..1` respecto al pivote del brazo.
+- Brazo izquierdo: cubo vanilla en `x = -1..3` respecto al pivote.
+- La armadura custom anterior centraba los dos brazos en `x = 0`, dejando un borde del brazo original sin cubrir, especialmente cuando se animaba.
+
+La corrección añade **un pivote secundario desplazado -1/+1 píxel** a todos los componentes de cada brazo y coloca una funda continua y opaca desde el hombro hasta la muñeca, con margen adicional para tapar incluso la capa exterior de la skin. Las hombreras, codera y guanteletes se desplazan con ese mismo pivote: se conserva su alineación y su animación. El casco, pecho y piernas no se modifican.
+
+Un nuevo chequeo estático `tools/check_armor_arm_coverage.py` comprueba que el cubo opaco cubra tanto el brazo vanilla como su capa exterior (margen 0,25 px) en ambos lados. **No sustituye la comprobación de la pose real dentro de Minecraft.**
+
 ## Restricciones y pruebas manuales
 
 Las capturas de diseño, incluidos los dos carteles Set Carmesí / Set Violeta, **no son capturas reales de Minecraft**. El modelo real está construido a base de cubos y tendrá una interpretación voxel más simplificada que la ilustración.

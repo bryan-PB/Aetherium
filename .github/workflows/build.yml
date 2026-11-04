@@ -172,6 +172,7 @@ jobs:
           cd "$AETHERIUM_PROJECT_DIR"
           gradle --version
           gradle build --no-daemon
+          python3 tools/check_armor_arm_coverage.py
           python3 - <<'PY'
           from pathlib import Path
           from zipfile import ZipFile
