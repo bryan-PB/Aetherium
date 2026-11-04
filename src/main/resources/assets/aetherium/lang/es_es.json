@@ -106,5 +106,11 @@
   "subtitles.aetherium.stalker_hurt": "Un Cazador de la Brecha recibe daño",
   "subtitles.aetherium.stalker_death": "Un Cazador de la Brecha cae",
   "subtitles.aetherium.lumivelo_hurt": "Un Lumivelo chilla",
-  "subtitles.aetherium.lumivelo_death": "Un Lumivelo deja de sonar"
+  "subtitles.aetherium.lumivelo_death": "Un Lumivelo deja de sonar",
+  "subtitles.aetherium.aetherium_blade_hit": "Resuena un golpe de aetherium",
+  "subtitles.aetherium.astral_blade_arc": "Una hoja astral corta el aire",
+  "subtitles.aetherium.rift_stalker_pounce": "Un Cazador de la Brecha se abalanza",
+  "subtitles.aetherium.lumivelo_chime": "Un Lumivelo tintinea",
+  "subtitles.aetherium.rift_guardian_slam": "El Guardián de la Brecha golpea el suelo",
+  "subtitles.aetherium.astral_devourer_pulse": "El Devorador Astral emite un pulso"
 }
