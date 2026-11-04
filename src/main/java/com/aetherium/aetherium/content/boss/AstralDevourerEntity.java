@@ -586,7 +586,7 @@ public class AstralDevourerEntity extends MonsterEntity {
             return true;
         }
         if (this.beamTicks > 0) {
-            this.sendAstralRayParticles(1.0D, true);
+            if (this.beamTicks % 2 == 0) this.sendAstralRayParticles(1.0D, true);
             this.beamTicks--;
             this.entityData.set(ATTACK_TICKS, this.beamTicks);
             if (this.beamTicks == 0) this.entityData.set(ATTACK_STATE, 0);
@@ -611,7 +611,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, 0.56F);
     }
 
-    /** Draws a bright, slightly wavering particle beam instead of relying on an invisible line entity. */
+    /** Sparse impact sparks complement the continuous client-rendered beam without flooding the network. */
     private void sendAstralRayParticles(double reach, boolean firing) {
         if (!(this.level instanceof ServerWorld)) return;
         ServerWorld server = (ServerWorld) this.level;
@@ -621,29 +621,20 @@ public class AstralDevourerEntity extends MonsterEntity {
         double dx = this.beamEndX - sx;
         double dy = this.beamEndY - sy;
         double dz = this.beamEndZ - sz;
-        double sideLength = Math.max(0.001D, Math.sqrt(dx * dx + dz * dz));
-        double sideX = -dz / sideLength;
-        double sideZ = dx / sideLength;
-        for (int i = 0; i <= 28; i++) {
-            double progress = i / 28.0D;
+        for (int i = 0; i <= 12; i++) {
+            double progress = i / 12.0D;
             if (progress > reach) continue;
-            double wave = Math.sin(this.tickCount * 0.72D + i * 0.9D) * (firing ? 0.11D : 0.035D);
-            double px = sx + dx * progress + sideX * wave;
-            double py = sy + dy * progress + Math.cos(this.tickCount * 0.5D + i) * wave;
-            double pz = sz + dz * progress + sideZ * wave;
-            // A layered ribbon is easier to see than a single strand of tiny end-rod particles.
-            server.sendParticles(firing ? ParticleTypes.END_ROD : ParticleTypes.DRAGON_BREATH,
-                    px, py, pz, firing ? 3 : 3, 0.045D, 0.045D, 0.045D, 0.0D);
-            server.sendParticles(firing ? ParticleTypes.CRIT : ParticleTypes.PORTAL,
-                    px, py, pz, firing ? 2 : 2, 0.035D, 0.035D, 0.035D, 0.0D);
+            double px = sx + dx * progress;
+            double py = sy + dy * progress;
+            double pz = sz + dz * progress;
             if (firing) {
-                // A warm, unmistakable core separates the ray from the boss model and background.
-                server.sendParticles(ParticleTypes.FLAME, px, py, pz,
-                        1, 0.012D, 0.012D, 0.012D, 0.0D);
-                if (i % 2 == 0) {
-                    server.sendParticles(ParticleTypes.DRAGON_BREATH, px + sideX * 0.18D, py,
-                            pz + sideZ * 0.18D, 2, 0.035D, 0.035D, 0.035D, 0.0D);
-                }
+                server.sendParticles(ParticleTypes.END_ROD,
+                        px, py, pz, 1, 0.10D, 0.10D, 0.10D, 0.015D);
+                if (i % 3 == 0) server.sendParticles(ParticleTypes.DRAGON_BREATH,
+                        px, py, pz, 1, 0.12D, 0.12D, 0.12D, 0.01D);
+            } else if (i % 2 == 0) {
+                server.sendParticles(ParticleTypes.PORTAL,
+                        px, py, pz, 1, 0.06D, 0.06D, 0.06D, 0.0D);
             }
         }
     }
