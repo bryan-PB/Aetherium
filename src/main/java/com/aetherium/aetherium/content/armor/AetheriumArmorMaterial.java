@@ -5,7 +5,6 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.IArmorMaterial;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
 
 /** Aetherium armor is tougher than Netherite, balanced by a costly repair ingredient. */
 public final class AetheriumArmorMaterial implements IArmorMaterial {
@@ -35,7 +34,7 @@ public final class AetheriumArmorMaterial implements IArmorMaterial {
 
     @Override
     public SoundEvent getEquipSound() {
-        return SoundEvents.ARMOR_EQUIP_NETHERITE;
+        return RegistryHandler.AETHERIUM_EQUIP.get();
     }
 
     @Override
