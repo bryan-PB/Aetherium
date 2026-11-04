@@ -23,7 +23,6 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceContext;
@@ -220,7 +219,7 @@ public class AstralDevourerEntity extends MonsterEntity {
                 if (phase == 3) server.sendParticles(ParticleTypes.CRIT,
                         this.getX(), this.getY() + 1.0D, this.getZ(), 32, 1.5D, 1.0D, 1.5D, 0.16D);
             }
-            this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, phase == 3 ? 0.62F : 0.82F);
+            this.playSound(RegistryHandler.ASTRAL_AWAKEN.get(), 0.95F, phase == 3 ? 0.84F : 1.0F);
         }
 
         if (this.entityData.get(ATTACK_STATE) == 9) {
@@ -454,7 +453,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.entityData.set(ATTACK_TICKS, this.dashChargeTicks);
         this.setDeltaMovement(Vector3d.ZERO);
         this.hasImpulse = true;
-        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.9F, 1.25F);
+        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.72F, 1.12F);
     }
 
     /** Server-side dash state machine. Motion and damage are authoritative; effects are sent to tracking clients. */
@@ -542,7 +541,7 @@ public class AstralDevourerEntity extends MonsterEntity {
                         this.getX(), this.getY() + this.getBbHeight() * 0.55D, this.getZ(),
                         16, 0.45D, 0.4D, 0.45D, 0.04D);
             }
-            this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.95F, 0.86F);
+            this.playSound(RegistryHandler.ASTRAL_HURT.get(), 0.72F, 0.9F);
         } else {
             this.entityData.set(ATTACK_STATE, 0);
             this.entityData.set(ATTACK_TICKS, 0);
@@ -558,7 +557,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.setDeltaMovement(this.dashDirX * speed, this.dashDirY * speed,
                 this.dashDirZ * speed);
         this.hasImpulse = true;
-        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, this.phase >= 3 ? 0.48F : 0.62F);
+        this.playSound(RegistryHandler.ASTRAL_DASH.get(), 1.0F, this.phase >= 3 ? 1.06F : 0.91F);
     }
 
     private void checkDashImpact() {
@@ -613,7 +612,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.entityData.set(ATTACK_TICKS, this.beamChargeTicks);
         this.setDeltaMovement(Vector3d.ZERO);
         this.hasImpulse = true;
-        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, 1.18F);
+        this.playSound(RegistryHandler.ASTRAL_LASER_CHARGE.get(), 1.05F, 1.0F);
     }
 
     /** Advances the charge and firing windows on the server and streams particles to every tracking client. */
@@ -662,7 +661,7 @@ public class AstralDevourerEntity extends MonsterEntity {
             server.sendParticles(ParticleTypes.PORTAL, this.beamEndX, this.beamEndY, this.beamEndZ,
                     18, 0.35D, 0.35D, 0.35D, 0.08D);
         }
-        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, 0.56F);
+        this.playSound(RegistryHandler.ASTRAL_LASER_FIRE.get(), 1.1F, this.phase >= 3 ? 1.05F : 0.94F);
     }
 
     /** Sparse impact sparks complement the continuous client-rendered beam without flooding the network. */
@@ -873,7 +872,7 @@ public class AstralDevourerEntity extends MonsterEntity {
             server.sendParticles(ParticleTypes.EXPLOSION, this.getX(), this.getY() + 0.7D, this.getZ(),
                     2, 0.35D, 0.22D, 0.35D, 0.0D);
         }
-        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.95F, 0.72F);
+        this.playSound(RegistryHandler.ASTRAL_NOVA.get(), 0.80F, 0.92F);
     }
 
     /** Starts a ring warning before the final phase nova; damage is delayed to the slam frame. */
@@ -921,7 +920,7 @@ public class AstralDevourerEntity extends MonsterEntity {
             server.sendParticles(ParticleTypes.EXPLOSION, this.getX(), this.getY() + 0.5D, this.getZ(),
                     3, 0.35D, 0.35D, 0.35D, 0.0D);
         }
-        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, 0.48F);
+        this.playSound(RegistryHandler.ASTRAL_NOVA.get(), 1.06F, 0.73F);
     }
 
     private void summonMirage() {
@@ -936,7 +935,7 @@ public class AstralDevourerEntity extends MonsterEntity {
             ((ServerWorld)this.level).sendParticles(ParticleTypes.PORTAL,
                     this.getX(), this.getY() + 1.2D, this.getZ(),
                     30, 2.0D, 0.9D, 2.0D, 0.09D);
-            this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.92F, 1.45F);
+            this.playSound(RegistryHandler.ASTRAL_MIRAGE.get(), 0.84F, 1.04F);
         }
     }
 
@@ -1019,16 +1018,18 @@ public class AstralDevourerEntity extends MonsterEntity {
 
     @Override
     protected net.minecraft.util.SoundEvent getAmbientSound() {
-        return SoundEvents.ENDERMAN_AMBIENT;
+        // Keep the slow ambient layer out of charged attacks and close-range battles.
+        return this.entityData.get(ATTACK_STATE) == 0 && this.getTarget() == null
+                ? RegistryHandler.ASTRAL_AMBIENT.get() : null;
     }
 
     @Override
     protected net.minecraft.util.SoundEvent getHurtSound(DamageSource source) {
-        return SoundEvents.ENDERMAN_HURT;
+        return RegistryHandler.ASTRAL_HURT.get();
     }
 
     @Override
     protected net.minecraft.util.SoundEvent getDeathSound() {
-        return SoundEvents.ENDERMAN_DEATH;
+        return RegistryHandler.ASTRAL_DEATH.get();
     }
 }
