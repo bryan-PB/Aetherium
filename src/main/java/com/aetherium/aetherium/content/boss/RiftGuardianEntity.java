@@ -46,8 +46,11 @@ public class RiftGuardianEntity extends MonsterEntity {
     private static final DataParameter<Integer> PHASE = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> SLAM_TICKS = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> ATTACK_STATE = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
+    private static final DataParameter<Integer> MIRAGE_ID =
+            EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
     private int phase = 1;
     private int minionCooldown = 0;
+    private int mirageCooldown = 165;
     private int attackPattern = 0;
     private double sweepDirectionX;
     private double sweepDirectionZ;
@@ -70,6 +73,7 @@ public class RiftGuardianEntity extends MonsterEntity {
         this.entityData.define(PHASE, 1);
         this.entityData.define(SLAM_TICKS, 0);
         this.entityData.define(ATTACK_STATE, 0);
+        this.entityData.define(MIRAGE_ID, -1);
     }
 
     public int getSlamAnimationTicks() {
@@ -82,6 +86,14 @@ public class RiftGuardianEntity extends MonsterEntity {
 
     public int getAttackState() {
         return this.entityData.get(ATTACK_STATE);
+    }
+
+    public int getMirageEntityId() {
+        return this.entityData.get(MIRAGE_ID);
+    }
+
+    public void onMirageDispelled(int fakeId) {
+        if (this.entityData.get(MIRAGE_ID) == fakeId) this.entityData.set(MIRAGE_ID, -1);
     }
 
     public static AttributeModifierMap.MutableAttribute createAttributes() {
@@ -232,6 +244,13 @@ public class RiftGuardianEntity extends MonsterEntity {
         if (phase >= 2 && target != null && target.isAlive() && this.minionCooldown <= 0) {
             this.trySpawnMinion();
             this.minionCooldown = 180;
+        }
+        if (this.mirageCooldown > 0) this.mirageCooldown--;
+        if (phase >= 2 && target != null && target.isAlive() && this.mirageCooldown <= 0
+                && this.entityData.get(ATTACK_STATE) == 0 && this.distanceToSqr(target) < 19.0D * 19.0D) {
+            this.summonMirage();
+            this.mirageCooldown = 290;
+            this.attackCooldown = Math.max(this.attackCooldown, 22);
         }
         if (target == null || !target.isAlive() || this.attackCooldown > 0
                 || this.distanceToSqr(target) > 20.0D * 20.0D) return;
@@ -591,6 +610,29 @@ public class RiftGuardianEntity extends MonsterEntity {
         this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.95F, phase == 1 ? 0.92F : 0.68F);
     }
 
+    private void summonMirage() {
+        if (!(this.level instanceof ServerWorld) || this.entityData.get(MIRAGE_ID) >= 0) return;
+        BossMirageEntity fake = RegistryHandler.BOSS_MIRAGE.get().create(this.level);
+        if (fake == null) return;
+        fake.setOwner(this);
+        fake.setPos(this.getX() - 3.0D, this.getY(), this.getZ() + 2.1D);
+        if (this.level.addFreshEntity(fake)) {
+            this.entityData.set(MIRAGE_ID, fake.getId());
+            ((ServerWorld)this.level).sendParticles(ParticleTypes.PORTAL,
+                    this.getX(), this.getY() + 1.4D, this.getZ(),
+                    28, 1.6D, 0.95D, 1.6D, 0.08D);
+            this.playSound(SoundEvents.ENDERMAN_TELEPORT, 0.9F, 0.75F);
+        }
+    }
+
+    private void dispelMirage() {
+        int id = this.entityData.get(MIRAGE_ID);
+        if (id < 0) return;
+        this.entityData.set(MIRAGE_ID, -1);
+        net.minecraft.entity.Entity fake = this.level.getEntity(id);
+        if (fake instanceof BossMirageEntity) ((BossMirageEntity) fake).expire();
+    }
+
     /** Invokes up to two stalkers per wave, with a strict four-minion arena cap. */
     private void trySpawnMinion() {
         if (!(this.level instanceof ServerWorld)) return;
@@ -680,7 +722,15 @@ public class RiftGuardianEntity extends MonsterEntity {
     }
 
     @Override
+    public boolean hurt(DamageSource source, float amount) {
+        boolean damaged = super.hurt(source, amount);
+        if (damaged && !this.level.isClientSide) this.dispelMirage();
+        return damaged;
+    }
+
+    @Override
     public void die(DamageSource source) {
+        this.dispelMirage();
         super.die(source);
         this.bossInfo.removeAllPlayers();
     }
