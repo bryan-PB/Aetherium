@@ -1,5 +1,6 @@
 package com.aetherium.aetherium.content.boss;
 
+import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -114,6 +115,12 @@ public class BossMirageEntity extends Entity {
             ((ServerWorld)this.level).sendParticles(ParticleTypes.PORTAL,
                     this.getX(), this.getY() + 1.0D, this.getZ(),
                     28, 0.65D, 0.8D, 0.65D, 0.09D);
+        }
+        Entity owner = this.getBoss();
+        if (owner instanceof AstralDevourerEntity) {
+            this.playSound(RegistryHandler.ASTRAL_MIRAGE.get(), 0.65F, 1.27F);
+        } else if (owner instanceof RiftGuardianEntity) {
+            this.playSound(RegistryHandler.GUARDIAN_MIRAGE.get(), 0.65F, 1.21F);
         }
         this.expire();
         return true;
