@@ -142,6 +142,9 @@ jobs:
           # The compatibility fixes are strictly local to this CI workspace.
           # Never commit or push changes into main from a pull-request build.
 
+      - name: Preparar codificador de audio
+        uses: AnimMouse/setup-ffmpeg@v1
+
       - name: Generar audio original de Aetherium
         shell: bash
         run: |
