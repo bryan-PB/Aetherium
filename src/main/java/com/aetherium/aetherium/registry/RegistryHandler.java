@@ -64,6 +64,28 @@ public final class RegistryHandler {
     public static final RegistryObject<SoundEvent> RIFT_GUARDIAN_SLAM = sound("rift_guardian_slam");
     public static final RegistryObject<SoundEvent> ASTRAL_DEVOURER_PULSE = sound("astral_devourer_pulse");
 
+    // Procedurally synthesized, original Aetherium cues: no Minecraft mob recordings.
+    public static final RegistryObject<SoundEvent> ASTRAL_AMBIENT = sound("astral_ambient");
+    public static final RegistryObject<SoundEvent> ASTRAL_HURT = sound("astral_hurt");
+    public static final RegistryObject<SoundEvent> ASTRAL_DEATH = sound("astral_death");
+    public static final RegistryObject<SoundEvent> ASTRAL_LASER_CHARGE = sound("astral_laser_charge");
+    public static final RegistryObject<SoundEvent> ASTRAL_LASER_FIRE = sound("astral_laser_fire");
+    public static final RegistryObject<SoundEvent> ASTRAL_DASH = sound("astral_dash");
+    public static final RegistryObject<SoundEvent> ASTRAL_MIRAGE = sound("astral_mirage");
+    public static final RegistryObject<SoundEvent> ASTRAL_NOVA = sound("astral_nova");
+    public static final RegistryObject<SoundEvent> GUARDIAN_AMBIENT = sound("guardian_ambient");
+    public static final RegistryObject<SoundEvent> GUARDIAN_HURT = sound("guardian_hurt");
+    public static final RegistryObject<SoundEvent> GUARDIAN_DEATH = sound("guardian_death");
+    public static final RegistryObject<SoundEvent> GUARDIAN_WINDUP = sound("guardian_windup");
+    public static final RegistryObject<SoundEvent> GUARDIAN_CHARGE = sound("guardian_charge");
+    public static final RegistryObject<SoundEvent> GUARDIAN_SWEEP = sound("guardian_sweep");
+    public static final RegistryObject<SoundEvent> GUARDIAN_MIRAGE = sound("guardian_mirage");
+    public static final RegistryObject<SoundEvent> STALKER_AMBIENT = sound("stalker_ambient");
+    public static final RegistryObject<SoundEvent> STALKER_HURT = sound("stalker_hurt");
+    public static final RegistryObject<SoundEvent> STALKER_DEATH = sound("stalker_death");
+    public static final RegistryObject<SoundEvent> LUMIVELO_HURT = sound("lumivelo_hurt");
+    public static final RegistryObject<SoundEvent> LUMIVELO_DEATH = sound("lumivelo_death");
+
     // Blocks
     public static final RegistryObject<Block> AETHERIUM_ORE = BLOCKS.register("aetherium_ore",
             () -> new Block(Block.Properties.of(Material.STONE)
