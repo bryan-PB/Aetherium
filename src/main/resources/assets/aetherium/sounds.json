@@ -52,5 +52,185 @@
         "volume": 0.95
       }
     ]
+  },
+  "astral_ambient": {
+    "subtitle": "subtitles.aetherium.astral_ambient",
+    "sounds": [
+      {
+        "name": "aetherium:astral_ambient",
+        "volume": 0.42
+      }
+    ]
+  },
+  "astral_hurt": {
+    "subtitle": "subtitles.aetherium.astral_hurt",
+    "sounds": [
+      {
+        "name": "aetherium:astral_hurt",
+        "volume": 0.7
+      }
+    ]
+  },
+  "astral_death": {
+    "subtitle": "subtitles.aetherium.astral_death",
+    "sounds": [
+      {
+        "name": "aetherium:astral_death",
+        "volume": 0.95
+      }
+    ]
+  },
+  "astral_laser_charge": {
+    "subtitle": "subtitles.aetherium.astral_laser_charge",
+    "sounds": [
+      {
+        "name": "aetherium:astral_laser_charge",
+        "volume": 0.94
+      }
+    ]
+  },
+  "astral_laser_fire": {
+    "subtitle": "subtitles.aetherium.astral_laser_fire",
+    "sounds": [
+      {
+        "name": "aetherium:astral_laser_fire",
+        "volume": 1
+      }
+    ]
+  },
+  "astral_dash": {
+    "subtitle": "subtitles.aetherium.astral_dash",
+    "sounds": [
+      {
+        "name": "aetherium:astral_dash",
+        "volume": 0.78
+      }
+    ]
+  },
+  "astral_mirage": {
+    "subtitle": "subtitles.aetherium.astral_mirage",
+    "sounds": [
+      {
+        "name": "aetherium:astral_mirage",
+        "volume": 0.73
+      }
+    ]
+  },
+  "astral_nova": {
+    "subtitle": "subtitles.aetherium.astral_nova",
+    "sounds": [
+      {
+        "name": "aetherium:astral_nova",
+        "volume": 0.87
+      }
+    ]
+  },
+  "guardian_ambient": {
+    "subtitle": "subtitles.aetherium.guardian_ambient",
+    "sounds": [
+      {
+        "name": "aetherium:guardian_ambient",
+        "volume": 0.46
+      }
+    ]
+  },
+  "guardian_hurt": {
+    "subtitle": "subtitles.aetherium.guardian_hurt",
+    "sounds": [
+      {
+        "name": "aetherium:guardian_hurt",
+        "volume": 0.68
+      }
+    ]
+  },
+  "guardian_death": {
+    "subtitle": "subtitles.aetherium.guardian_death",
+    "sounds": [
+      {
+        "name": "aetherium:guardian_death",
+        "volume": 0.97
+      }
+    ]
+  },
+  "guardian_windup": {
+    "subtitle": "subtitles.aetherium.guardian_windup",
+    "sounds": [
+      {
+        "name": "aetherium:guardian_windup",
+        "volume": 0.78
+      }
+    ]
+  },
+  "guardian_charge": {
+    "subtitle": "subtitles.aetherium.guardian_charge",
+    "sounds": [
+      {
+        "name": "aetherium:guardian_charge",
+        "volume": 0.91
+      }
+    ]
+  },
+  "guardian_sweep": {
+    "subtitle": "subtitles.aetherium.guardian_sweep",
+    "sounds": [
+      {
+        "name": "aetherium:guardian_sweep",
+        "volume": 0.94
+      }
+    ]
+  },
+  "guardian_mirage": {
+    "subtitle": "subtitles.aetherium.guardian_mirage",
+    "sounds": [
+      {
+        "name": "aetherium:guardian_mirage",
+        "volume": 0.77
+      }
+    ]
+  },
+  "stalker_ambient": {
+    "subtitle": "subtitles.aetherium.stalker_ambient",
+    "sounds": [
+      {
+        "name": "aetherium:stalker_ambient",
+        "volume": 0.37
+      }
+    ]
+  },
+  "stalker_hurt": {
+    "subtitle": "subtitles.aetherium.stalker_hurt",
+    "sounds": [
+      {
+        "name": "aetherium:stalker_hurt",
+        "volume": 0.57
+      }
+    ]
+  },
+  "stalker_death": {
+    "subtitle": "subtitles.aetherium.stalker_death",
+    "sounds": [
+      {
+        "name": "aetherium:stalker_death",
+        "volume": 0.72
+      }
+    ]
+  },
+  "lumivelo_hurt": {
+    "subtitle": "subtitles.aetherium.lumivelo_hurt",
+    "sounds": [
+      {
+        "name": "aetherium:lumivelo_hurt",
+        "volume": 0.51
+      }
+    ]
+  },
+  "lumivelo_death": {
+    "subtitle": "subtitles.aetherium.lumivelo_death",
+    "sounds": [
+      {
+        "name": "aetherium:lumivelo_death",
+        "volume": 0.65
+      }
+    ]
   }
 }
