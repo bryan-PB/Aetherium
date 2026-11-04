@@ -112,5 +112,12 @@
   "subtitles.aetherium.rift_stalker_pounce": "A Rift Stalker lunges",
   "subtitles.aetherium.lumivelo_chime": "A Lumivelo chimes",
   "subtitles.aetherium.rift_guardian_slam": "The Rift Guardian strikes the ground",
-  "subtitles.aetherium.astral_devourer_pulse": "The Astral Devourer pulses"
+  "subtitles.aetherium.astral_devourer_pulse": "The Astral Devourer pulses",
+  "subtitles.aetherium.aetherium_equip": "Aetherium armor fastens",
+  "subtitles.aetherium.astral_equip": "Astral armor resonates",
+  "subtitles.aetherium.relic_activation": "An aetherium relic activates",
+  "subtitles.aetherium.flare_activation": "An aetherium flare ignites",
+  "subtitles.aetherium.magnet_on": "Aetherium magnet activates",
+  "subtitles.aetherium.magnet_off": "Aetherium magnet deactivates",
+  "subtitles.aetherium.boss_summon": "Aetherium summons a powerful foe"
 }
