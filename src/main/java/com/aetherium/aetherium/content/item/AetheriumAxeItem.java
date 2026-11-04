@@ -1,6 +1,5 @@
 package com.aetherium.aetherium.content.item;
 
-import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.AxeItem;
@@ -10,7 +9,6 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.server.ServerWorld;
 
@@ -48,8 +46,6 @@ public class AetheriumAxeItem extends AxeItem {
                         0.2D, 0.22D, 0.2D, 0.025D);
             }
         }
-        target.level.playSound(null, target.blockPosition(), RegistryHandler.AETHERIUM_BLADE_HIT.get(),
-                SoundCategory.PLAYERS, combo >= 3 ? 1.0F : 0.65F, combo >= 3 ? 0.48F : 0.78F);
         return true;
     }
 
@@ -95,7 +91,5 @@ public class AetheriumAxeItem extends AxeItem {
         }
         server.sendParticles(ParticleTypes.EXPLOSION, attacker.getX(), attacker.getY(0.5D),
                 attacker.getZ(), 2, 0.22D, 0.2D, 0.22D, 0.0D);
-        attacker.level.playSound(null, attacker.blockPosition(), RegistryHandler.RIFT_GUARDIAN_SLAM.get(),
-                SoundCategory.PLAYERS, 0.9F, 0.62F);
     }
 }

@@ -225,6 +225,50 @@ jobs:
               if len(pixels) != 128 * 129:
                   raise SystemExit('Winged Executioner PNG pixel data is truncated')
               print(f'Validated 128x128 executioner texture and {len(sound_files)} audio files in {jar.name}')
+              # Both tiers must ship real item sprites AND separate worn armor
+              # layers. Old 16x16 blue/purple resources must not be mistaken for
+              # the new, hand-authored 32x32 designs.
+              gear = []
+              for tier in ('aetherium', 'astral'):
+                  for item in ('sword', 'axe', 'pickaxe',
+                               'helmet', 'chestplate', 'leggings', 'boots'):
+                      gear.append((f'assets/aetherium/textures/item/{tier}_{item}.png', (32, 32)))
+                  for layer in (1, 2):
+                      gear.append((f'assets/aetherium/textures/models/armor/{tier}_layer_{layer}.png',
+                                   (64, 32)))
+              with ZipFile(jar) as z:
+                  for asset, expected_dimensions in gear:
+                      if asset not in included:
+                          raise SystemExit(f'{jar.name} is missing equipment texture {asset}')
+                      data = z.read(asset)
+                      if not data.startswith(b'\\x89PNG\\r\\n\\x1a\\n'):
+                          raise SystemExit(f'Invalid equipment PNG signature: {asset}')
+                      w, h = struct.unpack('>II', data[16:24])
+                      if (w, h) != expected_dimensions:
+                          raise SystemExit(f'Wrong equipment dimensions for {asset}: {w}x{h}')
+                      # Validate every PNG chunk and the compressed pixel data.
+                      pos, compressed, ended = 8, [], False
+                      while pos + 12 <= len(data):
+                          length, = struct.unpack('>I', data[pos:pos+4])
+                          chunk = data[pos+4:pos+8]
+                          payload = data[pos+8:pos+8+length]
+                          if len(payload) != length or pos + 12 + length > len(data):
+                              raise SystemExit(f'Truncated PNG chunk: {asset}')
+                          expected_crc, = struct.unpack('>I', data[pos+8+length:pos+12+length])
+                          if zlib.crc32(chunk + payload) != expected_crc:
+                              raise SystemExit(f'Corrupt PNG chunk: {asset}')
+                          if chunk == b'IDAT':
+                              compressed.append(payload)
+                          pos += 12 + length
+                          if chunk == b'IEND':
+                              ended = True
+                              break
+                      if not ended or not compressed:
+                          raise SystemExit(f'Missing equipment PNG pixel data: {asset}')
+                      pixel_bytes = zlib.decompress(b''.join(compressed))
+                      if len(pixel_bytes) != h * (1 + w * 4):
+                          raise SystemExit(f'Truncated equipment RGBA data: {asset}')
+              print(f'Validated {len(gear)} redesigned equipment textures in {jar.name}')
           PY
 
       - name: Subir JAR compilado

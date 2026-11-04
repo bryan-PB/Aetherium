@@ -1,6 +1,5 @@
 package com.aetherium.aetherium.content.item;
 
-import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.AxeItem;
@@ -10,7 +9,6 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.SoundCategory;
 import net.minecraft.world.server.ServerWorld;
 
 import java.util.HashSet;
@@ -50,8 +48,6 @@ public class AstralAxeItem extends AxeItem {
                         0.16D, 0.20D, 0.16D, 0.018D);
             }
         }
-        target.level.playSound(null, target.blockPosition(), RegistryHandler.ASTRAL_BLADE_ARC.get(),
-                SoundCategory.PLAYERS, combo >= 3 ? 1.0F : 0.65F, combo >= 3 ? 0.58F : 0.94F);
         return true;
     }
 
@@ -101,8 +97,6 @@ public class AstralAxeItem extends AxeItem {
 
         server.sendParticles(ParticleTypes.EXPLOSION, first.getX(), first.getY(0.5D), first.getZ(),
                 1, 0.16D, 0.16D, 0.16D, 0.0D);
-        attacker.level.playSound(null, first.blockPosition(), RegistryHandler.ASTRAL_BLADE_ARC.get(),
-                SoundCategory.PLAYERS, 1.0F, 0.58F);
     }
 
     /** Renders each link as a dense chain of particles instead of a single barely visible spark. */

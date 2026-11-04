@@ -1,7 +1,6 @@
 package com.aetherium.aetherium.content.item;
 
 import com.aetherium.aetherium.content.boss.AetherBoltEntity;
-import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.SwordItem;
@@ -9,7 +8,6 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.SoundCategory;
 import net.minecraft.world.server.ServerWorld;
 
 /** Astral edge: every fourth hit releases a visible, three-pronged bolt fan. */
@@ -44,8 +42,6 @@ public class AstralSwordItem extends SwordItem {
                         0.20D, 0.25D, 0.20D, 0.012D);
             }
         }
-        target.level.playSound(null, target.blockPosition(), RegistryHandler.ASTRAL_BLADE_ARC.get(),
-                SoundCategory.PLAYERS, 0.8F, 0.9F + combo * 0.04F);
         return true;
     }
 
@@ -73,7 +69,5 @@ public class AstralSwordItem extends SwordItem {
         target.addEffect(new EffectInstance(Effects.WEAKNESS, 50, 0, true, true));
         server.sendParticles(ParticleTypes.CRIT, target.getX(), target.getY(0.55D), target.getZ(),
                 14, 0.3D, 0.34D, 0.3D, 0.06D);
-        attacker.level.playSound(null, attacker.blockPosition(), RegistryHandler.ASTRAL_BLADE_ARC.get(),
-                SoundCategory.PLAYERS, 1.05F, 0.72F);
     }
 }

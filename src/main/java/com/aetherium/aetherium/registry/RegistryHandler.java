@@ -3,6 +3,7 @@ package com.aetherium.aetherium.registry;
 import com.aetherium.aetherium.AetheriumMod;
 import com.aetherium.aetherium.content.armor.AetheriumArmorMaterial;
 import com.aetherium.aetherium.content.armor.AstralArmorMaterial;
+import com.aetherium.aetherium.content.armor.KryzoraeArmorItem;
 import com.aetherium.aetherium.content.item.AetheriumAccessoryItem;
 import com.aetherium.aetherium.content.item.AetheriumItemTier;
 import com.aetherium.aetherium.content.item.AstralItemTier;
@@ -24,7 +25,6 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EntityClassification;
 import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraft.item.BlockItem;
-import net.minecraft.item.ArmorItem;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.SwordItem;
 import net.minecraft.item.PickaxeItem;
@@ -184,17 +184,17 @@ public final class RegistryHandler {
 
     // Full armor set
     public static final RegistryObject<Item> AETHERIUM_HELMET = ITEMS.register("aetherium_helmet",
-            () -> new ArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.HEAD,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.HEAD,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), false));
     public static final RegistryObject<Item> AETHERIUM_CHESTPLATE = ITEMS.register("aetherium_chestplate",
-            () -> new ArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.CHEST,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.CHEST,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), false));
     public static final RegistryObject<Item> AETHERIUM_LEGGINGS = ITEMS.register("aetherium_leggings",
-            () -> new ArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.LEGS,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.LEGS,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), false));
     public static final RegistryObject<Item> AETHERIUM_BOOTS = ITEMS.register("aetherium_boots",
-            () -> new ArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.FEET,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.FEET,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), false));
 
     // Final Astral tier. Every piece consumes rare boss-derived Astral Ingots.
     public static final RegistryObject<Item> ASTRAL_INGOT = ITEMS.register("astral_ingot",
@@ -209,17 +209,17 @@ public final class RegistryHandler {
             () -> new AstralAxeItem(AstralItemTier.INSTANCE, 7.0F, -3.0F,
                     new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
     public static final RegistryObject<Item> ASTRAL_HELMET = ITEMS.register("astral_helmet",
-            () -> new ArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.HEAD,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.HEAD,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), true));
     public static final RegistryObject<Item> ASTRAL_CHESTPLATE = ITEMS.register("astral_chestplate",
-            () -> new ArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.CHEST,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.CHEST,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), true));
     public static final RegistryObject<Item> ASTRAL_LEGGINGS = ITEMS.register("astral_leggings",
-            () -> new ArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.LEGS,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.LEGS,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), true));
     public static final RegistryObject<Item> ASTRAL_BOOTS = ITEMS.register("astral_boots",
-            () -> new ArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.FEET,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.FEET,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), true));
 
     // Two optional, survival-friendly utilities with low-frequency server logic.
     public static final RegistryObject<Item> AETHERIUM_MAGNET = ITEMS.register("aetherium_magnet",
