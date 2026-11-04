@@ -18,6 +18,13 @@ DEST = Path('src/main/resources/assets/aetherium/sounds')
 # name: duration, low frequency, high frequency, inharmonic ratio, noise,
 # attack seconds, release seconds, flutter rate, synthesis type
 SOUNDS = {
+    # Replace all six legacy OGGs too: some old assets contain invalid CRC pages.
+    'aetherium_blade_hit':  (.46, 470, 120, 1.935, .32, .006, .18, 11.0, 'crack'),
+    'astral_blade_arc':    (.79, 680, 140, 1.641, .24, .018, .26, 8.5, 'rush'),
+    'rift_stalker_pounce':(.63, 315, 85, 1.711, .25, .009, .21, 14.0, 'rush'),
+    'lumivelo_chime':     (1.17, 920, 420, 1.507, .05, .03, .39, 4.5, 'chime'),
+    'rift_guardian_slam': (.97, 184, 41, 2.208, .40, .004, .40, 7.1, 'collapse'),
+    'astral_devourer_pulse': (.65, 260, 150, 1.893, .22, .021, .24, 12.4, 'shimmer'),
     'astral_ambient':       (2.30, 82, 62, 1.503, .095, .23, .55, 1.5, 'drone'),
     'astral_awaken':        (2.55, 75, 265, 1.731, .21, .22, .55, 5.1, 'rise'),
     'astral_hurt':          (.65, 510, 105, 2.051, .40, .012, .24, 9.0, 'crack'),
