@@ -66,6 +66,7 @@ public final class RegistryHandler {
 
     // Procedurally synthesized, original Aetherium cues: no Minecraft mob recordings.
     public static final RegistryObject<SoundEvent> ASTRAL_AMBIENT = sound("astral_ambient");
+    public static final RegistryObject<SoundEvent> ASTRAL_AWAKEN = sound("astral_awaken");
     public static final RegistryObject<SoundEvent> ASTRAL_HURT = sound("astral_hurt");
     public static final RegistryObject<SoundEvent> ASTRAL_DEATH = sound("astral_death");
     public static final RegistryObject<SoundEvent> ASTRAL_LASER_CHARGE = sound("astral_laser_charge");
@@ -74,6 +75,7 @@ public final class RegistryHandler {
     public static final RegistryObject<SoundEvent> ASTRAL_MIRAGE = sound("astral_mirage");
     public static final RegistryObject<SoundEvent> ASTRAL_NOVA = sound("astral_nova");
     public static final RegistryObject<SoundEvent> GUARDIAN_AMBIENT = sound("guardian_ambient");
+    public static final RegistryObject<SoundEvent> GUARDIAN_AWAKEN = sound("guardian_awaken");
     public static final RegistryObject<SoundEvent> GUARDIAN_HURT = sound("guardian_hurt");
     public static final RegistryObject<SoundEvent> GUARDIAN_DEATH = sound("guardian_death");
     public static final RegistryObject<SoundEvent> GUARDIAN_WINDUP = sound("guardian_windup");
