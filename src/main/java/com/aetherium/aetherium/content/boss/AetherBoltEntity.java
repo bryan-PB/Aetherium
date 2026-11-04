@@ -77,14 +77,19 @@ public class AetherBoltEntity extends ProjectileItemEntity {
             LivingEntity victim = (LivingEntity) result.getEntity();
             LivingEntity owner = this.getOwner() instanceof LivingEntity ? (LivingEntity) this.getOwner() : null;
             DamageSource source = owner == null ? DamageSource.MAGIC : DamageSource.indirectMagic(this, owner);
-            victim.hurt(source, this.getOwner() instanceof PlayerEntity ? 4.0F : 8.0F);
-            victim.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 50, 0, true, true));
-            if (this.level instanceof ServerWorld) {
-                ServerWorld server = (ServerWorld) this.level;
-                server.sendParticles(ParticleTypes.END_ROD, victim.getX(), victim.getY(0.55D), victim.getZ(),
-                        14, 0.25D, 0.35D, 0.25D, 0.04D);
-                server.sendParticles(ParticleTypes.DRAGON_BREATH, victim.getX(), victim.getY(0.55D), victim.getZ(),
-                        10, 0.22D, 0.30D, 0.22D, 0.025D);
+            if (victim.hurt(source, this.getOwner() instanceof PlayerEntity ? 4.0F : 8.0F)) {
+                // Only successful hits make an impact noise or inflict slow.
+                // A dense boss volley therefore does not play eight overlapping impact clips.
+                victim.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 50, 0, true, true));
+                this.playSound(RegistryHandler.AETHERIUM_BLADE_HIT.get(), 0.52F,
+                        this.getOwner() instanceof RiftGuardianEntity ? 0.82F : 1.25F);
+                if (this.level instanceof ServerWorld) {
+                    ServerWorld server = (ServerWorld) this.level;
+                    server.sendParticles(ParticleTypes.END_ROD, victim.getX(), victim.getY(0.55D), victim.getZ(),
+                            14, 0.25D, 0.35D, 0.25D, 0.04D);
+                    server.sendParticles(ParticleTypes.DRAGON_BREATH, victim.getX(), victim.getY(0.55D), victim.getZ(),
+                            10, 0.22D, 0.30D, 0.22D, 0.025D);
+                }
             }
         }
         if (!this.level.isClientSide) {
