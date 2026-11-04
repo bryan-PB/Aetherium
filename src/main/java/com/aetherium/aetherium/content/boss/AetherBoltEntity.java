@@ -2,6 +2,8 @@ package com.aetherium.aetherium.content.boss;
 
 import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraft.entity.EntityType;
+import net.minecraft.network.IPacket;
+import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.server.ServerWorld;
@@ -23,6 +25,12 @@ public class AetherBoltEntity extends ProjectileItemEntity {
 
     public AetherBoltEntity(World world, LivingEntity shooter) {
         super(RegistryHandler.AETHER_BOLT.get(), shooter, world);
+    }
+
+    /** Without this Forge spawn packet, custom item projectiles may never appear client-side. */
+    @Override
+    public IPacket<?> getAddEntityPacket() {
+        return NetworkHooks.getEntitySpawningPacket(this);
     }
 
     @Override
