@@ -26,6 +26,9 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceContext;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
@@ -148,7 +151,16 @@ public class AstralDevourerEntity extends MonsterEntity {
         LivingEntity target = this.getTarget();
         boolean phaseTransitionActive = this.entityData.get(ATTACK_STATE) == 9;
         boolean dashActive = phaseTransitionActive ? false : this.tickDashPattern();
-        if (!phaseTransitionActive && !dashActive) this.updateHoverMovement(target);
+        if (!phaseTransitionActive && !dashActive) {
+            if (this.beamChargeTicks > 0 || this.beamTicks > 0) {
+                // The warning line and damage line must share a stationary origin.
+                this.getNavigation().stop();
+                this.setDeltaMovement(Vector3d.ZERO);
+                this.hasImpulse = true;
+            } else {
+                this.updateHoverMovement(target);
+            }
+        }
         if (this.isInWater() && !phaseTransitionActive) {
             Vector3d motion = this.getDeltaMovement();
             this.setDeltaMovement(motion.x * 0.92D, Math.max(motion.y, 0.20D), motion.z * 0.92D);
@@ -555,18 +567,35 @@ public class AstralDevourerEntity extends MonsterEntity {
         }
     }
 
-    /** Starts a clearly telegraphed line attack; the locked endpoint lets players dodge before release. */
+    /**
+     * Locks a visible line for more than a second. Solid blocks stop the laser,
+     * so taking cover is as reliable as stepping away from its centerline.
+     */
     private void prepareAstralRay(LivingEntity target) {
-        this.beamEndX = target.getX();
-        this.beamEndY = target.getY() + target.getBbHeight() * 0.55D;
-        this.beamEndZ = target.getZ();
+        Vector3d origin = this.position().add(0.0D, this.getBbHeight() * 0.58D, 0.0D);
+        Vector3d aim = target.position().add(0.0D, target.getBbHeight() * 0.55D, 0.0D);
+        Vector3d toward = aim.subtract(origin);
+        if (toward.lengthSqr() < 0.001D) return;
+        if (toward.lengthSqr() > 32.0D * 32.0D) {
+            aim = origin.add(toward.normalize().scale(32.0D));
+        }
+        BlockRayTraceResult blocked = this.level.clip(new RayTraceContext(
+                origin, aim, RayTraceContext.BlockMode.COLLIDER,
+                RayTraceContext.FluidMode.NONE, this));
+        if (blocked.getType() == RayTraceResult.Type.BLOCK) aim = blocked.getLocation();
+        this.beamEndX = aim.x;
+        this.beamEndY = aim.y;
+        this.beamEndZ = aim.z;
         this.entityData.set(BEAM_X, (float)this.beamEndX);
         this.entityData.set(BEAM_Y, (float)this.beamEndY);
         this.entityData.set(BEAM_Z, (float)this.beamEndZ);
-        this.beamChargeTicks = 18;
+        // 26 ticks (1.3 seconds) of visible warning before 20 ticks of dangerous beam.
+        this.beamChargeTicks = 26;
         this.entityData.set(ATTACK_STATE, 2);
         this.entityData.set(ATTACK_TICKS, this.beamChargeTicks);
-        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.9F, 1.18F);
+        this.setDeltaMovement(Vector3d.ZERO);
+        this.hasImpulse = true;
+        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 1.0F, 1.18F);
     }
 
     /** Advances the charge and firing windows on the server and streams particles to every tracking client. */
@@ -586,6 +615,9 @@ public class AstralDevourerEntity extends MonsterEntity {
             return true;
         }
         if (this.beamTicks > 0) {
+            // A second, 11-tick-spaced pulse punishes staying in the beam,
+            // but moving away after the first pulse prevents the second hit.
+            if (this.beamTicks == 9) this.damageAlongAstralRay();
             if (this.beamTicks % 2 == 0) this.sendAstralRayParticles(1.0D, true);
             this.beamTicks--;
             this.entityData.set(ATTACK_TICKS, this.beamTicks);
@@ -596,7 +628,7 @@ public class AstralDevourerEntity extends MonsterEntity {
     }
 
     private void beginAstralRay() {
-        this.beamTicks = 14;
+        this.beamTicks = 20;
         this.entityData.set(ATTACK_STATE, 3);
         this.entityData.set(ATTACK_TICKS, this.beamTicks);
         this.sendAstralRayParticles(1.0D, true);
@@ -639,7 +671,10 @@ public class AstralDevourerEntity extends MonsterEntity {
         }
     }
 
-    /** Hits players intersecting the beam once, at release; the remaining beam time is visual. */
+    /**
+     * Aimed, fixed beam: narrow centerline, two spaced damage pulses at most.
+     * The visible halo is cosmetic and does not extend the damaging hitbox.
+     */
     private void damageAlongAstralRay() {
         double sx = this.getX();
         double sy = this.getY() + this.getBbHeight() * 0.58D;
@@ -649,26 +684,35 @@ public class AstralDevourerEntity extends MonsterEntity {
         double dz = this.beamEndZ - sz;
         double lengthSq = dx * dx + dy * dy + dz * dz;
         if (lengthSq < 0.01D) return;
+        final double hitRadius = 0.78D;
         AxisAlignedBB area = new AxisAlignedBB(
                 Math.min(sx, beamEndX), Math.min(sy, beamEndY), Math.min(sz, beamEndZ),
-                Math.max(sx, beamEndX), Math.max(sy, beamEndY), Math.max(sz, beamEndZ)).inflate(1.35D);
+                Math.max(sx, beamEndX), Math.max(sy, beamEndY), Math.max(sz, beamEndZ))
+                .inflate(hitRadius + 0.55D);
         List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, area, PlayerEntity::isAlive);
         for (PlayerEntity player : players) {
             double px = player.getX() - sx;
-            double playerCenterY = player.getY(0.5D);
-            double py = playerCenterY - sy;
+            double py = player.getY(0.55D) - sy;
             double pz = player.getZ() - sz;
             double t = (px * dx + py * dy + pz * dz) / lengthSq;
             if (t < 0.0D || t > 1.0D) continue;
-            double nearX = sx + dx * t;
-            double nearY = sy + dy * t;
-            double nearZ = sz + dz * t;
-            double ex = player.getX() - nearX;
-            double ey = playerCenterY - nearY;
-            double ez = player.getZ() - nearZ;
-            if (ex * ex + ey * ey + ez * ez <= 1.35D * 1.35D) {
-                player.hurt(DamageSource.indirectMagic(this, this), 12.0F);
-                player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 50, 0, true, true));
+            double ex = player.getX() - (sx + dx * t);
+            double ey = player.getY(0.55D) - (sy + dy * t);
+            double ez = player.getZ() - (sz + dz * t);
+            if (ex * ex + ey * ey + ez * ez > hitRadius * hitRadius) continue;
+            // Magic is intentionally meaningful through ordinary armor.  Two
+            // full pulses total 12 / 14 health, never 20 hits per second.
+            if (player.hurt(DamageSource.indirectMagic(this, this),
+                    this.phase >= 3 ? 7.0F : 6.0F)) {
+                player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 22, 0, true, true));
+                if (this.level instanceof ServerWorld) {
+                    ((ServerWorld)this.level).sendParticles(ParticleTypes.CRIT,
+                            player.getX(), player.getY(0.55D), player.getZ(),
+                            18, 0.28D, 0.30D, 0.28D, 0.06D);
+                    ((ServerWorld)this.level).sendParticles(ParticleTypes.DRAGON_BREATH,
+                            player.getX(), player.getY(0.55D), player.getZ(),
+                            12, 0.25D, 0.30D, 0.25D, 0.02D);
+                }
             }
         }
     }
