@@ -142,6 +142,37 @@ jobs:
           # The compatibility fixes are strictly local to this CI workspace.
           # Never commit or push changes into main from a pull-request build.
 
+      - name: Generar audio original de Aetherium
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v ffmpeg
+          command -v ffprobe
+          python3 -m py_compile tools/generate_aetherium_sounds.py
+          python3 tools/generate_aetherium_sounds.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          import subprocess
+
+          root = Path('src/main/resources/assets/aetherium')
+          sound_events = json.loads((root / 'sounds.json').read_text(encoding='utf-8'))
+          for event, definition in sound_events.items():
+              for entry in definition.get('sounds', []):
+                  name = entry['name'] if isinstance(entry, dict) else entry
+                  relative = name.partition(':')[2]
+                  path = root / 'sounds' / (relative + '.ogg')
+                  if not path.is_file():
+                      raise SystemExit('Missing sound: ' + str(path))
+                  duration = float(subprocess.check_output([
+                      'ffprobe', '-v', 'error', '-show_entries',
+                      'format=duration', '-of', 'default=nw=1:nk=1', str(path)
+                  ], text=True).strip())
+                  if duration < .2:
+                      raise SystemExit('Too-short or truncated audio: ' + str(path))
+          print('All registered original and existing OGG sound assets were validated.')
+          PY
+
       - name: Compilar mod
         shell: bash
         run: |
