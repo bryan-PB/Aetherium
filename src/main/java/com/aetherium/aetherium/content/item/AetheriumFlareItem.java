@@ -1,5 +1,6 @@
 package com.aetherium.aetherium.content.item;
 
+import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -12,7 +13,6 @@ import net.minecraft.potion.Effects;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -42,7 +42,7 @@ public class AetheriumFlareItem extends Item {
             if (!player.abilities.instabuild) stack.shrink(1);
             player.getCooldowns().addCooldown(this, 20 * 12);
             world.playSound(null, player.getX(), player.getY(), player.getZ(),
-                    SoundEvents.BEACON_ACTIVATE, SoundCategory.PLAYERS, 0.55F, 1.35F);
+                    RegistryHandler.FLARE_ACTIVATION.get(), SoundCategory.PLAYERS, 0.82F, 1.0F);
         }
         return ActionResult.sidedSuccess(stack, world.isClientSide);
     }
