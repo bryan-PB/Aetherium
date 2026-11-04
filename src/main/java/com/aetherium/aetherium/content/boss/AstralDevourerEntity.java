@@ -232,15 +232,18 @@ public class AstralDevourerEntity extends MonsterEntity {
 
         double distanceSq = this.distanceToSqr(target);
         this.attackCycle++;
-        if (distanceSq > 3.6D * 3.6D && distanceSq < 22.0D * 22.0D
-                && this.attackCycle % (this.phase >= 3 ? 2 : 3) == 0) {
+        // Reserve independent attack slots. Previously phase-III dashes consumed the
+        // same even turns as the laser, effectively preventing the laser from firing.
+        int pattern = this.phase >= 3 ? this.attackCycle % 4 : this.attackCycle % 3;
+        boolean dashTurn = this.phase >= 3 ? (pattern == 0 || pattern == 2) : pattern == 0;
+        if (dashTurn && distanceSq > 3.6D * 3.6D && distanceSq < 22.0D * 22.0D) {
             this.startDashPattern(target);
-            this.attackCooldown = phase >= 3 ? 100 : 112;
+            this.attackCooldown = phase >= 3 ? 80 : (phase >= 2 ? 95 : 112);
             return;
         }
-        if (phase >= 2 && distanceSq > 8.0D * 8.0D && this.attackCycle % 2 == 0) {
+        if (phase >= 2 && pattern == 1 && distanceSq > 5.6D * 5.6D) {
             this.prepareAstralRay(target);
-            this.attackCooldown = phase >= 3 ? 105 : 116;
+            this.attackCooldown = phase >= 3 ? 88 : 108;
             return;
         }
         if (phase == 1) {
