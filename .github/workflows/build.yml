@@ -235,7 +235,7 @@ jobs:
                       gear.append((f'assets/aetherium/textures/item/{tier}_{item}.png', (32, 32)))
                   for layer in (1, 2):
                       gear.append((f'assets/aetherium/textures/models/armor/{tier}_layer_{layer}.png',
-                                   (64, 32)))
+                                   (256, 128)))
               with ZipFile(jar) as z:
                   for asset, expected_dimensions in gear:
                       if asset not in included:
@@ -266,8 +266,14 @@ jobs:
                       if not ended or not compressed:
                           raise SystemExit(f'Missing equipment PNG pixel data: {asset}')
                       pixel_bytes = zlib.decompress(b''.join(compressed))
-                      if len(pixel_bytes) != h * (1 + w * 4):
-                          raise SystemExit(f'Truncated equipment RGBA data: {asset}')
+                      depth, color_type = data[24], data[25]
+                      # Sprite art is indexed (with transparency) and worn armor
+                      # is indexed opaque. Accept valid 8-bit RGBA too.
+                      channels = {2: 3, 3: 1, 6: 4}.get(color_type)
+                      if depth != 8 or channels is None:
+                          raise SystemExit(f'Unsupported PNG color mode for {asset}: {depth}/{color_type}')
+                      if len(pixel_bytes) != h * (1 + w * channels):
+                          raise SystemExit(f'Truncated equipment pixel data: {asset}')
               print(f'Validated {len(gear)} redesigned equipment textures in {jar.name}')
           PY
 
