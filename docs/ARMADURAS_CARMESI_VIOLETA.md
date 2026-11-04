@@ -21,6 +21,19 @@ El usuario aportó dos referencias: armadura roja de criatura/guerrero con casco
 4. Los atlas `aetherium_layer_1/2.png` y `astral_layer_1/2.png` ahora miden 256×128 y están texturizados según las nuevas UV. Los iconos de las ocho piezas utilizan sprites distintos de 32×32 con transparencia.
 5. El resto de objetos, recetas, materiales y registros mantiene las claves internas antiguas; no se cambia `modId = aetherium`.
 
+## Corrección de hombreras, brazos y guanteletes
+
+La captura del usuario mostró piel y colores de su personaje visibles en los hombros, con hombreras diminutas y brazos demasiado lisos. Esta revisión centra la mejora **solo en las extremidades superiores**:
+
+- Ambos sets llevan un brazo base continuo y opaco (hombro hasta muñeca), una placa de bíceps con UV independiente, codera con junta oscura y guantelete cerrado con bordes propios.
+- Las hombreras están hechas de **varias capas anchas y un borde negro/metal visible frontal, lateral y posterior**. Se conectan al pivote del brazo para seguir el movimiento del jugador.
+- **Violeta:** dos placas escalonadas sobre el hombro, aleta lateral larga, juntas índigo, borde magenta, brazalete con detalle de cristal.
+- **Carmesí:** hombrera de hierro negro con placas lacadas rojas, punta externa de tres segmentos, placa de codo y antebrazo ancho con nudillos reforzados.
+- Los atlas `layer_1` tienen zonas pintadas específicas para el frente y los laterales del brazo, la placa del bíceps (`UV 153,22`), la hombrera y el antebrazo. Los atlas `layer_2` no se alteran, pues solo dibujan piernas.
+- El casco, pecho, piernas, IDs de registro, estadísticas y demás entidades no cambian.
+
+**Pendiente de comprobar en el juego:** que al equipar solo la pechera se vean ambos brazos completos; que los hombros no dejen asomar la piel del jugador, en vistas frontal/trasera/3/4 y caminando.
+
 ## Restricciones y pruebas manuales
 
 Las capturas de diseño, incluidos los dos carteles Set Carmesí / Set Violeta, **no son capturas reales de Minecraft**. El modelo real está construido a base de cubos y tendrá una interpretación voxel más simplificada que la ilustración.

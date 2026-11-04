@@ -275,6 +275,35 @@ jobs:
                       if len(pixel_bytes) != h * (1 + w * channels):
                           raise SystemExit(f'Truncated equipment pixel data: {asset}')
               print(f'Validated {len(gear)} redesigned equipment textures in {jar.name}')
+              # Prevent the original missing-arm-texture regression: both
+              # 256x128 worn-layer atlases must have real pixel-art material
+              # variation in the arm and pauldron UV zones.
+              with ZipFile(jar) as z:
+                  for tier in ('aetherium', 'astral'):
+                      name = f'assets/aetherium/textures/models/armor/{tier}_layer_1.png'
+                      png = z.read(name)
+                      cursor, idat = 8, []
+                      while cursor + 12 <= len(png):
+                          n, = struct.unpack('>I', png[cursor:cursor+4])
+                          tag = png[cursor+4:cursor+8]
+                          if tag == b'IDAT':
+                              idat.append(png[cursor+8:cursor+8+n])
+                          cursor += n + 12
+                          if tag == b'IEND':
+                              break
+                      if png[25] != 3:
+                          raise SystemExit(f'Expected indexed armor atlas: {name}')
+                      raw = zlib.decompress(b''.join(idat))
+                      if any(raw[y * 257] != 0 for y in range(128)):
+                          raise SystemExit(f'Unexpected PNG filters in armor atlas: {name}')
+                      def uv_colors(x0, y0, x1, y1):
+                          return {raw[y*257+1+x] for y in range(y0, y1)
+                                  for x in range(x0, x1)}
+                      if len(uv_colors(128, 0, 188, 47)) < 8:
+                          raise SystemExit(f'Arm UVs are too flat: {name}')
+                      if len(uv_colors(128, 64, 190, 121)) < 8:
+                          raise SystemExit(f'Pauldron UVs are too flat: {name}')
+              print('Validated visible arm and shoulder texture variation in both armor sets')
           PY
 
       - name: Subir JAR compilado

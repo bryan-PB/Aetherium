@@ -133,23 +133,73 @@ public final class KryzoraeArmorModel extends BipedModel<LivingEntity> {
         }
     }
 
+    /**
+     * Complete articulated arm assembly. There was previously a small box on
+     * top of the player's upper arm and almost no side panel; at a normal
+     * camera distance the exposed player skin looked like missing armor.
+     *
+     * Each part is rooted in the proper biped ARM (never in the torso), so
+     * shoulders do not detach from the arms while swinging or swimming.
+     * The cap is almost ten model pixels wide: it remains visible in front,
+     * side and rear views rather than disappearing into the breastplate.
+     */
     private void buildArm(ModelRenderer arm, boolean left, boolean crimson) {
-        box(arm, LIMB, 0, -2.3F, -1.0F, -2.35F, 4.6F, 12.2F, 4.7F);
-        // Shoulder caps are attached to their own arm, not a floating torso.
-        box(arm, ACCENT, 64, -3.25F, -1.7F, -3.1F, 6.5F, 4.3F, 6.2F);
-        box(arm, EDGE, 64, -3.1F, 0.45F, -3.3F, 6.2F, 1.0F, 1.2F);
-        box(arm, EDGE, 64, -2.55F, 5.3F, -2.75F, 5.1F, 1.2F, 5.5F);
-        box(arm, ACCENT, 64, -2.75F, 7.1F, -3.0F, 5.5F, 4.4F, 6.0F);
-        box(arm, HIGHLIGHT, 64, -1.05F, 8.25F, -3.4F, 2.1F, 2.0F, 0.85F);
+        // Continuous opaque upper arm and forearm: the base covers player skin.
+        box(arm, LIMB, 0, -2.55F, -1.1F, -2.60F, 5.10F, 12.25F, 5.20F);
+
+        // Full upper-arm plate on all three visible sides, with inset front.
+        box(arm, LIMB + 25, 22, -2.85F, 2.00F, -3.05F, 5.70F, 3.55F, 6.10F);
+        box(arm, ACCENT, 64, -2.45F, 2.35F, -3.40F, 4.90F, 2.65F, 0.90F);
+        float outside = left ? 2.65F : -3.55F;
+        box(arm, EDGE, 64, outside, 2.4F, -2.55F, 0.90F, 3.25F, 5.10F);
+
+        // Elbow: a recessed joint between two shells, then the front kneecap.
+        box(arm, RECESS, 64, -2.70F, 5.30F, -2.78F, 5.40F, 1.65F, 5.56F);
+        box(arm, EDGE, 64, -2.80F, 5.40F, -3.35F, 5.60F, 1.35F, 1.10F);
+        box(arm, HIGHLIGHT, 64, -1.25F, 5.55F, -3.58F, 2.50F, 0.68F, 0.45F);
+
+        // Broad lower bracer wraps the arm on all four sides, not just front.
+        box(arm, BOOT, 0, -2.98F, 7.05F, -3.12F, 5.96F, 4.45F, 6.24F);
+        box(arm, ACCENT, 64, -3.05F, 7.15F, -3.44F, 6.10F, 1.05F, 6.88F);
+        box(arm, EDGE, 64, -3.12F, 10.58F, -3.50F, 6.24F, 1.00F, 7.00F);
+        box(arm, HIGHLIGHT, 64, -1.00F, 8.20F, -3.65F, 2.00F, 2.15F, 0.46F);
+
         if (crimson) {
-            float x = left ? 1.3F : -3.0F;
-            box(arm, EDGE, 64, x, -4.1F, -0.6F, 1.7F, 3.2F, 1.8F);
-            box(arm, ACCENT, 64, -2.35F, 1.7F, -3.45F, 4.7F, 1.3F, 1.0F);
+            // Carmesí: black iron foundation, layered red steel pauldrons.
+            box(arm, EDGE, 64, -4.50F, -2.65F, -3.72F, 9.00F, 5.00F, 7.44F);
+            box(arm, ACCENT, 64, -4.23F, -3.36F, -3.85F, 8.46F, 3.55F, 7.70F);
+            box(arm, ACCENT, 64, -3.95F, 0.20F, -4.10F, 7.90F, 1.95F, 1.28F);
+            box(arm, EDGE, 64, -3.60F, -3.70F, -3.25F, 7.20F, 0.72F, 6.50F);
+            // Distinct silhouette: hooked armor spike on the OUTER side.
+            float spike = left ? 3.70F : -6.25F;
+            box(arm, EDGE, 64, spike, -3.30F, -2.35F, 2.55F, 3.70F, 4.70F);
+            spike = left ? 4.75F : -6.75F;
+            box(arm, EDGE, 64, spike, -5.10F, -1.60F, 2.00F, 2.30F, 3.20F);
+            spike = left ? 5.40F : -6.60F;
+            box(arm, EDGE, 64, spike, -6.60F, -0.85F, 1.20F, 2.15F, 1.70F);
+            // A second lacquered plate with black surround, above the elbow.
+            box(arm, ACCENT, 64, -2.15F, 3.00F, -3.62F, 4.30F, 1.42F, 0.75F);
+            // Heavy layered knuckles and red reinforcement on the forearm.
+            box(arm, ACCENT, 64, -2.75F, 8.25F, -3.92F, 5.50F, 2.30F, 0.65F);
+            box(arm, HIGHLIGHT, 64, -0.75F, 8.64F, -4.14F, 1.50F, 1.35F, 0.46F);
+            box(arm, EDGE, 64, -2.90F, 10.70F, -3.95F, 5.80F, 0.75F, 1.00F);
         } else {
-            // Violet pauldrons sweep outward via two stepped connected plates.
-            float x = left ? 2.1F : -3.8F;
-            box(arm, ACCENT, 64, x, -1.0F, -2.7F, 1.7F, 3.25F, 5.4F);
-            box(arm, HIGHLIGHT, 64, -2.7F, 1.0F, -3.45F, 5.4F, 0.75F, 0.75F);
+            // Violeta: broad two-step ceremonial shoulder / pauldrons.
+            box(arm, EDGE, 64, -4.30F, -2.55F, -3.50F, 8.60F, 5.10F, 7.00F);
+            box(arm, ACCENT, 64, -4.02F, -3.27F, -3.62F, 8.04F, 2.75F, 7.24F);
+            box(arm, HIGHLIGHT, 64, -3.83F, -3.64F, -3.25F, 7.66F, 0.72F, 6.50F);
+            // Swept side fin attached to the cap; thick, not an invisible plane.
+            float fin = left ? 3.75F : -6.05F;
+            box(arm, ACCENT, 64, fin, -1.70F, -3.05F, 2.30F, 3.60F, 6.10F);
+            fin = left ? 4.12F : -5.62F;
+            box(arm, HIGHLIGHT, 64, fin, -2.23F, -2.65F, 1.50F, 0.75F, 5.30F);
+            // Magenta front plate and raised seam on the bicep.
+            box(arm, ACCENT, 64, -2.50F, 2.60F, -3.64F, 5.00F, 1.22F, 0.77F);
+            box(arm, HIGHLIGHT, 64, -2.50F, 3.84F, -3.58F, 5.00F, 0.66F, 0.56F);
+            // Crystal inset and bright cuff band tie the bracer to the torso.
+            box(arm, EDGE, 64, -1.60F, 7.90F, -3.94F, 3.20F, 2.97F, 0.46F);
+            box(arm, HIGHLIGHT, 64, -0.80F, 8.30F, -4.22F, 1.60F, 2.00F, 0.52F);
+            box(arm, HIGHLIGHT, 64, -2.80F, 10.42F, -3.89F, 5.60F, 0.78F, 0.55F);
         }
     }
 
