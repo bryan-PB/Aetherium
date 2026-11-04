@@ -14,6 +14,8 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
     private final ModelRenderer leftBoot, rightBoot, greatsword, swordGuard, swordGrip, swordPommel;
     private final ModelRenderer[] chestRibs = new ModelRenderer[3];
     private final ModelRenderer rageCrest, backFinLeft, backFinRight, bladeFangLeft, bladeFangRight;
+    private final ModelRenderer brokenRiftHalo, bladeCore;
+    private final ModelRenderer[] haloShards = new ModelRenderer[9];
     private float phaseTintRed = 1.0F;
     private float phaseTintGreen = 1.0F;
 
@@ -77,6 +79,16 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         backPlate.setPos(0.0F, -4.5F, 4.2F);
         backPlate.addBox(-5.0F, -3.0F, 0.0F, 10.0F, 6.0F, 1.3F);
         body.addChild(backPlate);
+
+        // The awakened armor carries a broken halo of floating rift plates.
+        brokenRiftHalo = new ModelRenderer(this, 52, 0);
+        brokenRiftHalo.setPos(0.0F, -12.8F, 5.7F);
+        body.addChild(brokenRiftHalo);
+        for (int i = 0; i < haloShards.length; i++) {
+            haloShards[i] = new ModelRenderer(this, 40, 16);
+            haloShards[i].addBox(-1.8F, -0.7F, -0.6F, 3.6F, 1.4F, 1.2F);
+            brokenRiftHalo.addChild(haloShards[i]);
+        }
 
         // Armored void fins fold out from the back only when the armor awakens.
         backFinLeft = new ModelRenderer(this, 40, 16);
@@ -151,6 +163,12 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         swordPommel.addBox(-1.1F, -0.5F, -0.8F, 2.2F, 1.8F, 1.6F);
         greatsword.addChild(swordPommel);
 
+        // A raised dimensional channel runs down the blade in the awakened form.
+        bladeCore = new ModelRenderer(this, 0, 42);
+        bladeCore.setPos(0.0F, -8.5F, -0.75F);
+        bladeCore.addBox(-0.7F, -6.7F, -0.3F, 1.4F, 13.2F, 0.65F);
+        greatsword.addChild(bladeCore);
+
         // Two cleaving teeth extend from the awakened greatsword's midsection.
         bladeFangLeft = new ModelRenderer(this, 40, 16);
         bladeFangLeft.setPos(-1.5F, -9.0F, 0.0F);
@@ -217,6 +235,15 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         backFinRight.visible = rage > 0.0F;
         bladeFangLeft.visible = rage > 0.0F;
         bladeFangRight.visible = rage > 0.0F;
+        bladeCore.visible = rage > 0.0F;
+        brokenRiftHalo.visible = rage > 0.0F;
+        brokenRiftHalo.zRot = ageInTicks * 0.008F;
+        for (int i = 0; i < haloShards.length; i++) {
+            float angle = (float)(Math.PI * 2.0D * i / haloShards.length);
+            haloShards[i].x = MathHelper.cos(angle) * 11.2F;
+            haloShards[i].y = MathHelper.sin(angle) * 8.5F;
+            haloShards[i].zRot = angle + (float)Math.PI * 0.5F;
+        }
         backFinLeft.zRot = 0.40F + MathHelper.sin(ageInTicks * 0.065F) * 0.045F;
         backFinRight.zRot = -backFinLeft.zRot;
         bladeFangLeft.zRot = 0.35F;
