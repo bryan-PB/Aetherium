@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -139,13 +139,8 @@ jobs:
           )
           PY
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "Expandir fuentes y corregir compatibilidad Forge 1.16.5"
-            git push origin HEAD:main
-          fi
+          # The compatibility fixes are strictly local to this CI workspace.
+          # Never commit or push changes into main from a pull-request build.
 
       - name: Compilar mod
         shell: bash
