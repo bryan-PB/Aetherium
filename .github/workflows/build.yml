@@ -176,6 +176,8 @@ jobs:
           from pathlib import Path
           from zipfile import ZipFile
           import json
+          import struct
+          import zlib
 
           root = Path('src/main/resources/assets/aetherium')
           events = json.loads((root / 'sounds.json').read_text(encoding='utf-8'))
@@ -188,15 +190,41 @@ jobs:
                   if not p.name.endswith('-sources.jar')]
           if not jars:
               raise SystemExit('No compiled mod JAR was found')
+          texture_name = 'assets/aetherium/textures/entity/boss/winged_executioner.png'
           for jar in jars:
               with ZipFile(jar) as z:
                   included = set(z.namelist())
+                  if texture_name not in included:
+                      raise SystemExit(f'{jar} is missing the new Winged Executioner texture')
+                  png = z.read(texture_name)
               missing = sound_files - included
               if missing:
                   raise SystemExit(f'{jar} is missing {len(missing)} OGG resources: {sorted(missing)}')
               if 'assets/aetherium/sounds.json' not in included:
                   raise SystemExit(f'{jar} lacks sounds.json')
-              print(f'Validated {len(sound_files)} audio files in {jar.name}')
+              if not png.startswith(b'\x89PNG\r\n\x1a\n'):
+                  raise SystemExit('Winged Executioner is not a PNG texture')
+              width, height = struct.unpack('>II', png[16:24])
+              if (width, height) != (128, 128):
+                  raise SystemExit(f'Wrong Winged Executioner texture size: {width}x{height}')
+              chunks = []
+              offset = 8
+              while offset + 12 <= len(png):
+                  length, = struct.unpack('>I', png[offset:offset + 4])
+                  name = png[offset + 4:offset + 8]
+                  data = png[offset + 8:offset + 8 + length]
+                  expected_crc, = struct.unpack('>I', png[offset + 8 + length:offset + 12 + length])
+                  if zlib.crc32(name + data) != expected_crc:
+                      raise SystemExit('Winged Executioner PNG has a bad chunk CRC')
+                  if name == b'IDAT':
+                      chunks.append(data)
+                  offset += 12 + length
+                  if name == b'IEND':
+                      break
+              pixels = zlib.decompress(b''.join(chunks))
+              if len(pixels) != 128 * 129:
+                  raise SystemExit('Winged Executioner PNG pixel data is truncated')
+              print(f'Validated 128x128 executioner texture and {len(sound_files)} audio files in {jar.name}')
           PY
 
       - name: Subir JAR compilado

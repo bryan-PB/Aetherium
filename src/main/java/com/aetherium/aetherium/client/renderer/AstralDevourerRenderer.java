@@ -15,10 +15,10 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Vector3d;
 
-/** Renders a real two-layer, world-space laser instead of a dotted particle approximation. */
+/** Winged Executioner: articulated model, chest-eye laser and independently hitable mirage. */
 public class AstralDevourerRenderer extends MobRenderer<AstralDevourerEntity, AstralDevourerModel> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AetheriumMod.MOD_ID,
-            "textures/entity/boss/astral_devourer.png");
+            "textures/entity/boss/winged_executioner.png");
 
     public AstralDevourerRenderer(EntityRendererManager manager) {
         super(manager, new AstralDevourerModel(), 1.02F);
@@ -48,9 +48,11 @@ public class AstralDevourerRenderer extends MobRenderer<AstralDevourerEntity, As
         int state = entity.getAttackState();
         if (state != 2 && state != 3) return;
 
-        double originY = entity.getBbHeight() * 0.58D;
+        // This origin is identical to the server's collision/particle origin.
+        // Its small forward offset emerges visibly from the physical chest eye.
+        Vector3d muzzle = entity.getBeamOrigin();
         Vector3d target = entity.getBeamRenderTarget();
-        Vector3d axis = target.subtract(entity.getX(), entity.getY() + originY, entity.getZ());
+        Vector3d axis = target.subtract(muzzle);
         double length = axis.length();
         if (length < 0.1D || length > 40.0D) return;
 
@@ -66,7 +68,8 @@ public class AstralDevourerRenderer extends MobRenderer<AstralDevourerEntity, As
         float warningProgress = Math.max(0.0F, Math.min(1.0F,
                 1.0F - entity.getAttackAnimationTicks() / 26.0F));
         stack.pushPose();
-        stack.translate(0.0D, originY, 0.0D);
+        stack.translate(muzzle.x - entity.getX(),
+                muzzle.y - entity.getY(), muzzle.z - entity.getZ());
         Matrix4f matrix = stack.last().pose();
         IVertexBuilder builder = buffers.getBuffer(RenderType.lightning());
         float halo = active ? 0.46F * flicker : 0.11F + warningProgress * 0.11F;
@@ -78,11 +81,11 @@ public class AstralDevourerRenderer extends MobRenderer<AstralDevourerEntity, As
             double angle = Math.PI * i / 4.0D;
             Vector3d normal = side.scale(Math.cos(angle)).add(up.scale(Math.sin(angle)));
             ribbon(builder, matrix, axis, normal, halo,
-                    active ? 164 : 128, active ? 44 : 70,
-                    active ? 222 : 198, active ? 220 : 115);
+                    active ? 230 : 178, active ? 121 : 109,
+                    active ? 60 : 64, active ? 225 : 115);
             ribbon(builder, matrix, axis, normal, core,
-                    active ? 255 : 215, active ? 194 : 130,
-                    active ? 240 : 245, 255);
+                    active ? 255 : 238, active ? 226 : 172,
+                    active ? 154 : 99, 255);
         }
         stack.popPose();
     }

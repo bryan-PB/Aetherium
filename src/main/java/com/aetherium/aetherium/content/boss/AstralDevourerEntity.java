@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.UUID;
 
-/** Three-phase endgame boss that changes from ranged bolts to gravity control and close-range novas. */
+/** Winged Executioner: a three-phase flying boss with a chest-eye beam and dodgable crystal volleys. */
 public class AstralDevourerEntity extends MonsterEntity {
     private final ServerBossInfo bossInfo = new ServerBossInfo(
             new TranslationTextComponent("entity.aetherium.astral_devourer"),
@@ -58,6 +58,8 @@ public class AstralDevourerEntity extends MonsterEntity {
     private int attackCycle = 0;
     private int minionCooldown = 200;
     private int mirageCooldown = 155;
+    private float queuedVolleyVelocity = 1.16F;
+    private float queuedVolleyInaccuracy = 0.0F;
     private int beamChargeTicks = 0;
     private int beamTicks = 0;
     // Short-lived per-attack tracking prevents rapid repeated damage and permits
@@ -119,10 +121,21 @@ public class AstralDevourerEntity extends MonsterEntity {
         if (this.entityData.get(MIRAGE_ID) == fakeId) this.entityData.set(MIRAGE_ID, -1);
     }
 
-    /** World-space endpoint drawn by the client as an actual laser, not scattered particles. */
+    /** Fixed world-space beam endpoint, synchronized to tracking clients. */
     public Vector3d getBeamRenderTarget() {
         return new Vector3d(this.entityData.get(BEAM_X),
                 this.entityData.get(BEAM_Y), this.entityData.get(BEAM_Z));
+    }
+
+    /**
+     * Laser muzzle on the exposed chest eye, not the middle of a floating head.
+     * The server collision line and client render both use this exact function.
+     */
+    public Vector3d getBeamOrigin() {
+        Vector3d center = this.position().add(0.0D, this.getBbHeight() * 0.58D, 0.0D);
+        Vector3d axis = this.getBeamRenderTarget().subtract(center);
+        return axis.lengthSqr() < 0.0001D
+                ? center : center.add(axis.normalize().scale(0.38D));
     }
 
     public static AttributeModifierMap.MutableAttribute createAttributes() {
@@ -160,7 +173,7 @@ public class AstralDevourerEntity extends MonsterEntity {
         if (!phaseTransitionActive && !dashActive) {
             int activeState = this.entityData.get(ATTACK_STATE);
             if (this.beamChargeTicks > 0 || this.beamTicks > 0
-                    || activeState == 4 || activeState == 5 || activeState == 8) {
+                    || activeState == 1 || activeState == 4 || activeState == 5 || activeState == 8) {
                 // The warning line and damage line must share a stationary origin.
                 this.getNavigation().stop();
                 this.setDeltaMovement(Vector3d.ZERO);
@@ -386,13 +399,34 @@ public class AstralDevourerEntity extends MonsterEntity {
         return best;
     }
 
-    /** Casts one fan immediately; awakened phases add a second fan during the animation. */
+    /**
+     * Raise the wings, form three visible crystals and HOLD POSITION for 12 ticks.
+     * Previously the boss fired instantly and only animated after the projectiles left.
+     */
     private void shootBolt(LivingEntity target, float inaccuracy, float velocity) {
         if (!(this.level instanceof ServerWorld)) return;
+        this.queuedVolleyVelocity = velocity;
+        this.queuedVolleyInaccuracy = inaccuracy;
         this.entityData.set(ATTACK_STATE, 1);
-        this.entityData.set(ATTACK_TICKS, 16);
-        this.launchAstralFan(target, this.phase == 1 ? 3 : (this.phase == 2 ? 4 : 5),
-                velocity, inaccuracy, false);
+        this.entityData.set(ATTACK_TICKS, 23);
+        this.getNavigation().stop();
+        this.setDeltaMovement(Vector3d.ZERO);
+        this.hasImpulse = true;
+    }
+
+    /** A compact warning circling the eye and the three crystal previews on the model. */
+    private void sendVolleyWarning() {
+        if (!(this.level instanceof ServerWorld)) return;
+        ServerWorld world = (ServerWorld)this.level;
+        double cy = this.getY() + this.getBbHeight() * 0.58D;
+        for (int i = 0; i < 3; i++) {
+            double angle = this.tickCount * 0.12D + i * Math.PI * 2.0D / 3.0D;
+            world.sendParticles(ParticleTypes.CRIT,
+                    this.getX() + Math.cos(angle) * 0.54D,
+                    cy + Math.sin(angle) * 0.18D,
+                    this.getZ() + Math.sin(angle) * 0.54D,
+                    1, 0.02D, 0.02D, 0.02D, 0.005D);
+        }
     }
 
     /** Fans spread perpendicular to the actual aim vector, not along world X/Z axes. */
@@ -587,10 +621,11 @@ public class AstralDevourerEntity extends MonsterEntity {
      * so taking cover is as reliable as stepping away from its centerline.
      */
     private void prepareAstralRay(LivingEntity target) {
-        Vector3d origin = this.position().add(0.0D, this.getBbHeight() * 0.58D, 0.0D);
+        Vector3d center = this.position().add(0.0D, this.getBbHeight() * 0.58D, 0.0D);
         Vector3d aim = target.position().add(0.0D, target.getBbHeight() * 0.55D, 0.0D);
-        Vector3d toward = aim.subtract(origin);
+        Vector3d toward = aim.subtract(center);
         if (toward.lengthSqr() < 0.001D) return;
+        Vector3d origin = center.add(toward.normalize().scale(0.38D));
         if (toward.lengthSqr() > 32.0D * 32.0D) {
             aim = origin.add(toward.normalize().scale(32.0D));
         }
@@ -668,9 +703,10 @@ public class AstralDevourerEntity extends MonsterEntity {
     private void sendAstralRayParticles(double reach, boolean firing) {
         if (!(this.level instanceof ServerWorld)) return;
         ServerWorld server = (ServerWorld) this.level;
-        double sx = this.getX();
-        double sy = this.getY() + this.getBbHeight() * 0.58D;
-        double sz = this.getZ();
+        Vector3d muzzle = this.getBeamOrigin();
+        double sx = muzzle.x;
+        double sy = muzzle.y;
+        double sz = muzzle.z;
         double dx = this.beamEndX - sx;
         double dy = this.beamEndY - sy;
         double dz = this.beamEndZ - sz;
@@ -697,9 +733,10 @@ public class AstralDevourerEntity extends MonsterEntity {
      * The visible halo is cosmetic and does not extend the damaging hitbox.
      */
     private void damageAlongAstralRay() {
-        double sx = this.getX();
-        double sy = this.getY() + this.getBbHeight() * 0.58D;
-        double sz = this.getZ();
+        Vector3d muzzle = this.getBeamOrigin();
+        double sx = muzzle.x;
+        double sy = muzzle.y;
+        double sz = muzzle.z;
         double dx = this.beamEndX - sx;
         double dy = this.beamEndY - sy;
         double dz = this.beamEndZ - sz;
@@ -750,11 +787,22 @@ public class AstralDevourerEntity extends MonsterEntity {
             int nextTicks = ticks - 1;
             this.entityData.set(ATTACK_TICKS, nextTicks);
             int state = this.entityData.get(ATTACK_STATE);
-            if (state == 1 && nextTicks == 9 && this.phase >= 2) {
-                LivingEntity volleyTarget = this.getTarget();
-                if (volleyTarget != null && volleyTarget.isAlive()) {
-                    this.launchAstralFan(volleyTarget, this.phase == 2 ? 3 : 5,
-                            this.phase == 2 ? 1.28F : 1.38F, 0.25F, true);
+            if (state == 1) {
+                if (nextTicks > 11 && nextTicks % 2 == 0) {
+                    this.sendVolleyWarning();
+                }
+                if (nextTicks == 11 || (nextTicks == 4 && this.phase >= 2)) {
+                    LivingEntity volleyTarget = this.getTarget();
+                    if (volleyTarget != null && volleyTarget.isAlive()) {
+                        boolean followUp = nextTicks == 4;
+                        this.launchAstralFan(volleyTarget,
+                                followUp ? (this.phase == 2 ? 3 : 5)
+                                        : (this.phase == 1 ? 3 : (this.phase == 2 ? 4 : 5)),
+                                followUp ? (this.phase == 2 ? 1.28F : 1.38F)
+                                        : this.queuedVolleyVelocity,
+                                followUp ? 0.25F : this.queuedVolleyInaccuracy,
+                                followUp);
+                    }
                 }
             }
             if (state == 4 || state == 5) this.sendAreaAttackTelegraph(state, nextTicks);
