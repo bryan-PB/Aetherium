@@ -148,6 +148,11 @@ public class RiftGuardianEntity extends MonsterEntity {
             int nextSlamTick = slamTicks - 1;
             this.entityData.set(SLAM_TICKS, nextSlamTick);
             int state = this.entityData.get(ATTACK_STATE);
+            if (state == 1 || state == 2 || state == 3) {
+                // Do not let vanilla melee pathfinding drag the warning area across the arena.
+                this.getNavigation().stop();
+                this.setDeltaMovement(this.getDeltaMovement().scale(0.45D));
+            }
             if ((state == 1 || state == 3 || state == 4)
                     && nextSlamTick > 11 && nextSlamTick % 4 == 0) {
                 this.sendGreatswordWindupTelegraph(state);
@@ -732,10 +737,9 @@ public class RiftGuardianEntity extends MonsterEntity {
 
     @Override
     public boolean doHurtTarget(net.minecraft.entity.Entity target) {
-        if (target == null || !this.getBoundingBox().inflate(0.38D, 0.28D, 0.38D).intersects(target.getBoundingBox())) {
-            return false;
-        }
-        return super.doHurtTarget(target);
+        // All Guardian damage is applied by its timed slam, sword sweep, charge or bolts.
+        // Disable untelegraphed vanilla MeleeAttackGoal hits; that goal still handles chase.
+        return false;
     }
 
     @Override
