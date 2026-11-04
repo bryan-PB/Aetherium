@@ -183,6 +183,32 @@ jobs:
           cd "$AETHERIUM_PROJECT_DIR"
           gradle --version
           gradle build --no-daemon
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json
+
+          root = Path('src/main/resources/assets/aetherium')
+          events = json.loads((root / 'sounds.json').read_text(encoding='utf-8'))
+          sound_files = {
+              'assets/aetherium/sounds/' +
+              (entry['name'] if isinstance(entry, dict) else entry).split(':', 1)[1] + '.ogg'
+              for event in events.values() for entry in event.get('sounds', [])
+          }
+          jars = [p for p in Path('build/libs').glob('*.jar')
+                  if not p.name.endswith('-sources.jar')]
+          if not jars:
+              raise SystemExit('No compiled mod JAR was found')
+          for jar in jars:
+              with ZipFile(jar) as z:
+                  included = set(z.namelist())
+              missing = sound_files - included
+              if missing:
+                  raise SystemExit(f'{jar} is missing {len(missing)} OGG resources: {sorted(missing)}')
+              if 'assets/aetherium/sounds.json' not in included:
+                  raise SystemExit(f'{jar} lacks sounds.json')
+              print(f'Validated {len(sound_files)} audio files in {jar.name}')
+          PY
 
       - name: Subir JAR compilado
         uses: actions/upload-artifact@v7
