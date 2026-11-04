@@ -1,4 +1,4 @@
-name: Compilar Aetherium
+name: Compilar Umbralith
 
 on:
   push:
@@ -126,17 +126,6 @@ jobs:
               )
               wrapper_properties.write_text(wrapper_text, encoding="utf-8")
 
-          (root / "README.md").write_text(
-              "# Aetherium\n\n"
-              "Mod para Minecraft 1.16.5 con Forge 36.2.42.\n\n"
-              "Requiere JDK 8. Compilar con `gradlew build` (Windows: `gradlew.bat build`). "
-              "El JAR se genera en `build/libs/`.\n\n"
-              "Curios es opcional; los accesorios pueden equiparse en los slots Necklace y Ring "
-              "cuando Curios está instalado. Las habilidades de uso directo funcionan sin Curios.\n\n"
-              "Estado: compilación automática en validación; no considerar estable hasta completar "
-              "la compilación y pruebas dentro del juego.\n",
-              encoding="utf-8"
-          )
           PY
 
           # The compatibility fixes are strictly local to this CI workspace.
@@ -145,7 +134,7 @@ jobs:
       - name: Preparar codificador de audio
         uses: AnimMouse/setup-ffmpeg@v1
 
-      - name: Generar audio original de Aetherium
+      - name: Generar audio original de Umbralith
         shell: bash
         run: |
           set -euo pipefail
@@ -213,6 +202,6 @@ jobs:
       - name: Subir JAR compilado
         uses: actions/upload-artifact@v7
         with:
-          name: Aetherium-jar
+          name: Umbralith-jar
           path: ${{ env.AETHERIUM_PROJECT_DIR }}/build/libs/*.jar
           if-no-files-found: error
