@@ -36,6 +36,9 @@ import net.minecraft.world.server.ServerBossInfo;
 import net.minecraft.world.server.ServerWorld;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.UUID;
 
 /** Three-phase endgame boss that changes from ranged bolts to gravity control and close-range novas. */
 public class AstralDevourerEntity extends MonsterEntity {
@@ -58,6 +61,10 @@ public class AstralDevourerEntity extends MonsterEntity {
     private int mirageCooldown = 155;
     private int beamChargeTicks = 0;
     private int beamTicks = 0;
+    // Short-lived per-attack tracking prevents rapid repeated damage and permits
+    // players to enter the beam at any point during its actual firing window.
+    private final Map<UUID, Integer> beamLastHitTick = new HashMap<>();
+    private final Map<UUID, Integer> beamHitCount = new HashMap<>();
     private double beamEndX;
     private double beamEndY;
     private double beamEndZ;
@@ -196,6 +203,8 @@ public class AstralDevourerEntity extends MonsterEntity {
             this.dashTarget = null;
             this.beamChargeTicks = 0;
             this.beamTicks = 0;
+            this.beamLastHitTick.clear();
+            this.beamHitCount.clear();
             this.gravityDamagePending = false;
             this.novaDamagePending = false;
             this.entityData.set(ATTACK_STATE, 9);
@@ -597,6 +606,8 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.entityData.set(BEAM_Y, (float)this.beamEndY);
         this.entityData.set(BEAM_Z, (float)this.beamEndZ);
         // 26 ticks (1.3 seconds) of visible warning before 20 ticks of dangerous beam.
+        this.beamLastHitTick.clear();
+        this.beamHitCount.clear();
         this.beamChargeTicks = 26;
         this.entityData.set(ATTACK_STATE, 2);
         this.entityData.set(ATTACK_TICKS, this.beamChargeTicks);
@@ -622,13 +633,17 @@ public class AstralDevourerEntity extends MonsterEntity {
             return true;
         }
         if (this.beamTicks > 0) {
-            // A second, 11-tick-spaced pulse punishes staying in the beam,
-            // but moving away after the first pulse prevents the second hit.
-            if (this.beamTicks == 9) this.damageAlongAstralRay();
+            // Contact is checked throughout the firing window, with an 11-tick
+            // cooldown and a strict cap of two damage instances per player.
+            this.damageAlongAstralRay();
             if (this.beamTicks % 2 == 0) this.sendAstralRayParticles(1.0D, true);
             this.beamTicks--;
             this.entityData.set(ATTACK_TICKS, this.beamTicks);
-            if (this.beamTicks == 0) this.entityData.set(ATTACK_STATE, 0);
+            if (this.beamTicks == 0) {
+                this.entityData.set(ATTACK_STATE, 0);
+                this.beamLastHitTick.clear();
+                this.beamHitCount.clear();
+            }
             return true;
         }
         return false;
@@ -679,7 +694,7 @@ public class AstralDevourerEntity extends MonsterEntity {
     }
 
     /**
-     * Aimed, fixed beam: narrow centerline, two spaced damage pulses at most.
+     * Aimed, fixed beam: narrow centerline, up to two well-spaced hits per player.
      * The visible halo is cosmetic and does not extend the damaging hitbox.
      */
     private void damageAlongAstralRay() {
@@ -707,10 +722,16 @@ public class AstralDevourerEntity extends MonsterEntity {
             double ey = player.getY(0.55D) - (sy + dy * t);
             double ez = player.getZ() - (sz + dz * t);
             if (ex * ex + ey * ey + ez * ez > hitRadius * hitRadius) continue;
-            // Magic is intentionally meaningful through ordinary armor.  Two
-            // full pulses total 12 / 14 health, never 20 hits per second.
+            UUID id = player.getUUID();
+            if (this.beamHitCount.getOrDefault(id, 0) >= 2
+                    || this.tickCount - this.beamLastHitTick.getOrDefault(id, -1000) < 11)
+                continue;
+            // Two successful hits total 12 / 14 health before other reductions,
+            // even when the player remains inside the beam for its full duration.
             if (player.hurt(DamageSource.indirectMagic(this, this),
                     this.phase >= 3 ? 7.0F : 6.0F)) {
+                this.beamLastHitTick.put(id, this.tickCount);
+                this.beamHitCount.put(id, this.beamHitCount.getOrDefault(id, 0) + 1);
                 player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 22, 0, true, true));
                 if (this.level instanceof ServerWorld) {
                     ((ServerWorld)this.level).sendParticles(ParticleTypes.CRIT,
