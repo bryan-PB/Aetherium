@@ -41,6 +41,9 @@ public class RiftGuardianEntity extends MonsterEntity {
             new TranslationTextComponent("entity.aetherium.rift_guardian"),
             BossInfo.Color.PURPLE, BossInfo.Overlay.PROGRESS);
     private int attackCooldown = 35;
+    // The violet sword's moving slash travels ~5.14 blocks from its wielder.
+    // Keep the defensive shockwave visibly marked and just beyond that reach.
+    private static final double ANTI_COMBO_RADIUS = 5.25D;
     // Prevent close-range Crimson sword pressure from leaving a neutral boss
     // waiting through a long AI cooldown. No damage immunity is introduced.
     private int lastCrimsonHitTick = -1000;
@@ -127,18 +130,18 @@ public class RiftGuardianEntity extends MonsterEntity {
     public static AttributeModifierMap.MutableAttribute createAttributes() {
         return MonsterEntity.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 450.0D)
-                .add(Attributes.MOVEMENT_SPEED, 0.25D)
+                .add(Attributes.MOVEMENT_SPEED, 0.28D)
                 .add(Attributes.ATTACK_DAMAGE, 8.0D)
-                .add(Attributes.ARMOR, 8.0D)
-                .add(Attributes.ARMOR_TOUGHNESS, 3.0D)
-                .add(Attributes.KNOCKBACK_RESISTANCE, 0.94D)
+                .add(Attributes.ARMOR, 10.0D)
+                .add(Attributes.ARMOR_TOUGHNESS, 4.0D)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.95D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D);
     }
 
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new SwimGoal(this));
-        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.05D, true));
+        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.13D, true));
         this.goalSelector.addGoal(2, new WaterAvoidingRandomWalkingGoal(this, 0.62D));
         this.goalSelector.addGoal(3, new LookAtGoal(this, PlayerEntity.class, 16.0F));
         this.goalSelector.addGoal(4, new LookRandomlyGoal(this));
@@ -262,7 +265,7 @@ public class RiftGuardianEntity extends MonsterEntity {
             this.entityData.set(PHASE, nextPhase);
             this.bossInfo.setColor(BossInfo.Color.RED);
             this.bossInfo.setName(new TranslationTextComponent("entity.aetherium.rift_guardian.phase_two"));
-            this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.32D);
+            this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.35D);
             this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(11.0D);
             this.attackCooldown = 0;
             this.slamDamagePending = false;
@@ -295,11 +298,13 @@ public class RiftGuardianEntity extends MonsterEntity {
                 && this.attackCooldown <= 0) {
             this.crimsonCounterPending = false;
             if (target != null && target.isAlive()
-                    && this.distanceToSqr(target) <= 5.5D * 5.5D) {
-                // Ground slam already warns with a clear 24-tick ring. It can
-                // be dodged and does not ignore armor or prevent counterhits.
-                if (this.phase >= 2) this.startFracture();
-                else this.groundSlam(3.5D, 8.0F, 0.78D);
+                    && this.distanceToSqr(target) <= ANTI_COMBO_RADIUS * ANTI_COMBO_RADIUS) {
+                // A separate, clearly telegraphed 24-tick defensive slam.
+                // Range matches the violet energy slash, damage remains ordinary.
+                // Do not overwrite either phase's vulnerable/stagger states.
+                this.groundSlam(ANTI_COMBO_RADIUS,
+                        this.phase == 1 ? 8.0F : 10.0F,
+                        this.phase == 1 ? 1.05D : 1.18D);
                 this.attackCooldown = this.phase == 1 ? 65 : 55;
                 this.attackPattern++;
                 return;
@@ -325,24 +330,24 @@ public class RiftGuardianEntity extends MonsterEntity {
         double distanceSq = this.distanceToSqr(target);
         if (phase >= 2 && distanceSq > 8.0D * 8.0D) {
             // A ranged target sees two staggered volleys, interleaved with a committed rush.
-            if (distanceSq <= 15.0D * 15.0D && this.attackPattern % 3 == 2) {
+            if (distanceSq <= 15.0D * 15.0D && this.attackPattern % 2 == 0) {
                 this.startGreatswordCharge(target);
-                this.attackCooldown = 74;
+                this.attackCooldown = 68;
             } else {
                 this.fireRiftVolley(target);
                 this.attackCooldown = 57;
             }
             this.attackPattern++;
         } else if (phase >= 2 && distanceSq > 4.2D * 4.2D
-                && this.attackPattern % 3 == 1) {
+                && this.attackPattern % 4 == 3) {
             // Bring the projectile pattern into midrange rather than reserving it for kiting.
             this.fireRiftVolley(target);
             this.attackCooldown = 57;
             this.attackPattern++;
         } else if (distanceSq > 3.8D * 3.8D && distanceSq <= 8.0D * 8.0D) {
-            if (phase >= 2 && this.attackPattern % 2 == 1) {
+            if (phase >= 2 && this.attackPattern % 3 != 0) {
                 this.startGreatswordCharge(target);
-                this.attackCooldown = 74;
+                this.attackCooldown = 68;
             } else {
                 this.greatswordSweep(target);
                 this.attackCooldown = phase == 1 ? 72 : 58;
