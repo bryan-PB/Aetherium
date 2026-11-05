@@ -112,7 +112,7 @@ public class RiftGuardianEntity extends MonsterEntity {
     private void noteMeleePressure(PlayerEntity attacker) {
         if (this.level.isClientSide || attacker == null || !attacker.isAlive()
                 || this.entityData.get(ATTACK_STATE) != 0
-                || this.distanceToSqr(attacker) > 5.5D * 5.5D
+                || this.distanceToSqr(attacker) > ANTI_COMBO_RADIUS * ANTI_COMBO_RADIUS
                 || this.lastPressureDamageTick == this.tickCount) return;
         this.lastPressureDamageTick = this.tickCount;
         this.attackCooldown = Math.min(this.attackCooldown, 24);
