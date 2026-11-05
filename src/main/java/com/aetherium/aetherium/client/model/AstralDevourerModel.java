@@ -177,7 +177,8 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         float flap = MathHelper.sin(ageInTicks * (phase >= 3 ? 0.25F : 0.18F))
                 * ((state == 6 || state == 7) ? 0.08F : 1.0F);
         float casting = state == 1 ? 1.0F : 0.0F;
-        float castingCharge = casting * MathHelper.clamp((23.0F - time) / 12.0F, 0, 1);
+        // Keep the extended 32-tick pincer telegraph visibly charged from the outset.
+        float castingCharge = casting * MathHelper.clamp((32.0F - time) / 16.0F, 0, 1);
         float laserCharge = state == 2 ? MathHelper.clamp(1.0F - time / 26.0F, 0, 1) : 0;
         float laserFire = state == 3 ? 1.0F : 0.0F;
         float dashReady = state == 6 ? 1.0F : 0.0F;
