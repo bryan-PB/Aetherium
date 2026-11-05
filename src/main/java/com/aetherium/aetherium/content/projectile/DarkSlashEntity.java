@@ -6,7 +6,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.ProjectileEntity;
+import javax.annotation.Nullable;
 import net.minecraft.network.IPacket;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.particles.ParticleTypes;
@@ -29,11 +29,13 @@ import java.util.UUID;
  * Travels only ~4.3 blocks beyond its initial hand offset, lasts eight ticks,
  * respects walls and damages each nearby enemy at most once.
  */
-public final class DarkSlashEntity extends ProjectileEntity {
+public final class DarkSlashEntity extends Entity {
     public static final double SPEED = 0.54D;
     private static final int MAX_AGE = 8;
     private final Set<UUID> alreadyHit = new HashSet<>();
     private float slashDamage = 5.0F;
+    @Nullable private PlayerEntity shooter;
+    @Nullable private UUID shooterId;
 
     public DarkSlashEntity(EntityType<? extends DarkSlashEntity> type, World world) {
         super(type, world);
@@ -42,8 +44,22 @@ public final class DarkSlashEntity extends ProjectileEntity {
 
     public DarkSlashEntity(World world, PlayerEntity player, float damage) {
         this(RegistryHandler.DARK_SLASH.get(), world);
-        this.setOwner(player);
+        this.shooter = player;
+        this.shooterId = player.getUUID();
         this.slashDamage = damage;
+    }
+
+    @Nullable
+    private PlayerEntity getOwnerPlayer() {
+        if (this.shooter != null && this.shooter.isAlive()) return this.shooter;
+        if (this.shooterId != null && this.level instanceof ServerWorld) {
+            Entity loaded = ((ServerWorld) this.level).getEntity(this.shooterId);
+            if (loaded instanceof PlayerEntity) {
+                this.shooter = (PlayerEntity) loaded;
+                return this.shooter;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -53,8 +69,8 @@ public final class DarkSlashEntity extends ProjectileEntity {
 
     @Override
     protected void defineSynchedData() {
-        // Speed and look direction come from the spawn/motion packets; damage
-        // only matters server-side and is set directly by the owning sword.
+        // Orientation travels in Forge's spawn packet. The server alone owns
+        // damage, position, team checks and the list of entities already hit.
     }
 
     @Override
@@ -106,9 +122,9 @@ public final class DarkSlashEntity extends ProjectileEntity {
     }
 
     private void hitNearbyEnemies() {
-        Entity shooter = this.getOwner();
-        if (!(shooter instanceof PlayerEntity)) return;
-        PlayerEntity player = (PlayerEntity) shooter;
+        PlayerEntity shooter = this.getOwnerPlayer();
+        if (shooter == null) return;
+        PlayerEntity player = shooter;
 
         // One slash is a 1.9-block diagonal blade, so it has a tight AOE
         // around its forward-moving center instead of raycasting only 1 pixel.

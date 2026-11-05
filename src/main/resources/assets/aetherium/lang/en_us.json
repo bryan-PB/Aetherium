@@ -57,7 +57,7 @@
   "tooltip.aetherium.item.raw_aetherium": "Smelt this raw material into Kryzorae ingots.",
   "tooltip.aetherium.item.aetherium_ingot": "Repairs Kryzorae gear and crafts its advanced tools.",
   "tooltip.aetherium.item.aetherium_nugget": "A small amount of refined Kryzorae.",
-  "tooltip.aetherium.item.aetherium_sword": "Each main-hand swing sends a visible diagonal dark slash up to 5 blocks. Deals 50% of the sword's base attack damage (5 HP), even on a miss. 0.45-second slash cooldown.",
+  "tooltip.aetherium.item.aetherium_sword": "Swing: releases a diagonal dark slash up to 5 blocks.",
   "tooltip.aetherium.item.aetherium_pickaxe": "High-tier pickaxe for Kryzorae ore and other tough materials.",
   "tooltip.aetherium.item.aetherium_axe": "Every third hit within 2.2 seconds breaks the ground in a circular shockwave, damaging and knocking back nearby enemies.",
   "tooltip.aetherium.item.aetherium_helmet": "Part of the Violet set. The full set grants Resistance, Speed and Night Vision.",
@@ -76,7 +76,7 @@
   "tooltip.aetherium.item.rift_sigil": "Use on a solid block to summon the Rift Guardian. Prepare for a close-range arena fight.",
   "tooltip.aetherium.item.astral_seal": "Use on a solid block to summon the Winged Executioner. Requires a Rift Core.",
   "tooltip.aetherium.item.astral_ingot": "Endgame alloy refined from rare astral materials.",
-  "tooltip.aetherium.item.astral_sword": "Each successful hit adds Bleeding for 6 seconds. 4 HP per second per stack, up to 5 stacks (20 HP/s). Repeated hits refresh the duration.",
+  "tooltip.aetherium.item.astral_sword": "Each hit adds Bleeding: +4 HP/s per stack (max 5).",
   "tooltip.aetherium.item.astral_pickaxe": "Endgame pickaxe forged from Astral alloy.",
   "tooltip.aetherium.item.astral_axe": "Every third hit within 2.2 seconds chains an astral discharge through up to 3 nearby enemies.",
   "tooltip.aetherium.item.astral_helmet": "Part of the Crimson set. The full set grants its powerful defensive and mobility bonuses.",
@@ -122,5 +122,7 @@
   "subtitles.aetherium.boss_summon": "Kryzorae summons a powerful foe",
   "effect.aetherium.bleeding": "Bleeding",
   "death.attack.kryzorae_bleeding": "%1$s bled out",
-  "death.attack.kryzorae_bleeding.player": "%1$s bled out"
+  "death.attack.kryzorae_bleeding.player": "%1$s bled out",
+  "tooltip.aetherium.item.aetherium_sword.detail": "Slash deals 5 HP (50% base damage). 0.45 s between waves.",
+  "tooltip.aetherium.item.astral_sword.detail": "Lasts 6 s after the last hit. Five stacks deal 20 HP/s."
 }
