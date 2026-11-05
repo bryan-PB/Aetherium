@@ -6,6 +6,7 @@ import com.aetherium.aetherium.client.renderer.RiftStalkerRenderer;
 import com.aetherium.aetherium.client.renderer.RiftGuardianRenderer;
 import com.aetherium.aetherium.client.renderer.AstralDevourerRenderer;
 import com.aetherium.aetherium.client.renderer.BossMirageRenderer;
+import com.aetherium.aetherium.client.renderer.DarkSlashRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.SpriteRenderer;
 import com.aetherium.aetherium.registry.RegistryHandler;
@@ -28,6 +29,7 @@ public final class AetheriumClientEvents {
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.RIFT_GUARDIAN.get(), RiftGuardianRenderer::new);
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.ASTRAL_DEVOURER.get(), AstralDevourerRenderer::new);
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.BOSS_MIRAGE.get(), BossMirageRenderer::new);
+            RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.DARK_SLASH.get(), DarkSlashRenderer::new);
             // A larger full-bright sprite makes the moving bolt readable; its entity adds a continuous light trail.
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.AETHER_BOLT.get(),
                     manager -> new SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer(), 2.35F, true));

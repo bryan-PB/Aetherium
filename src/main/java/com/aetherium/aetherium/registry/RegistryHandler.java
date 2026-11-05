@@ -16,6 +16,8 @@ import com.aetherium.aetherium.content.item.AstralSwordItem;
 import com.aetherium.aetherium.content.entity.RiftStalkerEntity;
 import com.aetherium.aetherium.content.entity.LumiveloEntity;
 import com.aetherium.aetherium.content.boss.AetherBoltEntity;
+import com.aetherium.aetherium.content.effect.BleedingEffect;
+import com.aetherium.aetherium.content.projectile.DarkSlashEntity;
 import com.aetherium.aetherium.content.boss.BossMirageEntity;
 import com.aetherium.aetherium.content.boss.RiftGuardianEntity;
 import com.aetherium.aetherium.content.boss.AstralDevourerEntity;
@@ -23,6 +25,7 @@ import com.aetherium.aetherium.content.item.BossSummoningItem;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EntityClassification;
+import net.minecraft.potion.Effect;
 import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraft.item.BlockItem;
 import net.minecraft.inventory.EquipmentSlotType;
@@ -51,6 +54,11 @@ public final class RegistryHandler {
             DeferredRegister.create(ForgeRegistries.ENTITIES, AetheriumMod.MOD_ID);
     public static final DeferredRegister<SoundEvent> SOUNDS =
             DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, AetheriumMod.MOD_ID);
+    public static final DeferredRegister<Effect> EFFECTS =
+            DeferredRegister.create(ForgeRegistries.POTIONS, AetheriumMod.MOD_ID);
+
+    public static final RegistryObject<Effect> BLEEDING =
+            EFFECTS.register("bleeding", BleedingEffect::new);
 
     private static RegistryObject<SoundEvent> sound(String id) {
         ResourceLocation location = new ResourceLocation(AetheriumMod.MOD_ID, id);
@@ -131,6 +139,12 @@ public final class RegistryHandler {
     public static final RegistryObject<EntityType<AetherBoltEntity>> AETHER_BOLT = ENTITIES.register("aether_bolt",
             () -> EntityType.Builder.<AetherBoltEntity>of(AetherBoltEntity::new, EntityClassification.MISC)
                     .sized(0.32F, 0.32F).clientTrackingRange(8).updateInterval(2).build("aetherium:aether_bolt"));
+
+    /** Eight-tick diagonal wave spawned by every valid violet sword swing. */
+    public static final RegistryObject<EntityType<DarkSlashEntity>> DARK_SLASH = ENTITIES.register("dark_slash",
+            () -> EntityType.Builder.<DarkSlashEntity>of(DarkSlashEntity::new, EntityClassification.MISC)
+                    .sized(0.48F, 0.48F).clientTrackingRange(10).updateInterval(1)
+                    .build("aetherium:dark_slash"));
 
     /** Attackable phantom hitboxes; the parent boss renderer draws their copies. */
     public static final RegistryObject<EntityType<BossMirageEntity>> BOSS_MIRAGE = ENTITIES.register("boss_mirage",
@@ -251,5 +265,6 @@ public final class RegistryHandler {
         ITEMS.register(modEventBus);
         ENTITIES.register(modEventBus);
         SOUNDS.register(modEventBus);
+        EFFECTS.register(modEventBus);
     }
 }

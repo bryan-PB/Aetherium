@@ -173,6 +173,7 @@ jobs:
           gradle --version
           gradle build --no-daemon
           python3 tools/check_armor_arm_coverage.py
+          python3 tools/check_sword_combat.py
           python3 - <<'PY'
           from pathlib import Path
           from zipfile import ZipFile
@@ -233,10 +234,13 @@ jobs:
               for tier in ('aetherium', 'astral'):
                   for item in ('sword', 'axe', 'pickaxe',
                                'helmet', 'chestplate', 'leggings', 'boots'):
-                      gear.append((f'assets/aetherium/textures/item/{tier}_{item}.png', (32, 32)))
+                      size = (64, 64) if item == 'sword' else (32, 32)
+                      gear.append((f'assets/aetherium/textures/item/{tier}_{item}.png', size))
                   for layer in (1, 2):
                       gear.append((f'assets/aetherium/textures/models/armor/{tier}_layer_{layer}.png',
                                    (256, 128)))
+              # Also verify the separate 18px harmful-effect inventory icon.
+              gear.append(('assets/aetherium/textures/mob_effect/bleeding.png', (18, 18)))
               with ZipFile(jar) as z:
                   for asset, expected_dimensions in gear:
                       if asset not in included:
@@ -275,7 +279,15 @@ jobs:
                           raise SystemExit(f'Unsupported PNG color mode for {asset}: {depth}/{color_type}')
                       if len(pixel_bytes) != h * (1 + w * channels):
                           raise SystemExit(f'Truncated equipment pixel data: {asset}')
-              print(f'Validated {len(gear)} redesigned equipment textures in {jar.name}')
+              print(f'Validated {len(gear)} weapon, armor and bleeding-icon textures in {jar.name}')
+              with ZipFile(jar) as z:
+                  for classname in (
+                      'com/aetherium/aetherium/content/effect/BleedingEffect.class',
+                      'com/aetherium/aetherium/content/projectile/DarkSlashEntity.class',
+                      'com/aetherium/aetherium/client/renderer/DarkSlashRenderer.class'):
+                      if classname not in included:
+                          raise SystemExit(f'Missing new combat class: {classname}')
+              print('Validated registered bleeding effect and visible dark slash classes')
               # Prevent the original missing-arm-texture regression: both
               # 256x128 worn-layer atlases must have real pixel-art material
               # variation in the arm and pauldron UV zones.
