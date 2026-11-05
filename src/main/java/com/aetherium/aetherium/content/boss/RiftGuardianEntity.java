@@ -41,6 +41,12 @@ public class RiftGuardianEntity extends MonsterEntity {
             new TranslationTextComponent("entity.aetherium.rift_guardian"),
             BossInfo.Color.PURPLE, BossInfo.Overlay.PROGRESS);
     private int attackCooldown = 55;
+    // Prevent close-range Crimson sword pressure from leaving a neutral boss
+    // waiting through a long AI cooldown. No damage immunity is introduced.
+    private int lastCrimsonHitTick = -1000;
+    private int rapidCrimsonHits = 0;
+    private int crimsonCounterCooldown = 0;
+    private boolean crimsonCounterPending = false;
     private static final DataParameter<Integer> PHASE = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> SLAM_TICKS = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> ATTACK_STATE = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
@@ -94,6 +100,30 @@ public class RiftGuardianEntity extends MonsterEntity {
         if (this.entityData.get(MIRAGE_ID) == fakeId) this.entityData.set(MIRAGE_ID, -1);
     }
 
+    /**
+     * Three well-timed Crimson sword strikes near a neutral Guardian shorten
+     * its next wait and prioritize an EXISTING 24-tick telegraphed ground slam.
+     * Hits in active attacks, phase transitions or vulnerable stagger cannot
+     * cancel the attack animation or trigger an unfair instant retaliation.
+     */
+    public void registerCrimsonHit(PlayerEntity attacker) {
+        if (this.level.isClientSide || attacker == null || !attacker.isAlive()
+                || this.entityData.get(ATTACK_STATE) != 0
+                || this.distanceToSqr(attacker) > 5.5D * 5.5D) return;
+        if (this.tickCount - this.lastCrimsonHitTick <= 34) {
+            this.rapidCrimsonHits++;
+        } else {
+            this.rapidCrimsonHits = 1;
+        }
+        this.lastCrimsonHitTick = this.tickCount;
+        if (this.rapidCrimsonHits < 3 || this.crimsonCounterCooldown > 0) return;
+        this.rapidCrimsonHits = 0;
+        this.crimsonCounterCooldown = 160;
+        this.crimsonCounterPending = true;
+        this.attackCooldown = Math.min(this.attackCooldown, 8);
+        if (this.getTarget() == null) this.setTarget(attacker);
+    }
+
     public static AttributeModifierMap.MutableAttribute createAttributes() {
         return MonsterEntity.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 450.0D)
@@ -137,6 +167,7 @@ public class RiftGuardianEntity extends MonsterEntity {
             }
         }
         if (this.level.isClientSide) return;
+        if (this.crimsonCounterCooldown > 0) this.crimsonCounterCooldown--;
         this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
         if (this.phase >= 2 && this.entityData.get(ATTACK_STATE) == 0 && this.tickCount % 6 == 0) {
             this.sendRageAuraParticles();
@@ -255,6 +286,21 @@ public class RiftGuardianEntity extends MonsterEntity {
         if (this.minionCooldown > 0) this.minionCooldown--;
 
         LivingEntity target = this.getTarget();
+        if (this.crimsonCounterPending && this.entityData.get(ATTACK_STATE) == 0
+                && this.attackCooldown <= 0) {
+            this.crimsonCounterPending = false;
+            if (target != null && target.isAlive()
+                    && this.distanceToSqr(target) <= 5.5D * 5.5D) {
+                // Ground slam already warns with a clear 24-tick ring. It can
+                // be dodged and does not ignore armor or prevent counterhits.
+                this.groundSlam(this.phase == 1 ? 3.5D : 4.35D,
+                        this.phase == 1 ? 8.0F : 10.0F,
+                        this.phase == 1 ? 0.78D : 1.15D);
+                this.attackCooldown = this.phase == 1 ? 96 : 70;
+                this.attackPattern++;
+                return;
+            }
+        }
         // Summons take place between attacks, not during a stagger or a warning.
         if (phase >= 2 && target != null && target.isAlive() && this.minionCooldown <= 0
                 && this.entityData.get(ATTACK_STATE) == 0) {

@@ -55,6 +55,12 @@ public class AstralDevourerEntity extends MonsterEntity {
     private static final DataParameter<Float> BEAM_Z = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.FLOAT);
     private int phase = 1;
     private int attackCooldown = 70;
+    // React to repeated, correctly spaced Crimson sword strikes by retreating
+    // before the next telegraphed attack, never by gaining invulnerability.
+    private int lastCrimsonHitTick = -1000;
+    private int rapidCrimsonHits = 0;
+    private int crimsonRetreatCooldown = 0;
+    private int crimsonRetreatTicks = 0;
     private int attackCycle = 0;
     private int minionCooldown = 200;
     private int mirageCooldown = 155;
@@ -124,6 +130,36 @@ public class AstralDevourerEntity extends MonsterEntity {
                 this.activeMirages.isEmpty() ? -1 : this.activeMirages.get(0));
     }
 
+    /**
+     * Three consecutive Crimson hits while idle prompt a short, visible
+     * backward/vertical retreat. This does not interrupt attack animations,
+     * the exposed core after a missed dash, or the 54-tick phase transition.
+     * The player keeps doing full physical damage and normal bleed damage.
+     */
+    public void registerCrimsonHit(PlayerEntity attacker) {
+        if (this.level.isClientSide || attacker == null || !attacker.isAlive()
+                || this.entityData.get(ATTACK_STATE) != 0
+                || this.isInWater()
+                || this.distanceToSqr(attacker) > 7.0D * 7.0D) return;
+        if (this.tickCount - this.lastCrimsonHitTick <= 34) {
+            this.rapidCrimsonHits++;
+        } else {
+            this.rapidCrimsonHits = 1;
+        }
+        this.lastCrimsonHitTick = this.tickCount;
+        if (this.rapidCrimsonHits < 3 || this.crimsonRetreatCooldown > 0) return;
+        this.rapidCrimsonHits = 0;
+        this.crimsonRetreatCooldown = 160;
+        this.crimsonRetreatTicks = 16;
+        this.attackCooldown = Math.min(this.attackCooldown, 26);
+        if (this.getTarget() == null) this.setTarget(attacker);
+        if (this.level instanceof ServerWorld) {
+            ((ServerWorld) this.level).sendParticles(ParticleTypes.SMOKE,
+                    this.getX(), this.getY(0.6D), this.getZ(),
+                    16, 0.42D, 0.28D, 0.42D, 0.03D);
+        }
+    }
+
     /** Fixed world-space beam endpoint, synchronized to tracking clients. */
     public Vector3d getBeamRenderTarget() {
         return new Vector3d(this.entityData.get(BEAM_X),
@@ -166,6 +202,8 @@ public class AstralDevourerEntity extends MonsterEntity {
         super.tick();
         this.setNoGravity(true);
         if (this.level.isClientSide) return;
+        if (this.crimsonRetreatCooldown > 0) this.crimsonRetreatCooldown--;
+        if (this.crimsonRetreatTicks > 0) this.crimsonRetreatTicks--;
         if (this.phase >= 2 && this.entityData.get(ATTACK_STATE) == 0 && this.tickCount % 6 == 0) {
             this.sendPhaseAuraParticles();
         }
@@ -348,6 +386,16 @@ public class AstralDevourerEntity extends MonsterEntity {
                     : horizontalDistance < preferredDistance - 1.5D ? -0.12D : 0.0D;
             desiredX = dx / horizontalDistance * approach - dz / horizontalDistance * orbitSpeed * side;
             desiredZ = dz / horizontalDistance * approach + dx / horizontalDistance * orbitSpeed * side;
+            if (this.crimsonRetreatTicks > 0) {
+                // Physically fly away from close-range sword pressure. Smooth
+                // acceleration and normal collision mean this is NOT a teleport
+                // and walls still stop the boss. It remains fully damageable.
+                desiredX = -dx / horizontalDistance * 0.36D
+                        - dz / horizontalDistance * 0.055D * side;
+                desiredZ = -dz / horizontalDistance * 0.36D
+                        + dx / horizontalDistance * 0.055D * side;
+                desiredY = Math.max(desiredY, 0.18D);
+            }
             this.getLookControl().setLookAt(target, 30.0F, 30.0F);
         }
 
