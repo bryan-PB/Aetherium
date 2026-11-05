@@ -63,6 +63,8 @@ public class AstralDevourerEntity extends MonsterEntity {
     private boolean pincerPending = false;
     private int crimsonRetreatCooldown = 0;
     private int crimsonRetreatTicks = 0;
+    private int defensiveGustTicks = 0;
+    private static final double DEFENSIVE_GUST_RADIUS = 5.25D;
     private int attackCycle = 0;
     private int minionCooldown = 200;
     private int mirageCooldown = 155;
@@ -151,13 +153,63 @@ public class AstralDevourerEntity extends MonsterEntity {
         if (this.rapidCrimsonHits < 3 || this.crimsonRetreatCooldown > 0) return;
         this.rapidCrimsonHits = 0;
         this.crimsonRetreatCooldown = 120;
-        this.crimsonRetreatTicks = 20;
-        this.attackCooldown = Math.min(this.attackCooldown, 12);
+        // The knockback has a 16-tick visible warning; no instant retaliation.
+        // Fly away only after the gust, to keep its displayed 5.25-block reach honest.
+        this.defensiveGustTicks = 16;
+        this.crimsonRetreatTicks = 0;
+        this.attackCooldown = Math.max(this.attackCooldown, 18);
         if (this.getTarget() == null) this.setTarget(attacker);
         if (this.level instanceof ServerWorld)
             ((ServerWorld)this.level).sendParticles(ParticleTypes.SMOKE,
                     this.getX(), this.getY(0.6D), this.getZ(),
                     12, 0.34D, 0.24D, 0.34D, 0.02D);
+    }
+
+    /** Announced non-damaging wingbeat that creates space at the Violet sword's reach. */
+    private void showDefensiveGustWarning() {
+        if (!(this.level instanceof ServerWorld)) return;
+        ServerWorld server = (ServerWorld)this.level;
+        LivingEntity target = this.getTarget();
+        double y = target != null && target.isAlive() ? target.getY() + 0.12D
+                : this.getY() - 1.3D;
+        for (int i = 0; i < 28; i++) {
+            double a = Math.PI * 2.0D * i / 28.0D;
+            server.sendParticles(ParticleTypes.CLOUD,
+                    this.getX() + Math.cos(a) * DEFENSIVE_GUST_RADIUS, y,
+                    this.getZ() + Math.sin(a) * DEFENSIVE_GUST_RADIUS,
+                    1, 0.02D, 0.025D, 0.02D, 0.0D);
+        }
+    }
+
+    private void releaseDefensiveGust() {
+        double radius = DEFENSIVE_GUST_RADIUS;
+        List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class,
+                this.getBoundingBox().inflate(radius, 4.5D, radius), PlayerEntity::isAlive);
+        for (PlayerEntity player : players) {
+            double dx = player.getX() - this.getX();
+            double dz = player.getZ() - this.getZ();
+            double horizontalSq = dx * dx + dz * dz;
+            if (horizontalSq > radius * radius
+                    || Math.abs(player.getY(0.5D) - this.getY(0.5D)) > 4.5D) continue;
+            // A solid wall shields the player from the defensive gust.
+            Vector3d start = this.position().add(0.0D, this.getBbHeight() * 0.50D, 0.0D);
+            Vector3d end = player.position().add(0.0D, player.getBbHeight() * 0.50D, 0.0D);
+            BlockRayTraceResult obstruction = this.level.clip(new RayTraceContext(
+                    start, end, RayTraceContext.BlockMode.COLLIDER,
+                    RayTraceContext.FluidMode.NONE, this));
+            if (obstruction.getType() == RayTraceResult.Type.BLOCK) continue;
+            double length = Math.max(0.001D, Math.sqrt(horizontalSq));
+            player.setDeltaMovement(player.getDeltaMovement().add(
+                    dx / length * 0.72D, 0.20D, dz / length * 0.72D));
+            player.hurtMarked = true;
+        }
+        if (this.level instanceof ServerWorld) {
+            ServerWorld server = (ServerWorld)this.level;
+            server.sendParticles(ParticleTypes.CLOUD,
+                    this.getX(), this.getY() + this.getBbHeight() * 0.50D, this.getZ(),
+                    36, 2.0D, 0.55D, 2.0D, 0.10D);
+        }
+        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.48F, 1.22F);
     }
 
     /** Fixed world-space beam endpoint, synchronized to tracking clients. */
@@ -180,11 +232,11 @@ public class AstralDevourerEntity extends MonsterEntity {
     public static AttributeModifierMap.MutableAttribute createAttributes() {
         return MonsterEntity.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 650.0D)
-                .add(Attributes.MOVEMENT_SPEED, 0.23D)
+                .add(Attributes.MOVEMENT_SPEED, 0.25D)
                 .add(Attributes.ATTACK_DAMAGE, 9.0D)
-                .add(Attributes.ARMOR, 10.0D)
-                .add(Attributes.ARMOR_TOUGHNESS, 5.0D)
-                .add(Attributes.KNOCKBACK_RESISTANCE, 0.95D)
+                .add(Attributes.ARMOR, 12.0D)
+                .add(Attributes.ARMOR_TOUGHNESS, 6.0D)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.96D)
                 .add(Attributes.FOLLOW_RANGE, 40.0D);
     }
 
@@ -204,6 +256,14 @@ public class AstralDevourerEntity extends MonsterEntity {
         if (this.level.isClientSide) return;
         if (this.crimsonRetreatCooldown > 0) this.crimsonRetreatCooldown--;
         if (this.crimsonRetreatTicks > 0) this.crimsonRetreatTicks--;
+        if (this.defensiveGustTicks > 0) {
+            this.defensiveGustTicks--;
+            if (this.defensiveGustTicks % 2 == 0) this.showDefensiveGustWarning();
+            if (this.defensiveGustTicks == 0) {
+                this.releaseDefensiveGust();
+                this.crimsonRetreatTicks = 20;
+            }
+        }
         if (this.phase >= 2 && this.entityData.get(ATTACK_STATE) == 0 && this.tickCount % 6 == 0) {
             this.sendPhaseAuraParticles();
         }
@@ -242,12 +302,12 @@ public class AstralDevourerEntity extends MonsterEntity {
             if (phase == 2) {
                 this.bossInfo.setColor(BossInfo.Color.PURPLE);
                 this.bossInfo.setName(new TranslationTextComponent("entity.aetherium.astral_devourer.phase_two"));
-                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.28D);
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.31D);
                 this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(10.0D);
             } else {
                 this.bossInfo.setColor(BossInfo.Color.RED);
                 this.bossInfo.setName(new TranslationTextComponent("entity.aetherium.astral_devourer.phase_three"));
-                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.34D);
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.37D);
                 this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(12.0D);
             }
             // The awakening itself is a safe breathing window for repositioning.
@@ -263,6 +323,7 @@ public class AstralDevourerEntity extends MonsterEntity {
             this.beamHitCount.clear();
             this.gravityDamagePending = false;
             this.novaDamagePending = false;
+            this.defensiveGustTicks = 0;
             this.pincerPending = false;
             this.entityData.set(ATTACK_STATE, 9);
             this.entityData.set(ATTACK_TICKS, 54);
@@ -311,7 +372,8 @@ public class AstralDevourerEntity extends MonsterEntity {
         }
         if (this.attackCooldown > 0) this.attackCooldown--;
         if (target == null || !target.isAlive() || this.distanceToSqr(target) > 28.0D * 28.0D
-                || this.attackCooldown > 0 || this.entityData.get(ATTACK_STATE) != 0) return;
+                || this.attackCooldown > 0 || this.entityData.get(ATTACK_STATE) != 0
+                || this.defensiveGustTicks > 0) return;
 
         double distanceSq = this.distanceToSqr(target);
         this.attackCycle++;
@@ -390,19 +452,19 @@ public class AstralDevourerEntity extends MonsterEntity {
 
             double preferredDistance = this.phase == 1 ? 9.0D : (this.phase == 2 ? 7.0D : 5.8D);
             double side = this.attackCycle % 4 < 2 ? 1.0D : -1.0D;
-            double orbitSpeed = this.phase == 1 ? 0.10D : (this.phase == 2 ? 0.17D : 0.22D);
+            double orbitSpeed = this.phase == 1 ? 0.115D : (this.phase == 2 ? 0.19D : 0.245D);
             double approach = horizontalDistance > preferredDistance + 1.2D
-                    ? (this.phase >= 2 ? 0.20D : 0.15D)
-                    : horizontalDistance < preferredDistance - 1.5D ? -0.12D : 0.0D;
+                    ? (this.phase >= 2 ? 0.22D : 0.17D)
+                    : horizontalDistance < preferredDistance - 1.5D ? -0.13D : 0.0D;
             desiredX = dx / horizontalDistance * approach - dz / horizontalDistance * orbitSpeed * side;
             desiredZ = dz / horizontalDistance * approach + dx / horizontalDistance * orbitSpeed * side;
             if (this.crimsonRetreatTicks > 0) {
                 // Physically fly away from close-range sword pressure. Smooth
                 // acceleration and normal collision mean this is NOT a teleport
                 // and walls still stop the boss. It remains fully damageable.
-                desiredX = -dx / horizontalDistance * 0.36D
+                desiredX = -dx / horizontalDistance * 0.39D
                         - dz / horizontalDistance * 0.055D * side;
-                desiredZ = -dz / horizontalDistance * 0.36D
+                desiredZ = -dz / horizontalDistance * 0.39D
                         + dx / horizontalDistance * 0.055D * side;
                 desiredY = Math.max(desiredY, 0.18D);
             }
