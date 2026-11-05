@@ -8,8 +8,8 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.world.server.ServerWorld;
 
 /**
- * Carmesí bleeding: exactly 4 base health points per second per stack.
- * Amplifier 0..4 means one to five stacks (up to 20 HP/s).
+ * Carmesí bleeding: 2 base health points per second per stack.
+ * Amplifier 0..2 means one to three stacks (up to 6 HP/s).
  *
  * Using entity.tickCount instead of effect duration means each reapplication
  * can refresh or increase the stack without postponing the next damage tick.
@@ -17,10 +17,10 @@ import net.minecraft.world.server.ServerWorld;
  * other mods' damage events is still respected by the vanilla hurt pipeline.
  */
 public final class BleedingEffect extends Effect {
-    public static final int MAX_STACKS = 5;
-    public static final int DURATION_TICKS = 120; // six seconds from most recent hit
+    public static final int MAX_STACKS = 3;
+    public static final int DURATION_TICKS = 100; // five seconds after the most recent hit
     public static final int TICKS_PER_DAMAGE = 20;
-    public static final float DAMAGE_PER_STACK = 4.0F;
+    public static final float DAMAGE_PER_STACK = 2.0F;
 
     private static final DamageSource BLEEDING_DAMAGE =
             new DamageSource("kryzorae_bleeding").bypassArmor().bypassMagic();

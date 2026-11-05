@@ -12,7 +12,7 @@ import net.minecraft.world.server.ServerWorld;
 
 /**
  * Red / Crimson sword. Each successful melee hit adds exactly one bleeding
- * stack (maximum five) and renews its six-second duration. No old astral
+ * stack (maximum three) and renews its five-second duration. No old astral
  * projectile fan, hidden bonus hit, life steal or additional attack sound.
  */
 public class AstralSwordItem extends SwordItem {

@@ -14,9 +14,9 @@ Las nuevas texturas originales de ambas espadas siguen las siluetas de las refer
 ## Espada Carmesí: sangrado
 
 - Cada golpe cuerpo a cuerpo **acertado** aplica **una carga** del efecto perjudicial nuevo `aetherium:bleeding`.
-- Máximo **5 cargas**. La pantalla de efectos muestra Sangrado I-V con icono de gota roja propio.
-- Daño base por segundo: `4 × cargas` puntos de salud reales (PS, no corazones). Máximo `20 PS/s` o **10 corazones por segundo**.
-- La duración de cada aplicación se refresca a **6 segundos (120 ticks)**. Como el usuario no indicó duración, se eligió una ventana de prueba de seis segundos. Las cargas desaparecen al terminar el efecto, al morir o al curarlo con un método que elimina efectos.
+- Máximo **3 cargas**. La pantalla de efectos muestra Sangrado I-III con icono de gota roja propio.
+- Daño base por segundo: `2 × cargas` puntos de salud reales (PS, no corazones). Progresión de **2 / 4 / 6 PS/s** y máximo **3 corazones por segundo**.
+- La duración de cada aplicación se refresca a **5 segundos (100 ticks)**. Como el usuario no indicó duración, se eligió una ventana de prueba de seis segundos. Las cargas desaparecen al terminar el efecto, al morir o al curarlo con un método que elimina efectos.
 - Los tics de daño se disparan cada 20 ticks sobre el contador estable de la entidad; re-aplicar Sangrado **no retrasa** indefinidamente el próximo tic.
 - Se calcula en el servidor, sin golpes invisibles extra ni sonidos electrónicos. El daño base ignora armadura y resistencia mágica, pero respeta reglas de daño del juego y modificaciones externas; el valor final puede verse afectado por invulnerabilidad o absorción.
 - Eliminado el antiguo abanico de proyectiles al cuarto golpe y sus curaciones automáticas para dejar una identidad mecánica clara.
@@ -38,9 +38,9 @@ Las nuevas texturas originales de ambas espadas siguen las siluetas de las refer
 
 ## Pruebas dentro de Minecraft todavía necesarias
 
-- [ ] Golpear un mob de mucha vida 1, 2, 3, 4 y 5 veces con Carmesí y verificar `4/8/12/16/20 PS/s`; en el máximo no debe sobrepasar cinco cargas.
+- [ ] Golpear un mob de mucha vida 1, 2 y 3 veces con Carmesí y verificar `2/4/6 PS/s`; golpes posteriores no deben superar tres cargas.
 - [ ] Golpear repetidamente antes de que pase un segundo y confirmar que el tic de sangrado no se posterga continuamente.
-- [ ] Verificar que Sangrado termina seis segundos después del último impacto y su icono aparece correctamente.
+- [ ] Verificar que Sangrado termina cinco segundos después del último impacto y su icono aparece correctamente.
 - [ ] Balancear Violeta en el aire: debe aparecer **un corte diagonal realmente visible** por swing válido y avanzar hacia donde se mira.
 - [ ] Comprobar slash adicional contra un enemigo alcanzado por el filo físico, otro enemigo detrás y otro a 3–5 bloques.
 - [ ] Comprobar que varios mobs reciben como mucho un golpe de cada proyectil y que las paredes detienen la onda.

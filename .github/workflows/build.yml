@@ -175,6 +175,7 @@ jobs:
           python3 tools/check_armor_arm_coverage.py
           python3 tools/check_sword_combat.py
           python3 tools/check_boss_redesign.py
+          python3 tools/check_boss_balance.py
           python3 - <<'PY'
           from pathlib import Path
           from zipfile import ZipFile

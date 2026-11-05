@@ -76,7 +76,7 @@
   "tooltip.aetherium.item.rift_sigil": "Úsalo sobre un bloque sólido para invocar al Guardián de la Brecha. Prepárate para el combate cuerpo a cuerpo.",
   "tooltip.aetherium.item.astral_seal": "Úsalo sobre un bloque sólido para invocar al Verdugo Alado. Requiere un Núcleo de Brecha.",
   "tooltip.aetherium.item.astral_ingot": "Aleación avanzada refinada con materiales astrales excepcionales.",
-  "tooltip.aetherium.item.astral_sword": "Cada golpe añade Sangrado: +4 PS/s por carga (máx. 5).",
+  "tooltip.aetherium.item.astral_sword": "Cada golpe añade Sangrado: +2 PS/s por carga (máx. 3).",
   "tooltip.aetherium.item.astral_pickaxe": "Pico de alto nivel forjado con aleación astral.",
   "tooltip.aetherium.item.astral_axe": "Cada tercer golpe en menos de 2,2 segundos encadena una descarga astral entre hasta 3 enemigos cercanos.",
   "tooltip.aetherium.item.astral_helmet": "Parte del conjunto carmesí. El conjunto completo otorga potentes bonificaciones defensivas y de movilidad.",
@@ -124,5 +124,5 @@
   "death.attack.kryzorae_bleeding": "%1$s se desangró",
   "death.attack.kryzorae_bleeding.player": "%1$s se desangró",
   "tooltip.aetherium.item.aetherium_sword.detail": "Inflige 5 PS (50 % del daño base). Espera: 0,45 s.",
-  "tooltip.aetherium.item.astral_sword.detail": "Dura 6 s tras el último golpe. Cinco cargas: 20 PS/s."
+  "tooltip.aetherium.item.astral_sword.detail": "Dura 5 s tras el último golpe. Tres cargas: 6 PS/s."
 }

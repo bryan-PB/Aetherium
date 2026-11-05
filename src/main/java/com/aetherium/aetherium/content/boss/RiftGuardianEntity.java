@@ -96,7 +96,7 @@ public class RiftGuardianEntity extends MonsterEntity {
 
     public static AttributeModifierMap.MutableAttribute createAttributes() {
         return MonsterEntity.createMonsterAttributes()
-                .add(Attributes.MAX_HEALTH, 260.0D)
+                .add(Attributes.MAX_HEALTH, 450.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
                 .add(Attributes.ATTACK_DAMAGE, 8.0D)
                 .add(Attributes.ARMOR, 8.0D)

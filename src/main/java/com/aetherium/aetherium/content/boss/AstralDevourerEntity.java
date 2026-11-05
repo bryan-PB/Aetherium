@@ -143,7 +143,7 @@ public class AstralDevourerEntity extends MonsterEntity {
 
     public static AttributeModifierMap.MutableAttribute createAttributes() {
         return MonsterEntity.createMonsterAttributes()
-                .add(Attributes.MAX_HEALTH, 420.0D)
+                .add(Attributes.MAX_HEALTH, 650.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.23D)
                 .add(Attributes.ATTACK_DAMAGE, 9.0D)
                 .add(Attributes.ARMOR, 10.0D)

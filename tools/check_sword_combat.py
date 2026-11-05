@@ -21,18 +21,18 @@ renderer = source("client/renderer/DarkSlashRenderer.java")
 registry = source("registry/RegistryHandler.java")
 client = source("client/AetheriumClientEvents.java")
 
-assert "MAX_STACKS = 5" in effect
-assert "DAMAGE_PER_STACK = 4.0F" in effect
+assert "MAX_STACKS = 3" in effect
+assert "DAMAGE_PER_STACK = 2.0F" in effect
 assert "TICKS_PER_DAMAGE = 20" in effect
-assert "DURATION_TICKS = 120" in effect
+assert "DURATION_TICKS = 100" in effect
 assert "target.tickCount % TICKS_PER_DAMAGE" in effect
 assert "target.level.isClientSide" in effect
 assert "stacks * DAMAGE_PER_STACK" in effect
 
-for stacks in range(1, 6):
-    per_second = stacks * 4.0
-    assert per_second == 4.0 * stacks
-assert 5 * 4.0 == 20.0
+for stacks in range(1, 4):
+    per_second = stacks * 2.0
+    assert per_second == 2.0 * stacks
+assert 3 * 2.0 == 6.0
 
 assert "Math.min(BleedingEffect.MAX_STACKS" in crimson
 assert "stacks - 1" in crimson
@@ -79,6 +79,6 @@ for locale in ("en_us", "es_es", "es_cl", "es_mx", "es_ar"):
                 "tooltip.aetherium.item.aetherium_sword"):
         assert lang.get(key), f"Missing localized ability description: {locale}/{key}"
 
-print("Validated bleed: 1..5 stacks, 4 HP/s per stack, 20 HP/s cap, server tick.")
+print("Validated bleed: 1..3 stacks, 2 HP/s per stack, 6 HP/s cap, server tick.")
 print("Validated violet slash: 5 HP base, short range, one hit per target and a visible renderer.")
 print("Validated effect, projectile, tooltips and combat registries in five locales.")

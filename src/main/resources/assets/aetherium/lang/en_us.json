@@ -76,7 +76,7 @@
   "tooltip.aetherium.item.rift_sigil": "Use on a solid block to summon the Rift Guardian. Prepare for a close-range arena fight.",
   "tooltip.aetherium.item.astral_seal": "Use on a solid block to summon the Winged Executioner. Requires a Rift Core.",
   "tooltip.aetherium.item.astral_ingot": "Endgame alloy refined from rare astral materials.",
-  "tooltip.aetherium.item.astral_sword": "Each hit adds Bleeding: +4 HP/s per stack (max 5).",
+  "tooltip.aetherium.item.astral_sword": "Each hit adds Bleeding: +2 HP/s per stack (max 3).",
   "tooltip.aetherium.item.astral_pickaxe": "Endgame pickaxe forged from Astral alloy.",
   "tooltip.aetherium.item.astral_axe": "Every third hit within 2.2 seconds chains an astral discharge through up to 3 nearby enemies.",
   "tooltip.aetherium.item.astral_helmet": "Part of the Crimson set. The full set grants its powerful defensive and mobility bonuses.",
@@ -124,5 +124,5 @@
   "death.attack.kryzorae_bleeding": "%1$s bled out",
   "death.attack.kryzorae_bleeding.player": "%1$s bled out",
   "tooltip.aetherium.item.aetherium_sword.detail": "Slash deals 5 HP (50% base damage). 0.45 s between waves.",
-  "tooltip.aetherium.item.astral_sword.detail": "Lasts 6 s after the last hit. Five stacks deal 20 HP/s."
+  "tooltip.aetherium.item.astral_sword.detail": "Lasts 5 s after the last hit. Three stacks deal 6 HP/s."
 }
