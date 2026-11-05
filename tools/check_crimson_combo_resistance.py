@@ -101,6 +101,35 @@ assert ".add(Attributes.MOVEMENT_SPEED, 0.25D)" in winged
 assert ".setBaseValue(0.31D)" in winged and ".setBaseValue(0.37D)" in winged
 assert ".add(Attributes.ARMOR, 12.0D)" in winged
 assert ".add(Attributes.ARMOR_TOUGHNESS, 6.0D)" in winged
+# The response is now one of TWO readable options, never a surprise attack.
+# First choice is randomized; subsequent counters alternate to avoid repetition.
+for boss in (guardian, winged):
+    assert "private int lastPressureResponse = -1;" in boss
+    assert "this.random.nextInt(2) : 1 - this.lastPressureResponse" in boss
+    assert "this.lastPressureResponse = response;" in boss
+    assert "if (response == 1)" in boss
+    assert "source.getDirectEntity() instanceof DarkSlashEntity" in boss
+    assert "this.entityData.get(ATTACK_STATE) != 0" in boss
+
+# The Guardian retains its 24-tick / 5.25-block shockwave option.
+# Its alternative reuses the existing well-marked greatsword charge, whose
+# failed lunge leaves the boss punishable rather than invulnerable.
+assert "this.startGreatswordCharge(target);" in guardian
+assert "this.groundSlam(ANTI_COMBO_RADIUS," in guardian
+assert "this.entityData.set(SLAM_TICKS, this.phase >= 2 ? 26 : 24);" in guardian
+assert "this.entityData.set(ATTACK_STATE, 5);" in guardian
+assert "this.entityData.set(SLAM_TICKS, 50);" in guardian
+
+# The Executioner retains its 16-tick wingbeat warning and push option.
+# The alternate response is one locked-direction charge, never the full
+# two/three-dash combo; a miss still exposes the core for 42 ticks.
+assert "this.startDashPattern(attacker);" in winged
+assert "this.dashesRemaining = 1;" in winged
+assert "this.defensiveGustTicks = 16;" in winged
+assert "this.entityData.set(ATTACK_TICKS, this.dashChargeTicks);" in winged
+assert "this.entityData.set(ATTACK_STATE, 8);" in winged
+assert "this.entityData.set(ATTACK_TICKS, 42);" in winged
+
 assert "this.entityData.get(ATTACK_STATE) == 8) amount *= 1.35F" in winged
 assert "registerCrimsonHit" not in bleeding
 assert ".add(Attributes.MAX_HEALTH, 450.0D)" in guardian
@@ -116,3 +145,5 @@ print("Guardian double-fracture and Executioner mobile feather pincer have warni
 print("Anti-combo telegraphs extend to 5.25 blocks; pressure responses remain dodgeable.")
 print("Guardian rushes more often and both bosses gain modest armor and mobility.")
 print("Boss hurt audio drastically reduced; no new immunity or unexpected phase resets.")
+print("Alternating anti-combo options: visible push or punishable single charge.")
+print("Violet sword energy cuts now count toward successful repeated-hit pressure.")
