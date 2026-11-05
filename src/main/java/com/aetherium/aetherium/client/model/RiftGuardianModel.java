@@ -218,8 +218,19 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
                 * MathHelper.clamp((timer - 11.0F) / 3.0F, 0.0F, 1.0F);
         float weaponStrike = MathHelper.clamp((14.0F - timer) / 3.0F, 0.0F, 1.0F)
                 * MathHelper.clamp((timer - 1.0F) / 10.0F, 0.0F, 1.0F);
-        float windup = state == 1 ? weaponRaise : 0.0F;
-        float impact = state == 1 ? weaponStrike : 0.0F;
+        // New double-fracture: distinct sword lifts and impacts at ticks 20 and 8.
+        float fractureRaise = state == 7 ? Math.max(
+                MathHelper.clamp((36.0F - timer) / 9.0F, 0.0F, 1.0F)
+                        * MathHelper.clamp((timer - 20.0F) / 4.0F, 0.0F, 1.0F),
+                MathHelper.clamp((20.0F - timer) / 5.0F, 0.0F, 1.0F)
+                        * MathHelper.clamp((timer - 8.0F) / 4.0F, 0.0F, 1.0F)) : 0.0F;
+        float fractureStrike = state == 7 ? Math.max(
+                MathHelper.clamp((23.0F - timer) / 3.0F, 0.0F, 1.0F)
+                        * MathHelper.clamp((timer - 13.0F) / 7.0F, 0.0F, 1.0F),
+                MathHelper.clamp((11.0F - timer) / 3.0F, 0.0F, 1.0F)
+                        * MathHelper.clamp((timer - 1.0F) / 7.0F, 0.0F, 1.0F)) : 0.0F;
+        float windup = (state == 1 ? weaponRaise : 0.0F) + fractureRaise;
+        float impact = (state == 1 ? weaponStrike : 0.0F) + fractureStrike;
         float volley = state == 2 ? 1.0F : 0.0F;
         float windCharge = volley * MathHelper.clamp((28.0F - timer) / 12.0F, 0.0F, 1.0F);
         float windRecoil = volley * (Math.abs(timer - 16.0F) <= 2.0F
