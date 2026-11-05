@@ -2,6 +2,7 @@ package com.aetherium.aetherium.content.boss;
 
 import com.aetherium.aetherium.registry.RegistryHandler;
 import com.aetherium.aetherium.content.entity.RiftStalkerEntity;
+import com.aetherium.aetherium.content.projectile.DarkSlashEntity;
 import net.minecraft.world.gen.Heightmap;
 import net.minecraft.entity.EntityType;
 import net.minecraft.network.datasync.DataParameter;
@@ -64,6 +65,8 @@ public class AstralDevourerEntity extends MonsterEntity {
     private int crimsonRetreatCooldown = 0;
     private int crimsonRetreatTicks = 0;
     private int defensiveGustTicks = 0;
+    // Alternate the wingbeat with one visibly warned, avoidable charge.
+    private int lastPressureResponse = -1;
     private static final double DEFENSIVE_GUST_RADIUS = 5.25D;
     private int attackCycle = 0;
     private int minionCooldown = 200;
@@ -153,16 +156,30 @@ public class AstralDevourerEntity extends MonsterEntity {
         if (this.rapidCrimsonHits < 3 || this.crimsonRetreatCooldown > 0) return;
         this.rapidCrimsonHits = 0;
         this.crimsonRetreatCooldown = 120;
-        // The knockback has a 16-tick visible warning; no instant retaliation.
-        // Fly away only after the gust, to keep its displayed 5.25-block reach honest.
-        this.defensiveGustTicks = 16;
-        this.crimsonRetreatTicks = 0;
-        this.attackCooldown = Math.max(this.attackCooldown, 18);
+        // Keep the first choice unpredictable and alternate thereafter,
+        // rather than repeating the same response every time.
+        int response = this.lastPressureResponse < 0
+                ? this.random.nextInt(2) : 1 - this.lastPressureResponse;
+        this.lastPressureResponse = response;
         if (this.getTarget() == null) this.setTarget(attacker);
-        if (this.level instanceof ServerWorld)
-            ((ServerWorld)this.level).sendParticles(ParticleTypes.SMOKE,
-                    this.getX(), this.getY(0.6D), this.getZ(),
-                    12, 0.34D, 0.24D, 0.34D, 0.02D);
+        if (response == 1) {
+            // Only ONE charge, not the normal multi-dash combo. Existing
+            // 12-15 tick aiming corridor lets players dodge; misses expose the core.
+            this.defensiveGustTicks = 0;
+            this.crimsonRetreatTicks = 0;
+            this.startDashPattern(attacker);
+            this.dashesRemaining = 1;
+            this.attackCooldown = Math.max(this.attackCooldown, 40);
+        } else {
+            // Existing harmless, warned 5.25-block wingbeat, then retreat.
+            this.defensiveGustTicks = 16;
+            this.crimsonRetreatTicks = 0;
+            this.attackCooldown = Math.max(this.attackCooldown, 18);
+            if (this.level instanceof ServerWorld)
+                ((ServerWorld)this.level).sendParticles(ParticleTypes.SMOKE,
+                        this.getX(), this.getY(0.6D), this.getZ(),
+                        12, 0.34D, 0.24D, 0.34D, 0.02D);
+        }
     }
 
     /** Announced non-damaging wingbeat that creates space at the Violet sword's reach. */
@@ -1296,7 +1313,8 @@ public class AstralDevourerEntity extends MonsterEntity {
         if (this.entityData.get(ATTACK_STATE) == 8) amount *= 1.35F;
         boolean damaged = super.hurt(source, amount);
         if (damaged && !this.level.isClientSide && source.getEntity() instanceof PlayerEntity
-                && source.getDirectEntity() == source.getEntity())
+                && (source.getDirectEntity() == source.getEntity()
+                    || source.getDirectEntity() instanceof DarkSlashEntity))
             this.noteMeleePressure((PlayerEntity)source.getEntity());
         // Receiving damage should NOT instantly erase all three illusions.
         // The real boss is revealed by its health bar and hit response.
