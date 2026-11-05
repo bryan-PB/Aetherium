@@ -40,11 +40,12 @@ public class RiftGuardianEntity extends MonsterEntity {
     private final ServerBossInfo bossInfo = new ServerBossInfo(
             new TranslationTextComponent("entity.aetherium.rift_guardian"),
             BossInfo.Color.PURPLE, BossInfo.Overlay.PROGRESS);
-    private int attackCooldown = 55;
+    private int attackCooldown = 35;
     // Prevent close-range Crimson sword pressure from leaving a neutral boss
     // waiting through a long AI cooldown. No damage immunity is introduced.
     private int lastCrimsonHitTick = -1000;
     private int rapidCrimsonHits = 0;
+    private int lastPressureDamageTick = -1000;
     private int crimsonCounterCooldown = 0;
     private boolean crimsonCounterPending = false;
     private static final DataParameter<Integer> PHASE = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
@@ -100,27 +101,26 @@ public class RiftGuardianEntity extends MonsterEntity {
         if (this.entityData.get(MIRAGE_ID) == fakeId) this.entityData.set(MIRAGE_ID, -1);
     }
 
-    /**
-     * Three well-timed Crimson sword strikes near a neutral Guardian shorten
-     * its next wait and prioritize an EXISTING 24-tick telegraphed ground slam.
-     * Hits in active attacks, phase transitions or vulnerable stagger cannot
-     * cancel the attack animation or trigger an unfair instant retaliation.
-     */
+    /** Old Crimson callback kept compatible; successful direct melee hits also count. */
     public void registerCrimsonHit(PlayerEntity attacker) {
+        this.noteMeleePressure(attacker);
+    }
+
+    private void noteMeleePressure(PlayerEntity attacker) {
         if (this.level.isClientSide || attacker == null || !attacker.isAlive()
                 || this.entityData.get(ATTACK_STATE) != 0
-                || this.distanceToSqr(attacker) > 5.5D * 5.5D) return;
-        if (this.tickCount - this.lastCrimsonHitTick <= 34) {
-            this.rapidCrimsonHits++;
-        } else {
-            this.rapidCrimsonHits = 1;
-        }
+                || this.distanceToSqr(attacker) > 5.5D * 5.5D
+                || this.lastPressureDamageTick == this.tickCount) return;
+        this.lastPressureDamageTick = this.tickCount;
+        this.attackCooldown = Math.min(this.attackCooldown, 24);
+        this.rapidCrimsonHits = this.tickCount - this.lastCrimsonHitTick <= 36
+                ? this.rapidCrimsonHits + 1 : 1;
         this.lastCrimsonHitTick = this.tickCount;
         if (this.rapidCrimsonHits < 3 || this.crimsonCounterCooldown > 0) return;
         this.rapidCrimsonHits = 0;
-        this.crimsonCounterCooldown = 160;
+        this.crimsonCounterCooldown = 120;
         this.crimsonCounterPending = true;
-        this.attackCooldown = Math.min(this.attackCooldown, 8);
+        this.attackCooldown = Math.min(this.attackCooldown, 6);
         if (this.getTarget() == null) this.setTarget(attacker);
     }
 
@@ -131,7 +131,7 @@ public class RiftGuardianEntity extends MonsterEntity {
                 .add(Attributes.ATTACK_DAMAGE, 8.0D)
                 .add(Attributes.ARMOR, 8.0D)
                 .add(Attributes.ARMOR_TOUGHNESS, 3.0D)
-                .add(Attributes.KNOCKBACK_RESISTANCE, 0.85D)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.94D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D);
     }
 
@@ -177,13 +177,13 @@ public class RiftGuardianEntity extends MonsterEntity {
             int nextSlamTick = slamTicks - 1;
             this.entityData.set(SLAM_TICKS, nextSlamTick);
             int state = this.entityData.get(ATTACK_STATE);
-            if (state == 1 || state == 2 || state == 3) {
+            if (state == 1 || state == 2 || state == 3 || state == 7) {
                 // Do not let vanilla melee pathfinding drag the warning area across the arena.
                 this.getNavigation().stop();
                 // Wind cannon volleys get a stationary, clearly readable
                 // warning. Melee slams keep their existing slight inertia.
                 this.setDeltaMovement(state == 2
-                        ? Vector3d.ZERO : this.getDeltaMovement().scale(0.45D));
+                        ? Vector3d.ZERO : this.getDeltaMovement().scale(state == 7 ? 0.28D : 0.45D));
             }
             if ((state == 1 || state == 3 || state == 4)
                     && nextSlamTick > 11 && nextSlamTick % 4 == 0) {
@@ -199,6 +199,11 @@ public class RiftGuardianEntity extends MonsterEntity {
                 if (volleyTarget != null && volleyTarget.isAlive()) {
                     this.launchRiftVolley(volleyTarget, nextSlamTick == 7);
                 }
+            }
+            if (state == 7) {
+                if (nextSlamTick > 0 && nextSlamTick % 3 == 0) this.sendFractureWarning(nextSlamTick);
+                if (nextSlamTick == 20) this.resolveFracturePulse(false);
+                if (nextSlamTick == 8) this.resolveFracturePulse(true);
             }
             if (this.entityData.get(ATTACK_STATE) == 3 && nextSlamTick == 11 && !this.sweepHitApplied) {
                 this.resolveGreatswordSweep();
@@ -293,10 +298,9 @@ public class RiftGuardianEntity extends MonsterEntity {
                     && this.distanceToSqr(target) <= 5.5D * 5.5D) {
                 // Ground slam already warns with a clear 24-tick ring. It can
                 // be dodged and does not ignore armor or prevent counterhits.
-                this.groundSlam(this.phase == 1 ? 3.5D : 4.35D,
-                        this.phase == 1 ? 8.0F : 10.0F,
-                        this.phase == 1 ? 0.78D : 1.15D);
-                this.attackCooldown = this.phase == 1 ? 96 : 70;
+                if (this.phase >= 2) this.startFracture();
+                else this.groundSlam(3.5D, 8.0F, 0.78D);
+                this.attackCooldown = this.phase == 1 ? 65 : 55;
                 this.attackPattern++;
                 return;
             }
@@ -323,32 +327,37 @@ public class RiftGuardianEntity extends MonsterEntity {
             // A ranged target sees two staggered volleys, interleaved with a committed rush.
             if (distanceSq <= 15.0D * 15.0D && this.attackPattern % 3 == 2) {
                 this.startGreatswordCharge(target);
-                this.attackCooldown = 90;
+                this.attackCooldown = 74;
             } else {
                 this.fireRiftVolley(target);
-                this.attackCooldown = 64;
+                this.attackCooldown = 57;
             }
             this.attackPattern++;
         } else if (phase >= 2 && distanceSq > 4.2D * 4.2D
                 && this.attackPattern % 3 == 1) {
             // Bring the projectile pattern into midrange rather than reserving it for kiting.
             this.fireRiftVolley(target);
-            this.attackCooldown = 68;
+            this.attackCooldown = 57;
             this.attackPattern++;
         } else if (distanceSq > 3.8D * 3.8D && distanceSq <= 8.0D * 8.0D) {
             if (phase >= 2 && this.attackPattern % 2 == 1) {
                 this.startGreatswordCharge(target);
-                this.attackCooldown = 90;
+                this.attackCooldown = 74;
             } else {
                 this.greatswordSweep(target);
-                this.attackCooldown = phase == 1 ? 82 : 60;
+                this.attackCooldown = phase == 1 ? 72 : 58;
             }
             this.attackPattern++;
         } else if (distanceSq <= 3.8D * 3.8D) {
-            this.groundSlam(phase == 1 ? 3.5D : 4.35D,
-                    phase == 1 ? 8.0F : 10.0F,
-                    phase == 1 ? 0.78D : 1.15D);
-            this.attackCooldown = phase == 1 ? 96 : 70;
+            if (phase >= 2 && this.attackPattern % 3 == 0) {
+                this.startFracture();
+                this.attackCooldown = 64;
+            } else {
+                this.groundSlam(phase == 1 ? 3.5D : 4.35D,
+                        phase == 1 ? 8.0F : 10.0F,
+                        phase == 1 ? 0.78D : 1.15D);
+                this.attackCooldown = phase == 1 ? 67 : 56;
+            }
             this.attackPattern++;
         }
 
@@ -630,6 +639,61 @@ public class RiftGuardianEntity extends MonsterEntity {
         this.playSound(RegistryHandler.GUARDIAN_SWEEP.get(), 1.0F, 0.94F);
     }
 
+    /** Phase-II pattern: first a close shockwave, then a larger annular fracture. */
+    private void startFracture() {
+        this.entityData.set(ATTACK_STATE, 7);
+        this.entityData.set(SLAM_TICKS, 36);
+        this.getNavigation().stop();
+        this.sendFractureWarning(36);
+        this.playSound(RegistryHandler.GUARDIAN_WINDUP.get(), 0.82F, 0.76F);
+    }
+
+    private void sendFractureWarning(int remaining) {
+        if (!(this.level instanceof ServerWorld)) return;
+        ServerWorld server = (ServerWorld)this.level;
+        double[] rings = {3.5D, 4.1D, 7.0D};
+        for (int ring = 0; ring < rings.length; ring++) {
+            if (ring == 0 && remaining < 20) continue;
+            for (int i = 0; i < 24; i++) {
+                double angle = i * Math.PI * 2.0D / 24.0D;
+                server.sendParticles(ring == 0 ? ParticleTypes.CRIT : ParticleTypes.PORTAL,
+                        this.getX() + Math.cos(angle) * rings[ring], this.getY() + 0.13D,
+                        this.getZ() + Math.sin(angle) * rings[ring], 1, 0.02D, 0.03D, 0.02D, 0.0D);
+            }
+        }
+    }
+
+    private void resolveFracturePulse(boolean outer) {
+        double radius = outer ? 7.0D : 3.5D;
+        List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class,
+                this.getBoundingBox().inflate(radius, 1.2D, radius), PlayerEntity::isAlive);
+        for (PlayerEntity player : players) {
+            double dx = player.getX() - this.getX();
+            double dz = player.getZ() - this.getZ();
+            double sq = dx * dx + dz * dz;
+            if (sq > radius * radius || (outer && sq < 4.1D * 4.1D)
+                    || Math.abs(player.getY() - this.getY()) > 1.9D) continue;
+            double distance = Math.max(0.001D, Math.sqrt(sq));
+            if (player.hurt(DamageSource.mobAttack(this), outer ? 9.0F : 8.0F)) {
+                player.setDeltaMovement(player.getDeltaMovement().add(
+                        dx / distance * 0.62D, 0.24D, dz / distance * 0.62D));
+                player.hurtMarked = true;
+            }
+        }
+        if (this.level instanceof ServerWorld) {
+            ServerWorld server = (ServerWorld)this.level;
+            double burstRadius = outer ? 5.5D : 3.1D;
+            for (int i = 0; i < 28; i++) {
+                double angle = i * Math.PI * 2.0D / 28.0D;
+                server.sendParticles(ParticleTypes.SWEEP_ATTACK,
+                        this.getX() + Math.cos(angle) * burstRadius,
+                        this.getY() + 0.20D, this.getZ() + Math.sin(angle) * burstRadius,
+                        1, 0.0D, 0.0D, 0.0D, 0.0D);
+            }
+        }
+        this.playSound(RegistryHandler.RIFT_GUARDIAN_SLAM.get(), 0.77F, outer ? 1.20F : 0.84F);
+    }
+
     /** Telegraphs the overhead hammer blow; damage is delayed until the impact animation. */
     private void groundSlam(double radius, float damage, double knockback) {
         this.entityData.set(ATTACK_STATE, 1);
@@ -795,7 +859,12 @@ public class RiftGuardianEntity extends MonsterEntity {
     public boolean hurt(DamageSource source, float amount) {
         if (this.entityData.get(ATTACK_STATE) == 5) amount *= 1.45F;
         boolean damaged = super.hurt(source, amount);
-        if (damaged && !this.level.isClientSide) this.dispelMirage();
+        if (damaged && !this.level.isClientSide) {
+            this.dispelMirage();
+            if (source.getEntity() instanceof PlayerEntity
+                    && source.getDirectEntity() == source.getEntity())
+                this.noteMeleePressure((PlayerEntity) source.getEntity());
+        }
         return damaged;
     }
 
