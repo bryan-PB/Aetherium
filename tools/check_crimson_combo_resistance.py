@@ -71,12 +71,36 @@ assert "if (this.entityData.get(ATTACK_STATE) == 5) amount *= 1.45F;" in guardia
 assert "this.crimsonRetreatCooldown = 120" in winged
 assert "this.crimsonRetreatTicks = 20" in winged
 assert "if (this.crimsonRetreatTicks > 0)" in winged
-assert "desiredX = -dx / horizontalDistance * 0.36D" in winged
-assert "desiredZ = -dz / horizontalDistance * 0.36D" in winged
+assert "desiredX = -dx / horizontalDistance * 0.39D" in winged
+assert "desiredZ = -dz / horizontalDistance * 0.39D" in winged
 assert "this.startFeatherPincer();" in winged
 assert "this.launchFeatherPincer(target, nextTicks == 8)" in winged
 assert "this.entityData.set(ATTACK_TICKS, 32)" in winged
 assert "activeState == 1 || activeState == 4" not in winged  # feathers no longer freeze
+# More active pressure does not erase counterplay or increase boss health.
+assert "ANTI_COMBO_RADIUS = 5.25D" in guardian
+assert "this.groundSlam(ANTI_COMBO_RADIUS," in guardian
+assert "this.phase == 1 ? 1.05D : 1.18D" in guardian
+assert "this.entityData.set(SLAM_TICKS, 24);" in guardian
+assert "this.attackPattern % 2 == 0" in guardian  # long-range rush
+assert "this.attackPattern % 3 != 0" in guardian  # mid-range rush
+assert "this.attackCooldown = 68;" in guardian
+assert "DEFENSIVE_GUST_RADIUS = 5.25D" in winged
+assert "this.defensiveGustTicks = 16" in winged
+assert "this.showDefensiveGustWarning();" in winged
+assert "this.releaseDefensiveGust();" in winged
+assert "this.crimsonRetreatTicks = 20;" in winged
+assert "this.getBoundingBox().inflate(radius, 4.5D, radius)" in winged
+assert "obstruction.getType() == RayTraceResult.Type.BLOCK" in winged
+assert "player.hurtMarked = true;" in winged
+assert ".add(Attributes.MOVEMENT_SPEED, 0.28D)" in guardian
+assert ".setBaseValue(0.35D)" in guardian
+assert ".add(Attributes.ARMOR, 10.0D)" in guardian
+assert ".add(Attributes.ARMOR_TOUGHNESS, 4.0D)" in guardian
+assert ".add(Attributes.MOVEMENT_SPEED, 0.25D)" in winged
+assert ".setBaseValue(0.31D)" in winged and ".setBaseValue(0.37D)" in winged
+assert ".add(Attributes.ARMOR, 12.0D)" in winged
+assert ".add(Attributes.ARMOR_TOUGHNESS, 6.0D)" in winged
 assert "this.entityData.get(ATTACK_STATE) == 8) amount *= 1.35F" in winged
 assert "registerCrimsonHit" not in bleeding
 assert ".add(Attributes.MAX_HEALTH, 450.0D)" in guardian
@@ -89,4 +113,6 @@ for event in ("guardian_hurt", "astral_hurt"):
 
 print("Crimson bleed rate preserved; direct melee pressure can trigger boss responses.")
 print("Guardian double-fracture and Executioner mobile feather pincer have warning windows.")
+print("Anti-combo telegraphs extend to 5.25 blocks; pressure responses remain dodgeable.")
+print("Guardian rushes more often and both bosses gain modest armor and mobility.")
 print("Boss hurt audio drastically reduced; no new immunity or unexpected phase resets.")
