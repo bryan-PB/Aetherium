@@ -17,7 +17,6 @@ import net.minecraft.entity.ai.goal.LookRandomlyGoal;
 import net.minecraft.world.BossInfo;
 import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.potion.EffectInstance;
@@ -35,11 +34,12 @@ import net.minecraft.world.server.ServerBossInfo;
 import net.minecraft.world.server.ServerWorld;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.UUID;
 
-/** Winged Executioner: a three-phase flying boss with a chest-eye beam and dodgable crystal volleys. */
+/** Winged Executioner: armored aerial hunter with blade feathers, deceptive copies and a chest-eye ray. */
 public class AstralDevourerEntity extends MonsterEntity {
     private final ServerBossInfo bossInfo = new ServerBossInfo(
             new TranslationTextComponent("entity.aetherium.astral_devourer"),
@@ -58,6 +58,7 @@ public class AstralDevourerEntity extends MonsterEntity {
     private int attackCycle = 0;
     private int minionCooldown = 200;
     private int mirageCooldown = 155;
+    private final List<Integer> activeMirages = new ArrayList<>();
     private float queuedVolleyVelocity = 1.16F;
     private float queuedVolleyInaccuracy = 0.0F;
     private int beamChargeTicks = 0;
@@ -116,9 +117,11 @@ public class AstralDevourerEntity extends MonsterEntity {
         return this.entityData.get(MIRAGE_ID);
     }
 
-    /** Called by the fake hitbox on timeout or when a player attacks the decoy. */
+    /** Each decoy disappears on its own; the other copies keep deceiving. */
     public void onMirageDispelled(int fakeId) {
-        if (this.entityData.get(MIRAGE_ID) == fakeId) this.entityData.set(MIRAGE_ID, -1);
+        this.activeMirages.remove(Integer.valueOf(fakeId));
+        this.entityData.set(MIRAGE_ID,
+                this.activeMirages.isEmpty() ? -1 : this.activeMirages.get(0));
     }
 
     /** Fixed world-space beam endpoint, synchronized to tracking clients. */
@@ -400,8 +403,8 @@ public class AstralDevourerEntity extends MonsterEntity {
     }
 
     /**
-     * Raise the wings, form three visible crystals and HOLD POSITION for 12 ticks.
-     * Previously the boss fired instantly and only animated after the projectiles left.
+     * Raise the wings, unsheathe three iron feathers and HOLD POSITION for 12 ticks.
+     * This is a readably telegraphed razor-feather volley, not crystals.
      */
     private void shootBolt(LivingEntity target, float inaccuracy, float velocity) {
         if (!(this.level instanceof ServerWorld)) return;
@@ -414,14 +417,14 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.hasImpulse = true;
     }
 
-    /** A compact warning circling the eye and the three crystal previews on the model. */
+    /** Smoke and metallic sparks gather where the three feather blades appear. */
     private void sendVolleyWarning() {
         if (!(this.level instanceof ServerWorld)) return;
         ServerWorld world = (ServerWorld)this.level;
         double cy = this.getY() + this.getBbHeight() * 0.58D;
         for (int i = 0; i < 3; i++) {
             double angle = this.tickCount * 0.12D + i * Math.PI * 2.0D / 3.0D;
-            world.sendParticles(ParticleTypes.CRIT,
+            world.sendParticles(i == 1 ? ParticleTypes.SMOKE : ParticleTypes.CRIT,
                     this.getX() + Math.cos(angle) * 0.54D,
                     cy + Math.sin(angle) * 0.18D,
                     this.getZ() + Math.sin(angle) * 0.54D,
@@ -441,9 +444,13 @@ public class AstralDevourerEntity extends MonsterEntity {
         for (int i = 0; i < count; i++) {
             double spread = (i - (count - 1) / 2.0D) * (followUp ? 0.7D : 1.05D);
             AetherBoltEntity bolt = new AetherBoltEntity(this.level, this);
-            // Sync the astral sprite explicitly for clients receiving the entity before its owner.
-            bolt.setItem(new ItemStack(RegistryHandler.ASTRAL_FRAGMENT.get()));
-            bolt.setPos(this.getX(), this.getY() + this.getEyeHeight() * 0.72D, this.getZ());
+            // The projectile now has a dedicated black iron FEATHER mesh.
+            // Spread the muzzle across the chest/wing roots, not one crystal point.
+            bolt.setStyle(AetherBoltEntity.FEATHER_BLADE);
+            double muzzleOffset = (i - (count - 1) * 0.5D) * 0.22D;
+            bolt.setPos(this.getX() + sideX * muzzleOffset,
+                    this.getY() + this.getBbHeight() * 0.58D,
+                    this.getZ() + sideZ * muzzleOffset);
             double dx = target.getX() + sideX * spread - bolt.getX();
             double dy = target.getY(0.45D) - bolt.getY();
             double dz = target.getZ() + sideZ * spread - bolt.getZ();
@@ -451,12 +458,12 @@ public class AstralDevourerEntity extends MonsterEntity {
             this.level.addFreshEntity(bolt);
         }
         ServerWorld server = (ServerWorld) this.level;
-        server.sendParticles(ParticleTypes.END_ROD,
+        server.sendParticles(ParticleTypes.SMOKE,
                 this.getX(), this.getY() + this.getBbHeight() * 0.58D, this.getZ(),
-                followUp ? 22 : 18, 0.35D, 0.3D, 0.35D, 0.025D);
-        server.sendParticles(ParticleTypes.PORTAL,
+                followUp ? 13 : 10, 0.42D, 0.26D, 0.42D, 0.025D);
+        server.sendParticles(ParticleTypes.CRIT,
                 this.getX(), this.getY() + this.getBbHeight() * 0.58D, this.getZ(),
-                12, 0.25D, 0.25D, 0.25D, 0.035D);
+                8, 0.30D, 0.22D, 0.30D, 0.025D);
         if (followUp) this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.7F, 1.32F);
     }
 
@@ -480,6 +487,8 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.dashDirX = direction.x;
         this.dashDirY = direction.y;
         this.dashDirZ = direction.z;
+        this.lockDashFacing();
+        this.getNavigation().stop();
         // Keep the triple dash threatening but give players 0.6s to read each direction.
         this.dashChargeTicks = this.phase >= 3 ? 12 : 15;
         this.dashHitRegistered = false;
@@ -490,37 +499,65 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.72F, 1.12F);
     }
 
-    /** Server-side dash state machine. Motion and damage are authoritative; effects are sent to tracking clients. */
+    /**
+     * One locked aim direction for the entire telegraph and rush. Previously
+     * the model kept turning to face the moving player while velocity was
+     * fixed to the old aim, so the dash looked sideways/backwards.
+     */
+    private void lockDashFacing() {
+        double horizontal = Math.sqrt(this.dashDirX * this.dashDirX
+                + this.dashDirZ * this.dashDirZ);
+        float yaw = (float)(Math.atan2(this.dashDirZ, this.dashDirX)
+                * 180.0D / Math.PI - 90.0D);
+        this.yRot = yaw;
+        this.yBodyRot = yaw;
+        this.yHeadRot = yaw;
+        this.xRot = (float)(-Math.atan2(this.dashDirY, horizontal)
+                * 180.0D / Math.PI);
+    }
+
+    /** Server-side dash state machine. Movement and damage remain authoritative. */
     private boolean tickDashPattern() {
         if (this.dashChargeTicks > 0) {
+            this.getNavigation().stop();
+            this.setDeltaMovement(Vector3d.ZERO);
+            this.lockDashFacing();
             this.dashChargeTicks--;
             this.entityData.set(ATTACK_TICKS, this.dashChargeTicks);
             if (this.level instanceof ServerWorld && this.dashChargeTicks % 2 == 0) {
                 ServerWorld server = (ServerWorld) this.level;
                 double y = this.getY() + this.getBbHeight() * 0.55D;
-                server.sendParticles(ParticleTypes.DRAGON_BREATH, this.getX(), y, this.getZ(),
-                        5, 0.28D, 0.24D, 0.28D, 0.015D);
-                server.sendParticles(ParticleTypes.END_ROD,
-                        this.getX() + this.dashDirX * 0.8D, y + this.dashDirY * 0.8D,
-                        this.getZ() + this.dashDirZ * 0.8D, 3, 0.08D, 0.08D, 0.08D, 0.01D);
+                // A thin, stationary aiming corridor plus compressed wing
+                // smoke makes the danger direction recognizable from any angle.
+                server.sendParticles(ParticleTypes.SMOKE, this.getX(), y, this.getZ(),
+                        5, 0.30D, 0.26D, 0.30D, 0.012D);
+                for (int step = 1; step <= 9; step += 2) {
+                    double d = step * 1.0D;
+                    server.sendParticles(ParticleTypes.CRIT,
+                            this.getX() + this.dashDirX * d,
+                            y + this.dashDirY * d,
+                            this.getZ() + this.dashDirZ * d,
+                            1, 0.05D, 0.05D, 0.05D, 0.005D);
+                }
             }
             if (this.dashChargeTicks == 0) this.beginDashBurst();
             return true;
         }
 
         if (this.dashTicks > 0) {
+            this.lockDashFacing();
             double speed = this.phase >= 3 ? 1.08D : 0.94D;
             this.setDeltaMovement(this.dashDirX * speed, this.dashDirY * speed,
                     this.dashDirZ * speed);
             this.hasImpulse = true;
             if (this.level instanceof ServerWorld) {
                 ServerWorld server = (ServerWorld) this.level;
-                server.sendParticles(ParticleTypes.DRAGON_BREATH,
+                server.sendParticles(ParticleTypes.SMOKE,
                         this.getX(), this.getY() + this.getBbHeight() * 0.55D, this.getZ(),
-                        4, 0.18D, 0.20D, 0.18D, 0.01D);
-                server.sendParticles(ParticleTypes.END_ROD,
+                        6, 0.35D, 0.34D, 0.35D, 0.022D);
+                server.sendParticles(ParticleTypes.CRIT,
                         this.getX(), this.getY() + this.getBbHeight() * 0.55D, this.getZ(),
-                        2, 0.10D, 0.12D, 0.10D, 0.015D);
+                        3, 0.25D, 0.20D, 0.25D, 0.015D);
             }
             if (!this.dashHitRegistered) this.checkDashImpact();
             this.dashTicks--;
@@ -595,10 +632,22 @@ public class AstralDevourerEntity extends MonsterEntity {
     }
 
     private void checkDashImpact() {
-        AxisAlignedBB hitBox = this.getBoundingBox().inflate(0.42D, 0.30D, 0.42D);
-        List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, hitBox, PlayerEntity::isAlive);
+        // Swept hitbox includes where the boss will travel this tick. The old
+        // hit test checked only its previous position and could miss players
+        // completely when the burst was moving roughly one block per tick.
+        AxisAlignedBB hitBox = this.getBoundingBox()
+                .expandTowards(this.getDeltaMovement()).inflate(0.38D, 0.26D, 0.38D);
+        List<PlayerEntity> players = this.level.getEntitiesOfClass(
+                PlayerEntity.class, hitBox, PlayerEntity::isAlive);
         for (PlayerEntity player : players) {
-            if (!this.getBoundingBox().inflate(0.42D, 0.30D, 0.42D).intersects(player.getBoundingBox())) continue;
+            if (!hitBox.intersects(player.getBoundingBox())) continue;
+            Vector3d origin = this.position().add(0.0D, this.getBbHeight() * 0.52D, 0.0D);
+            Vector3d victim = player.position().add(0.0D, player.getBbHeight() * 0.5D, 0.0D);
+            if (this.level.clip(new RayTraceContext(origin, victim,
+                    RayTraceContext.BlockMode.COLLIDER,
+                    RayTraceContext.FluidMode.NONE, this)).getType() == RayTraceResult.Type.BLOCK) {
+                continue; // Do not dash-hit a player THROUGH a wall.
+            }
             if (!player.hurt(DamageSource.mobAttack(this), this.phase >= 3 ? 12.0F : 10.0F))
                 continue;
             player.setDeltaMovement(player.getDeltaMovement().add(
@@ -971,28 +1020,53 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.playSound(RegistryHandler.ASTRAL_NOVA.get(), 1.06F, 0.73F);
     }
 
+    /**
+     * The boss's three mirror images are real tracking entities, not a second
+     * fully opaque render drawn only while the boss itself is visible.
+     *
+     * Their own renderer makes them increasingly opaque as health drops. The
+     * mirror positions are updated relative to the PLAYER, Brain of Cthulhu
+     * style, and fake hits do not punish the player.
+     */
     private void summonMirage() {
-        if (!(this.level instanceof ServerWorld)) return;
-        if (this.entityData.get(MIRAGE_ID) >= 0) return;
-        BossMirageEntity fake = RegistryHandler.BOSS_MIRAGE.get().create(this.level);
-        if (fake == null) return;
-        fake.setOwner(this);
-        fake.setPos(this.getX() + 3.7D, this.getY(), this.getZ() + 2.0D);
-        if (this.level.addFreshEntity(fake)) {
-            this.entityData.set(MIRAGE_ID, fake.getId());
-            ((ServerWorld)this.level).sendParticles(ParticleTypes.PORTAL,
+        if (!(this.level instanceof ServerWorld) || !this.activeMirages.isEmpty()) return;
+        LivingEntity target = this.getTarget();
+        if (target == null || !target.isAlive()) return;
+        ServerWorld server = (ServerWorld)this.level;
+        double dx = this.getX() - target.getX();
+        double dz = this.getZ() - target.getZ();
+        double radius = Math.max(4.3D, Math.min(10.0D, Math.sqrt(dx * dx + dz * dz)));
+        double angle = Math.atan2(dz, dx);
+        for (int i = 0; i < 3; i++) {
+            BossMirageEntity fake = RegistryHandler.BOSS_MIRAGE.get().create(this.level);
+            if (fake == null) continue;
+            fake.setOwner(this);
+            fake.setCopySlot(i);
+            double theta = angle + (i + 1) * (Math.PI * 0.5D);
+            fake.setPos(target.getX() + Math.cos(theta) * radius,
+                    this.getY(), target.getZ() + Math.sin(theta) * radius);
+            fake.yRot = this.yRot;
+            if (this.level.addFreshEntity(fake)) this.activeMirages.add(fake.getId());
+        }
+        this.entityData.set(MIRAGE_ID,
+                this.activeMirages.isEmpty() ? -1 : this.activeMirages.get(0));
+        if (!this.activeMirages.isEmpty()) {
+            server.sendParticles(ParticleTypes.SMOKE,
                     this.getX(), this.getY() + 1.2D, this.getZ(),
-                    30, 2.0D, 0.9D, 2.0D, 0.09D);
-            this.playSound(RegistryHandler.ASTRAL_MIRAGE.get(), 0.84F, 1.04F);
+                    18, 0.65D, 0.50D, 0.65D, 0.035D);
+            this.playSound(RegistryHandler.ASTRAL_MIRAGE.get(), 0.66F, 1.04F);
         }
     }
 
     private void dispelMirage() {
-        int id = this.entityData.get(MIRAGE_ID);
-        if (id < 0) return;
+        if (this.activeMirages.isEmpty()) return;
+        List<Integer> copies = new ArrayList<>(this.activeMirages);
+        this.activeMirages.clear();
         this.entityData.set(MIRAGE_ID, -1);
-        net.minecraft.entity.Entity fake = this.level.getEntity(id);
-        if (fake instanceof BossMirageEntity) ((BossMirageEntity)fake).expire();
+        for (int id : copies) {
+            net.minecraft.entity.Entity fake = this.level.getEntity(id);
+            if (fake instanceof BossMirageEntity) ((BossMirageEntity)fake).expire();
+        }
     }
 
     /** Phase-bound reinforcements on the arena floor, capped so they never snowball forever. */
@@ -1033,7 +1107,8 @@ public class AstralDevourerEntity extends MonsterEntity {
     public boolean hurt(DamageSource source, float amount) {
         if (this.entityData.get(ATTACK_STATE) == 8) amount *= 1.35F;
         boolean damaged = super.hurt(source, amount);
-        if (damaged && !this.level.isClientSide) this.dispelMirage();
+        // Receiving damage should NOT instantly erase all three illusions.
+        // The real boss is revealed by its health bar and hit response.
         return damaged;
     }
 

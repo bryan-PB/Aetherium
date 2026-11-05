@@ -221,6 +221,9 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         float windup = state == 1 ? weaponRaise : 0.0F;
         float impact = state == 1 ? weaponStrike : 0.0F;
         float volley = state == 2 ? 1.0F : 0.0F;
+        float windCharge = volley * MathHelper.clamp((28.0F - timer) / 12.0F, 0.0F, 1.0F);
+        float windRecoil = volley * (Math.abs(timer - 16.0F) <= 2.0F
+                || Math.abs(timer - 7.0F) <= 2.0F ? 1.0F : 0.0F);
         float chargeWindup = state == 4 ? MathHelper.clamp((timer - 12.0F) / 12.0F, 0.0F, 1.0F) : 0.0F;
         float chargeRush = state == 4 ? 1.0F - chargeWindup : 0.0F;
         float stagger = state == 5 ? MathHelper.clamp(timer / 50.0F, 0.0F, 1.0F) : 0.0F;
@@ -263,7 +266,8 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         hornRight.xRot = -rage * 0.12F;
 
         body.y = idle * 0.14F + windup * 0.35F - impact * 0.4F;
-        body.xRot = -windup * 0.14F + impact * 0.24F + chargeWindup * 0.12F
+        body.xRot = -windup * 0.14F + impact * 0.24F - windCharge * 0.12F
+                + windRecoil * 0.13F + chargeWindup * 0.12F
                 - chargeRush * 0.48F + stagger * 0.22F - phaseShift * 0.24F
                 + death * 0.82F;
         chestPlate.xRot = -windup * 0.05F + impact * 0.1F - phaseShift * 0.32F
@@ -281,10 +285,12 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         }
 
         leftArm.xRot = -MathHelper.cos(gait) * 0.3F * walk - windup * 1.25F
-                + impact * 1.45F - volley * 0.45F + stagger * 0.72F - phaseShift * 0.9F
+                + impact * 1.45F - windCharge * 0.54F
+                + windRecoil * 0.13F + stagger * 0.72F - phaseShift * 0.9F
                 + death * 1.0F;
         rightArm.xRot = MathHelper.cos(gait) * 0.3F * walk - windup * 1.55F + impact * 1.65F
-                - volley * 0.35F - sweepWindup * 1.35F + sweep * 2.0F - chargeWindup * 1.5F
+                - windCharge * 0.65F + windRecoil * 0.29F
+                - sweepWindup * 1.35F + sweep * 2.0F - chargeWindup * 1.5F
                 + chargeRush * 1.0F + stagger * 0.78F + phaseShift * 0.9F + death * 1.0F;
         leftArm.zRot = -0.06F - rage * 0.12F + sweep * 0.42F - phaseShift * 0.42F;
         rightArm.zRot = 0.08F + rage * 0.08F + sweepWindup * 0.32F - sweep * 1.45F
@@ -313,6 +319,7 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         // Give each heavy attack a readable weapon silhouette before the hit lands.
         // The blade is a child of the right hand, so these rotations layer onto the arm pose.
         greatsword.xRot = -windup * 0.95F - sweepWindup * 0.72F
+                - windCharge * 0.34F + windRecoil * 0.32F
                 + impact * 0.62F + sweep * 1.18F
                 - chargeWindup * 0.28F + chargeRush * 0.82F
                 + stagger * 0.34F + phaseShift * 0.52F - rage * 0.12F;

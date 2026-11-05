@@ -19,7 +19,6 @@ import net.minecraft.entity.ai.goal.WaterAvoidingRandomWalkingGoal;
 import net.minecraft.world.BossInfo;
 import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -150,16 +149,24 @@ public class RiftGuardianEntity extends MonsterEntity {
             if (state == 1 || state == 2 || state == 3) {
                 // Do not let vanilla melee pathfinding drag the warning area across the arena.
                 this.getNavigation().stop();
-                this.setDeltaMovement(this.getDeltaMovement().scale(0.45D));
+                // Wind cannon volleys get a stationary, clearly readable
+                // warning. Melee slams keep their existing slight inertia.
+                this.setDeltaMovement(state == 2
+                        ? Vector3d.ZERO : this.getDeltaMovement().scale(0.45D));
             }
             if ((state == 1 || state == 3 || state == 4)
                     && nextSlamTick > 11 && nextSlamTick % 4 == 0) {
                 this.sendGreatswordWindupTelegraph(state);
             }
-            if (state == 2 && (nextSlamTick == 21 || nextSlamTick == 11)) {
+            if (state == 2 && nextSlamTick > 16 && nextSlamTick % 3 == 0) {
+                this.sendWindCannonWarning();
+            }
+            // 12-tick warning before the first wind crescent. The follow-up
+            // arrives at tick 7, after the player has seen the first attack.
+            if (state == 2 && (nextSlamTick == 16 || nextSlamTick == 7)) {
                 LivingEntity volleyTarget = this.getTarget();
                 if (volleyTarget != null && volleyTarget.isAlive()) {
-                    this.launchRiftVolley(volleyTarget, nextSlamTick == 11);
+                    this.launchRiftVolley(volleyTarget, nextSlamTick == 7);
                 }
             }
             if (this.entityData.get(ATTACK_STATE) == 3 && nextSlamTick == 11 && !this.sweepHitApplied) {
@@ -307,13 +314,28 @@ public class RiftGuardianEntity extends MonsterEntity {
         this.entityData.set(SLAM_TICKS, 28);
         if (!(this.level instanceof ServerWorld)) return;
         ServerWorld server = (ServerWorld) this.level;
-        server.sendParticles(ParticleTypes.END_ROD,
+        server.sendParticles(ParticleTypes.CLOUD,
                 this.getX(), this.getY() + this.getBbHeight() * 0.72D, this.getZ(),
-                14, 0.5D, 0.45D, 0.5D, 0.04D);
-        server.sendParticles(ParticleTypes.PORTAL,
+                16, 0.45D, 0.45D, 0.45D, 0.035D);
+        server.sendParticles(ParticleTypes.CRIT,
                 this.getX(), this.getY() + this.getBbHeight() * 0.72D, this.getZ(),
-                10, 0.45D, 0.35D, 0.45D, 0.025D);
+                8, 0.30D, 0.26D, 0.30D, 0.022D);
         this.playSound(RegistryHandler.GUARDIAN_WINDUP.get(), 0.74F, 0.94F);
+    }
+
+    /** Pressurized air gathers around the cannon mouth before it fires. */
+    private void sendWindCannonWarning() {
+        if (!(this.level instanceof ServerWorld)) return;
+        ServerWorld server = (ServerWorld)this.level;
+        double centerY = this.getY() + this.getBbHeight() * 0.72D;
+        for (int i = 0; i < 5; i++) {
+            double angle = i * Math.PI * 2.0D / 5.0D + this.tickCount * 0.12D;
+            server.sendParticles(ParticleTypes.CLOUD,
+                    this.getX() + Math.cos(angle) * 0.65D,
+                    centerY + Math.sin(angle) * 0.25D,
+                    this.getZ() + Math.sin(angle) * 0.65D,
+                    1, 0.045D, 0.045D, 0.045D, 0.008D);
+        }
     }
 
     /** Uses aim-relative offsets so the fan points toward the player at every angle. */
@@ -328,8 +350,9 @@ public class RiftGuardianEntity extends MonsterEntity {
         for (int i = -halfSpread; i <= halfSpread; i++) {
             double offset = i * (secondWave ? 0.85D : 1.2D);
             AetherBoltEntity bolt = new AetherBoltEntity(this.level, this);
-            // Sync the rift sprite explicitly; a remote client may not know the owner yet.
-            bolt.setItem(new ItemStack(RegistryHandler.RIFT_FRAGMENT.get()));
+            // A synchronized compressed-air crescent replaces the old
+            // hovering rift crystal / fragment sprite completely.
+            bolt.setStyle(AetherBoltEntity.WIND_SLICE);
             bolt.setPos(this.getX(), this.getY() + this.getBbHeight() * 0.72D, this.getZ());
             double dx = target.getX() + sideX * offset - bolt.getX();
             double dy = target.getY(0.45D) - bolt.getY();
@@ -338,9 +361,9 @@ public class RiftGuardianEntity extends MonsterEntity {
             this.level.addFreshEntity(bolt);
         }
         ServerWorld server = (ServerWorld) this.level;
-        server.sendParticles(ParticleTypes.END_ROD,
+        server.sendParticles(ParticleTypes.CLOUD,
                 this.getX(), this.getY() + this.getBbHeight() * 0.72D, this.getZ(),
-                secondWave ? 18 : 12, 0.35D, 0.32D, 0.35D, 0.055D);
+                secondWave ? 18 : 12, 0.35D, 0.32D, 0.35D, 0.045D);
         // One short, distinct release cue: do not restart a long sound on each wave.
         if (!secondWave)
             this.playSound(RegistryHandler.GUARDIAN_SWEEP.get(), 0.65F, 1.22F);

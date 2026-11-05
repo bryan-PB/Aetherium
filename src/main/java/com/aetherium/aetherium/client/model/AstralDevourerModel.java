@@ -28,7 +28,7 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
     private final ModelRenderer leftMantle, rightMantle;
     private final ModelRenderer leftRib, rightRib, leftWingBlade, rightWingBlade;
     private final ModelRenderer leftCrack, rightCrack;
-    private final ModelRenderer[] castCrystals = new ModelRenderer[3];
+    private final ModelRenderer[] castFeathers = new ModelRenderer[3];
 
     public AstralDevourerModel() {
         texWidth = 128;
@@ -141,12 +141,17 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
                 -0.8F, -5.0F, -0.8F, 1.6F, 6.2F, 1.6F);
         rightWingBlade = part(rightOuterWing, 64, 0, 12.5F, -0.4F, 0,
                 -0.8F, -5.0F, -0.8F, 1.6F, 6.2F, 1.6F);
-        // Three temporary, tangible crystals appear only during the volley wind-up.
-        // They are attack indicators, never permanent decoration.
-        for (int i = 0; i < castCrystals.length; i++) {
+        // Three sheathed black iron feathers materialize during the volley
+        // warning. Their jagged vanes and narrow quills read as BLADES,
+        // never as hovering prisms/crystals.
+        for (int i = 0; i < castFeathers.length; i++) {
             float x = (i - 1) * 5.0F;
-            castCrystals[i] = part(torso, 0, 96, x, -8.5F, -7.3F,
-                    -0.8F, -2.3F, -0.8F, 1.6F, 4.2F, 1.6F);
+            castFeathers[i] = part(torso, 0, 96, x, -8.5F, -7.0F,
+                    -0.55F, -3.9F, -0.42F, 1.1F, 7.0F, 0.84F);
+            part(castFeathers[i], 64, 96, -0.7F, -2.2F, 0.0F,
+                    -0.75F, -1.4F, -0.5F, 1.5F, 3.6F, 1.0F);
+            part(castFeathers[i], 0, 96, 0.7F, -1.0F, 0.0F,
+                    -0.75F, -1.2F, -0.5F, 1.5F, 2.5F, 1.0F);
         }
     }
 
@@ -167,13 +172,17 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         int state = entity.getAttackState();
         float time = entity.getAttackAnimationTicks();
         float idle = MathHelper.sin(ageInTicks * 0.09F);
-        float flap = MathHelper.sin(ageInTicks * (phase >= 3 ? 0.25F : 0.18F));
+        // During a dash all idle flapping is suspended: wings fold into an
+        // aerodynamic silhouette instead of paddling at full speed.
+        float flap = MathHelper.sin(ageInTicks * (phase >= 3 ? 0.25F : 0.18F))
+                * ((state == 6 || state == 7) ? 0.08F : 1.0F);
         float casting = state == 1 ? 1.0F : 0.0F;
         float castingCharge = casting * MathHelper.clamp((23.0F - time) / 12.0F, 0, 1);
         float laserCharge = state == 2 ? MathHelper.clamp(1.0F - time / 26.0F, 0, 1) : 0;
         float laserFire = state == 3 ? 1.0F : 0.0F;
         float dashReady = state == 6 ? 1.0F : 0.0F;
         float dash = state == 7 ? 1.0F : 0.0F;
+        float brace = dashReady * MathHelper.sin(ageInTicks * 1.4F) * 0.040F;
         float well = state == 4 ? 1.0F : 0.0F;
         float nova = state == 5 ? 1.0F : 0.0F;
         float stagger = state == 8 ? 1.0F : 0.0F;
@@ -182,16 +191,22 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         float spread = (phase >= 2 ? 0.20F : 0) + (phase >= 3 ? 0.15F : 0);
         float open = phase == 1 ? 0.2F : (phase == 2 ? 0.6F : 1.0F);
         open += castingCharge * 0.4F + laserCharge * 0.35F
-                + laserFire * 0.5F + transforming * 0.5F;
+                + laserFire * 0.5F + transforming * 0.5F - dash * 0.22F;
 
-        torso.y = 6.5F + idle * 0.45F - transforming * 0.65F + stagger * 0.25F;
-        torso.xRot = headPitch * 0.004F + dashReady * 0.16F
-                + dash * 0.48F - nova * 0.24F - laserFire * 0.07F
-                + entity.deathTime * 0.035F;
+        // Three clearly different poses: upright hover, drawn-back windup,
+        // then the 55-degree committed spear-like lunge.
+        torso.y = 6.5F + idle * 0.45F - transforming * 0.65F
+                - dashReady * 0.8F + dash * 0.45F + brace * 2.0F
+                + stagger * 0.25F;
+        torso.xRot = headPitch * 0.004F - dashReady * 0.31F
+                + dash * 0.96F - nova * 0.24F - laserFire * 0.07F
+                + brace + entity.deathTime * 0.035F;
         torso.yRot = netHeadYaw * 0.003F;
-        torso.zRot = MathHelper.sin(ageInTicks * 0.06F) * 0.025F + dash * 0.09F;
+        torso.zRot = MathHelper.sin(ageInTicks * 0.06F) * 0.025F
+                * (1.0F - dashReady - dash);
         head.xRot = -0.05F + MathHelper.sin(ageInTicks * 0.07F) * 0.04F
-                + casting * 0.20F + laserCharge * 0.15F + transforming * 0.16F;
+                + casting * 0.20F + laserCharge * 0.15F
+                + dashReady * 0.12F - dash * 0.23F + transforming * 0.16F;
         head.yRot = netHeadYaw * ((float)Math.PI / 180F) * 0.25F;
         maskChin.xRot = nova * 0.16F + transforming * 0.18F;
 
@@ -211,46 +226,54 @@ public class AstralDevourerModel extends EntityModel<AstralDevourerEntity> {
         leftCrack.visible = phase >= 3;
         rightCrack.visible = phase >= 3;
 
-        // Two wing hinges per side, each with a broad silhouette and idle motion.
-        // Crystals: wings lift and hold while the boss stops. Dash: fold backwards.
+        // The two hinges per wing fold BACK around the torso for a dash.
+        // During feather volleys the wings extend and hold still.
         float lift = 0.24F + spread + flap * (0.12F + (phase >= 3 ? 0.08F : 0))
                 + casting * 0.28F + laserCharge * 0.18F + laserFire * 0.22F
-                + transforming * 0.4F - dashReady * 0.52F - dash * 0.43F
+                + transforming * 0.4F - dashReady * 0.38F - dash * 0.64F
                 - stagger * 0.28F;
         leftWing.zRot = lift;
         rightWing.zRot = -lift;
-        leftWing.xRot = 0.09F + dash * 0.5F + well * 0.12F;
+        leftWing.xRot = 0.09F + dashReady * 0.31F + dash * 0.88F + well * 0.12F;
         rightWing.xRot = leftWing.xRot;
+        leftWing.yRot = 0.10F + dashReady * 0.70F + dash * 1.25F;
+        rightWing.yRot = -leftWing.yRot;
         leftOuterWing.zRot = 0.14F + spread * 0.6F
                 + MathHelper.sin(ageInTicks * 0.18F + 0.9F) * 0.12F
-                + casting * 0.22F + laserCharge * 0.16F - dashReady * 0.32F - dash * 0.27F;
+                        * (1.0F - dashReady - dash)
+                + casting * 0.22F + laserCharge * 0.16F
+                - dashReady * 0.28F - dash * 0.40F;
         rightOuterWing.zRot = -leftOuterWing.zRot;
-        leftOuterWing.yRot = 0.12F + dashReady * 0.24F;
+        leftOuterWing.yRot = 0.12F + dashReady * 0.43F + dash * 0.80F;
         rightOuterWing.yRot = -leftOuterWing.yRot;
         leftWingScallop.xRot = MathHelper.sin(ageInTicks * 0.15F) * 0.07F;
         rightWingScallop.xRot = leftWingScallop.xRot;
         leftWingBlade.visible = phase >= 3;
         rightWingBlade.visible = phase >= 3;
-        for (int i = 0; i < castCrystals.length; i++) {
-            castCrystals[i].visible = state == 1 && time >= 4;
-            castCrystals[i].y = -8.5F + MathHelper.sin(ageInTicks * 0.21F + i) * 0.55F;
-            castCrystals[i].zRot = ageInTicks * (i == 1 ? 0.12F : -0.09F);
+        for (int i = 0; i < castFeathers.length; i++) {
+            castFeathers[i].visible = state == 1 && time >= 4;
+            castFeathers[i].y = -8.5F + MathHelper.sin(ageInTicks * 0.21F + i) * 0.35F;
+            castFeathers[i].zRot = (i - 1) * 0.36F
+                    + MathHelper.sin(ageInTicks * 0.12F + i) * 0.08F;
         }
 
         // Hands frame the chest while casting, then tuck against the torso during a rush.
         leftUpperArm.xRot = 0.05F - casting * 0.60F - laserCharge * 0.37F
-                + dash * 0.68F + nova * 0.25F + well * 0.15F;
+                + dashReady * 0.27F - dash * 1.05F
+                + nova * 0.25F + well * 0.15F;
         rightUpperArm.xRot = leftUpperArm.xRot;
         leftUpperArm.zRot = 0.12F + casting * 0.35F + laserCharge * 0.22F
-                - dashReady * 0.12F - transforming * 0.25F;
+                - dashReady * 0.13F - dash * 0.18F
+                - transforming * 0.25F;
         rightUpperArm.zRot = -leftUpperArm.zRot;
-        leftForearm.xRot = -0.08F - casting * 0.3F - laserFire * 0.25F;
+        leftForearm.xRot = -0.08F - casting * 0.3F - laserFire * 0.25F
+                - dash * 0.38F;
         rightForearm.xRot = leftForearm.xRot;
         leftClaw.xRot = MathHelper.sin(ageInTicks * 0.12F) * 0.08F + castingCharge * 0.4F;
         rightClaw.xRot = leftClaw.xRot;
         leftMantle.xRot = -0.15F + MathHelper.sin(ageInTicks * 0.08F) * 0.07F + dash * 0.8F;
         rightMantle.xRot = -0.15F + MathHelper.cos(ageInTicks * 0.08F) * 0.07F + dash * 0.8F;
-        leftLeg.xRot = MathHelper.sin(ageInTicks * 0.11F) * 0.13F + dash * 0.38F;
+        leftLeg.xRot = MathHelper.sin(ageInTicks * 0.11F) * 0.13F + dash * 0.52F;
         rightLeg.xRot = -leftLeg.xRot;
     }
 

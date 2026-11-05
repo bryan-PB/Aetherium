@@ -3,8 +3,6 @@ package com.aetherium.aetherium.client.renderer;
 import com.aetherium.aetherium.AetheriumMod;
 import com.aetherium.aetherium.client.model.AstralDevourerModel;
 import com.aetherium.aetherium.content.boss.AstralDevourerEntity;
-import com.aetherium.aetherium.content.boss.BossMirageEntity;
-import net.minecraft.entity.Entity;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
@@ -33,18 +31,8 @@ public class AstralDevourerRenderer extends MobRenderer<AstralDevourerEntity, As
     public void render(AstralDevourerEntity entity, float yaw, float partialTicks,
                        MatrixStack stack, IRenderTypeBuffer buffers, int packedLight) {
         super.render(entity, yaw, partialTicks, stack, buffers, packedLight);
-        // Draw a second, identical model at the real pickable decoy's server position.
-        int mirageId = entity.getMirageEntityId();
-        if (mirageId >= 0) {
-            Entity copy = entity.level.getEntity(mirageId);
-            if (copy instanceof BossMirageEntity) {
-                stack.pushPose();
-                stack.translate(copy.getX() - entity.getX(),
-                        copy.getY() - entity.getY(), copy.getZ() - entity.getZ());
-                super.render(entity, yaw, partialTicks, stack, buffers, packedLight);
-                stack.popPose();
-            }
-        }
+        // Decoys are rendered independently by BossMirageRenderer. This boss
+        // renderer now draws ONLY the actual boss and its real chest beam.
         int state = entity.getAttackState();
         if (state != 2 && state != 3) return;
 
