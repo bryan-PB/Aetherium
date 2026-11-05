@@ -1,6 +1,7 @@
 package com.aetherium.aetherium.content.boss;
 
 import com.aetherium.aetherium.content.entity.RiftStalkerEntity;
+import com.aetherium.aetherium.content.projectile.DarkSlashEntity;
 import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraft.entity.EntityType;
 import net.minecraft.network.datasync.DataParameter;
@@ -51,6 +52,9 @@ public class RiftGuardianEntity extends MonsterEntity {
     private int lastPressureDamageTick = -1000;
     private int crimsonCounterCooldown = 0;
     private boolean crimsonCounterPending = false;
+    // Alternate fairly between the familiar spacing shockwave and a warned charge.
+    // Randomize only the very first choice to avoid a fixed opening every fight.
+    private int lastPressureResponse = -1;
     private static final DataParameter<Integer> PHASE = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> SLAM_TICKS = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> ATTACK_STATE = EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
@@ -302,10 +306,20 @@ public class RiftGuardianEntity extends MonsterEntity {
                 // A separate, clearly telegraphed 24-tick defensive slam.
                 // Range matches the violet energy slash, damage remains ordinary.
                 // Do not overwrite either phase's vulnerable/stagger states.
-                this.groundSlam(ANTI_COMBO_RADIUS,
-                        this.phase == 1 ? 8.0F : 10.0F,
-                        this.phase == 1 ? 1.05D : 1.18D);
-                this.attackCooldown = this.phase == 1 ? 65 : 55;
+                int response = this.lastPressureResponse < 0
+                        ? this.random.nextInt(2) : 1 - this.lastPressureResponse;
+                this.lastPressureResponse = response;
+                if (response == 1) {
+                    // Existing charge animation locks direction before rushing.
+                    // A miss exposes the Guardian for 50 ticks: avoidable, punishable.
+                    this.startGreatswordCharge(target);
+                    this.attackCooldown = this.phase == 1 ? 76 : 68;
+                } else {
+                    this.groundSlam(ANTI_COMBO_RADIUS,
+                            this.phase == 1 ? 8.0F : 10.0F,
+                            this.phase == 1 ? 1.05D : 1.18D);
+                    this.attackCooldown = this.phase == 1 ? 65 : 55;
+                }
                 this.attackPattern++;
                 return;
             }
@@ -867,7 +881,8 @@ public class RiftGuardianEntity extends MonsterEntity {
         if (damaged && !this.level.isClientSide) {
             this.dispelMirage();
             if (source.getEntity() instanceof PlayerEntity
-                    && source.getDirectEntity() == source.getEntity())
+                    && (source.getDirectEntity() == source.getEntity()
+                        || source.getDirectEntity() instanceof DarkSlashEntity))
                 this.noteMeleePressure((PlayerEntity) source.getEntity());
         }
         return damaged;
