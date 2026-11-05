@@ -54,11 +54,13 @@ public class AstralDevourerEntity extends MonsterEntity {
     private static final DataParameter<Float> BEAM_Y = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.FLOAT);
     private static final DataParameter<Float> BEAM_Z = EntityDataManager.defineId(AstralDevourerEntity.class, DataSerializers.FLOAT);
     private int phase = 1;
-    private int attackCooldown = 70;
+    private int attackCooldown = 45;
     // React to repeated, correctly spaced Crimson sword strikes by retreating
     // before the next telegraphed attack, never by gaining invulnerability.
     private int lastCrimsonHitTick = -1000;
     private int rapidCrimsonHits = 0;
+    private int lastPressureDamageTick = -1000;
+    private boolean pincerPending = false;
     private int crimsonRetreatCooldown = 0;
     private int crimsonRetreatTicks = 0;
     private int attackCycle = 0;
@@ -130,34 +132,32 @@ public class AstralDevourerEntity extends MonsterEntity {
                 this.activeMirages.isEmpty() ? -1 : this.activeMirages.get(0));
     }
 
-    /**
-     * Three consecutive Crimson hits while idle prompt a short, visible
-     * backward/vertical retreat. This does not interrupt attack animations,
-     * the exposed core after a missed dash, or the 54-tick phase transition.
-     * The player keeps doing full physical damage and normal bleed damage.
-     */
+    /** Compatibility hook retained for the Crimson sword's successful-hit callback. */
     public void registerCrimsonHit(PlayerEntity attacker) {
+        this.noteMeleePressure(attacker);
+    }
+
+    /** Repeated hits produce a real retreat without cancelling beam/dash or vulnerability. */
+    private void noteMeleePressure(PlayerEntity attacker) {
         if (this.level.isClientSide || attacker == null || !attacker.isAlive()
-                || this.entityData.get(ATTACK_STATE) != 0
-                || this.isInWater()
-                || this.distanceToSqr(attacker) > 7.0D * 7.0D) return;
-        if (this.tickCount - this.lastCrimsonHitTick <= 34) {
-            this.rapidCrimsonHits++;
-        } else {
-            this.rapidCrimsonHits = 1;
-        }
+                || this.entityData.get(ATTACK_STATE) != 0 || this.isInWater()
+                || this.distanceToSqr(attacker) > 7.0D * 7.0D
+                || this.lastPressureDamageTick == this.tickCount) return;
+        this.lastPressureDamageTick = this.tickCount;
+        this.attackCooldown = Math.min(this.attackCooldown, 26);
+        this.rapidCrimsonHits = this.tickCount - this.lastCrimsonHitTick <= 36
+                ? this.rapidCrimsonHits + 1 : 1;
         this.lastCrimsonHitTick = this.tickCount;
         if (this.rapidCrimsonHits < 3 || this.crimsonRetreatCooldown > 0) return;
         this.rapidCrimsonHits = 0;
-        this.crimsonRetreatCooldown = 160;
-        this.crimsonRetreatTicks = 16;
-        this.attackCooldown = Math.min(this.attackCooldown, 26);
+        this.crimsonRetreatCooldown = 120;
+        this.crimsonRetreatTicks = 20;
+        this.attackCooldown = Math.min(this.attackCooldown, 12);
         if (this.getTarget() == null) this.setTarget(attacker);
-        if (this.level instanceof ServerWorld) {
-            ((ServerWorld) this.level).sendParticles(ParticleTypes.SMOKE,
+        if (this.level instanceof ServerWorld)
+            ((ServerWorld)this.level).sendParticles(ParticleTypes.SMOKE,
                     this.getX(), this.getY(0.6D), this.getZ(),
-                    16, 0.42D, 0.28D, 0.42D, 0.03D);
-        }
+                    12, 0.34D, 0.24D, 0.34D, 0.02D);
     }
 
     /** Fixed world-space beam endpoint, synchronized to tracking clients. */
@@ -214,13 +214,16 @@ public class AstralDevourerEntity extends MonsterEntity {
         if (!phaseTransitionActive && !dashActive) {
             int activeState = this.entityData.get(ATTACK_STATE);
             if (this.beamChargeTicks > 0 || this.beamTicks > 0
-                    || activeState == 1 || activeState == 4 || activeState == 5 || activeState == 8) {
+                    || activeState == 4 || activeState == 5 || activeState == 8) {
                 // The warning line and damage line must share a stationary origin.
                 this.getNavigation().stop();
                 this.setDeltaMovement(Vector3d.ZERO);
                 this.hasImpulse = true;
             } else {
                 this.updateHoverMovement(target);
+                // Feather volleys keep moving slowly; only the laser and ring strikes lock position.
+                if (activeState == 1)
+                    this.setDeltaMovement(this.getDeltaMovement().scale(0.58D));
             }
         }
         if (this.isInWater() && !phaseTransitionActive) {
@@ -260,6 +263,7 @@ public class AstralDevourerEntity extends MonsterEntity {
             this.beamHitCount.clear();
             this.gravityDamagePending = false;
             this.novaDamagePending = false;
+            this.pincerPending = false;
             this.entityData.set(ATTACK_STATE, 9);
             this.entityData.set(ATTACK_TICKS, 54);
             this.setDeltaMovement(Vector3d.ZERO);
@@ -314,49 +318,55 @@ public class AstralDevourerEntity extends MonsterEntity {
         // Reserve independent attack slots. Previously phase-III dashes consumed the
         // same even turns as the laser, effectively preventing the laser from firing.
         int pattern = this.phase >= 3 ? this.attackCycle % 4 : this.attackCycle % 3;
+        if (this.phase >= 2 && this.attackCycle % 4 == 3
+                && distanceSq > 4.0D * 4.0D && distanceSq < 20.0D * 20.0D) {
+            this.startFeatherPincer();
+            this.attackCooldown = this.phase >= 3 ? 56 : 64;
+            return;
+        }
         boolean dashTurn = this.phase >= 3 ? (pattern == 0 || pattern == 2) : pattern == 0;
         if (dashTurn && distanceSq > 3.6D * 3.6D && distanceSq < 22.0D * 22.0D) {
             this.startDashPattern(target);
-            this.attackCooldown = phase >= 3 ? 52 : (phase >= 2 ? 68 : 96);
+            this.attackCooldown = phase >= 3 ? 45 : (phase >= 2 ? 58 : 80);
             return;
         }
         if (phase >= 2 && pattern == 1 && distanceSq > 5.6D * 5.6D) {
             this.prepareAstralRay(target);
-            this.attackCooldown = phase >= 3 ? 76 : 88;
+            this.attackCooldown = phase >= 3 ? 62 : 76;
             return;
         }
         if (phase == 1) {
             // The opening phase teaches dodging with quick shots and a readable gravity pull.
             if (distanceSq > 6.5D * 6.5D) {
                 this.shootBolt(target, 0.0F, 1.16F);
-                this.attackCooldown = 62;
+                this.attackCooldown = 52;
             } else {
                 this.gravityWell();
-                this.attackCooldown = 86;
+                this.attackCooldown = 70;
             }
         } else if (phase == 2) {
             // Phase II follows an initial spread with a later, tighter fan.
             if (distanceSq > 9.0D * 9.0D) {
                 this.shootBolt(target, 0.25F, 1.18F);
-                this.attackCooldown = 59;
+                this.attackCooldown = 51;
             } else if (this.attackCycle % 2 == 0) {
                 this.gravityWell();
-                this.attackCooldown = 88;
+                this.attackCooldown = 72;
             } else {
                 this.shootBolt(target, 0.45F, 1.16F);
-                this.attackCooldown = 64;
+                this.attackCooldown = 54;
             }
         } else {
             // Phase III pressures with faster projectiles and close-range novas.
             if (distanceSq > 7.5D * 7.5D) {
                 this.shootBolt(target, 0.35F, 1.30F);
-                this.attackCooldown = 50;
+                this.attackCooldown = 45;
             } else if (this.attackCycle % 2 == 0) {
                 this.cosmicNova();
-                this.attackCooldown = 78;
+                this.attackCooldown = 66;
             } else {
                 this.shootBolt(target, 0.45F, 1.24F);
-                this.attackCooldown = 56;
+                this.attackCooldown = 49;
             }
         }
     }
@@ -456,6 +466,7 @@ public class AstralDevourerEntity extends MonsterEntity {
      */
     private void shootBolt(LivingEntity target, float inaccuracy, float velocity) {
         if (!(this.level instanceof ServerWorld)) return;
+        this.pincerPending = false;
         this.queuedVolleyVelocity = velocity;
         this.queuedVolleyInaccuracy = inaccuracy;
         this.entityData.set(ATTACK_STATE, 1);
@@ -463,6 +474,65 @@ public class AstralDevourerEntity extends MonsterEntity {
         this.getNavigation().stop();
         this.setDeltaMovement(Vector3d.ZERO);
         this.hasImpulse = true;
+    }
+
+    /**
+     * Wing-blade pincer: two widely spaced feathers first, then three converging
+     * feathers. Each release has its own visible warning and can be dodged.
+     */
+    private void startFeatherPincer() {
+        this.pincerPending = true;
+        this.entityData.set(ATTACK_STATE, 1);
+        this.entityData.set(ATTACK_TICKS, 32);
+        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.58F, 1.24F);
+    }
+
+    private void sendPincerWarning() {
+        if (!(this.level instanceof ServerWorld)) return;
+        ServerWorld server = (ServerWorld)this.level;
+        LivingEntity target = this.getTarget();
+        if (target == null || !target.isAlive()) return;
+        double x = target.getX() - this.getX();
+        double z = target.getZ() - this.getZ();
+        double length = Math.max(0.001D, Math.sqrt(x * x + z * z));
+        double sideX = -z / length, sideZ = x / length;
+        for (int side = -1; side <= 1; side += 2) {
+            server.sendParticles(ParticleTypes.SMOKE,
+                    this.getX() + sideX * side * 2.9D,
+                    this.getY() + this.getBbHeight() * 0.55D,
+                    this.getZ() + sideZ * side * 2.9D,
+                    3, 0.12D, 0.2D, 0.12D, 0.01D);
+            server.sendParticles(ParticleTypes.CRIT,
+                    target.getX() + sideX * side * 2.0D, target.getY(0.2D),
+                    target.getZ() + sideZ * side * 2.0D,
+                    2, 0.12D, 0.05D, 0.12D, 0.015D);
+        }
+    }
+
+    private void launchFeatherPincer(LivingEntity target, boolean followUp) {
+        if (!(this.level instanceof ServerWorld)) return;
+        double x = target.getX() - this.getX();
+        double z = target.getZ() - this.getZ();
+        double length = Math.max(0.001D, Math.sqrt(x * x + z * z));
+        double sideX = -z / length, sideZ = x / length;
+        int count = followUp ? 3 : 2;
+        for (int i = 0; i < count; i++) {
+            double fraction = i - (count - 1) / 2.0D;
+            double muzzleOffset = fraction * (followUp ? 2.7D : 5.6D);
+            double targetOffset = fraction * (followUp ? 0.9D : 3.8D);
+            AetherBoltEntity bolt = new AetherBoltEntity(this.level, this);
+            bolt.setStyle(AetherBoltEntity.FEATHER_BLADE);
+            bolt.setPos(this.getX() + sideX * muzzleOffset,
+                    this.getY() + this.getBbHeight() * 0.58D,
+                    this.getZ() + sideZ * muzzleOffset);
+            bolt.shoot(target.getX() + sideX * targetOffset - bolt.getX(),
+                    target.getY(0.45D) - bolt.getY(),
+                    target.getZ() + sideZ * targetOffset - bolt.getZ(),
+                    followUp ? 1.36F : 1.22F, 0.0F);
+            this.level.addFreshEntity(bolt);
+        }
+        this.playSound(RegistryHandler.ASTRAL_DEVOURER_PULSE.get(), 0.5F,
+                followUp ? 1.48F : 1.20F);
     }
 
     /** Smoke and metallic sparks gather where the three feather blades appear. */
@@ -884,7 +954,14 @@ public class AstralDevourerEntity extends MonsterEntity {
             int nextTicks = ticks - 1;
             this.entityData.set(ATTACK_TICKS, nextTicks);
             int state = this.entityData.get(ATTACK_STATE);
-            if (state == 1) {
+            if (state == 1 && this.pincerPending) {
+                if (nextTicks > 8 && nextTicks % 3 == 0) this.sendPincerWarning();
+                if (nextTicks == 20 || nextTicks == 8) {
+                    LivingEntity target = this.getTarget();
+                    if (target != null && target.isAlive())
+                        this.launchFeatherPincer(target, nextTicks == 8);
+                }
+            } else if (state == 1) {
                 if (nextTicks > 11 && nextTicks % 2 == 0) {
                     this.sendVolleyWarning();
                 }
@@ -910,6 +987,7 @@ public class AstralDevourerEntity extends MonsterEntity {
             }
             if (nextTicks == 0) {
                 this.entityData.set(ATTACK_STATE, 0);
+                this.pincerPending = false;
                 this.gravityDamagePending = false;
                 this.novaDamagePending = false;
             }
@@ -1155,6 +1233,9 @@ public class AstralDevourerEntity extends MonsterEntity {
     public boolean hurt(DamageSource source, float amount) {
         if (this.entityData.get(ATTACK_STATE) == 8) amount *= 1.35F;
         boolean damaged = super.hurt(source, amount);
+        if (damaged && !this.level.isClientSide && source.getEntity() instanceof PlayerEntity
+                && source.getDirectEntity() == source.getEntity())
+            this.noteMeleePressure((PlayerEntity)source.getEntity());
         // Receiving damage should NOT instantly erase all three illusions.
         // The real boss is revealed by its health bar and hit response.
         return damaged;
