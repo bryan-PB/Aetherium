@@ -24,63 +24,69 @@ assert "registerCrimsonHit(player)" in sword
 assert sword.index("boolean boss =") < sword.index("BOSS_BLEED_PROC_INTERVAL)")
 assert "MAX_STACKS = 3" in bleeding and "DAMAGE_PER_STACK = 2.0F" in bleeding
 
-# 3 physical Crimson strikes at 12+ ticks apart within 34 ticks between hits
-# trigger a move once, then an 8-second cooldown prevents repeated counters.
-def combo_events(hit_ticks, min_proc_interval=12, max_gap=34, cooldown=160):
-    accepted = []
-    last_proc = None
+# Boss bleed is still limited to a stack every 12 ticks. Hit reaction timing
+# is now tracked separately and responds to ALL successful direct melee hits.
+def combo_events(hit_ticks, max_gap=36, cooldown=120):
     last_hit = None
     streak = 0
     ready_at = -1
     counters = []
     for tick in hit_ticks:
-        if last_proc is not None and tick - last_proc < min_proc_interval:
-            continue
-        last_proc = tick
-        accepted.append(tick)
         streak = streak + 1 if last_hit is not None and tick - last_hit <= max_gap else 1
         last_hit = tick
         if streak >= 3 and tick >= ready_at:
             counters.append(tick)
             streak = 0
             ready_at = tick + cooldown
-    return accepted, counters
+    return counters
 
-assert combo_events([0, 1, 2, 3, 4, 5, 12, 24]) == ([0, 12, 24], [24])
-assert combo_events([0, 12, 24, 36, 48, 60])[1] == [24]
-assert combo_events([0, 12, 24, 220, 232, 244])[1] == [24, 244]
-assert combo_events([0, 45, 90, 135, 180])[1] == []
-assert combo_events([0, 11, 22, 33])[0] == [0, 22]
+assert combo_events([0, 12, 24]) == [24]
+assert combo_events([0, 12, 24, 36, 48, 60]) == [24]
+assert combo_events([0, 12, 24, 220, 232, 244]) == [24, 244]
+assert combo_events([0, 45, 90, 135, 180]) == []
 
-# Guardian does not retaliate instantly: it uses the existing warning ring
-# with exactly 24 ticks of startup. Vulnerable stagger is not cancelled.
-assert "public void registerCrimsonHit(PlayerEntity attacker)" in guardian
-assert "this.entityData.get(ATTACK_STATE) != 0" in guardian.split("public void registerCrimsonHit", 1)[1].split("\n    }", 1)[0]
-assert "this.rapidCrimsonHits < 3 || this.crimsonCounterCooldown > 0" in guardian
-assert "this.crimsonCounterCooldown = 160" in guardian
-assert "this.attackCooldown = Math.min(this.attackCooldown, 8)" in guardian
-assert "this.crimsonCounterPending = false;" in guardian
-assert "this.groundSlam(this.phase == 1 ? 3.5D : 4.35D" in guardian
-assert "this.entityData.set(SLAM_TICKS, 24)" in guardian
+# The old Crimson hook remains; successful direct melee damage from any weapon
+# also feeds the response. Warning and exposed/stagger states cannot be interrupted.
+for boss in (guardian, winged):
+    assert "public void registerCrimsonHit(PlayerEntity attacker)" in boss
+    assert "private void noteMeleePressure(PlayerEntity attacker)" in boss
+    assert "source.getDirectEntity() == source.getEntity()" in boss
+    assert "this.noteMeleePressure((PlayerEntity)" in boss
+    assert "this.entityData.get(ATTACK_STATE) != 0" in boss
+    assert "this.lastPressureDamageTick == this.tickCount" in boss
+    assert "this.rapidCrimsonHits < 3" in boss
+    assert "this.attackCooldown = Math.min(this.attackCooldown" in boss
+
+assert "this.crimsonCounterCooldown = 120" in guardian
+assert "this.crimsonCounterPending = true;" in guardian
+assert "this.attackCooldown = Math.min(this.attackCooldown, 6)" in guardian
+assert "this.startFracture();" in guardian
+assert "this.entityData.set(SLAM_TICKS, 36);" in guardian
+assert "nextSlamTick == 20" in guardian and "nextSlamTick == 8" in guardian
+assert "double[] rings = {3.5D, 4.1D, 7.0D}" in guardian
+assert "outer && sq < 4.1D * 4.1D" in guardian
+assert "this.entityData.set(SLAM_TICKS, 24)" in guardian  # old slam still available
 assert "if (this.entityData.get(ATTACK_STATE) == 5) amount *= 1.45F;" in guardian
 
-# Winged creature EVADES, not teleports or receives extra defensive damage
-# reduction. Its attack recovery and core vulnerability remain intact.
-winged_counter = winged.split("public void registerCrimsonHit", 1)[1].split("\n    }", 1)[0]
-assert "this.entityData.get(ATTACK_STATE) != 0" in winged_counter
-assert "this.isInWater()" in winged_counter
-assert "this.rapidCrimsonHits < 3 || this.crimsonRetreatCooldown > 0" in winged_counter
-assert "this.crimsonRetreatCooldown = 160" in winged
-assert "this.crimsonRetreatTicks = 16" in winged
-assert "this.attackCooldown = Math.min(this.attackCooldown, 26)" in winged
+assert "this.crimsonRetreatCooldown = 120" in winged
+assert "this.crimsonRetreatTicks = 20" in winged
 assert "if (this.crimsonRetreatTicks > 0)" in winged
 assert "desiredX = -dx / horizontalDistance * 0.36D" in winged
 assert "desiredZ = -dz / horizontalDistance * 0.36D" in winged
+assert "this.startFeatherPincer();" in winged
+assert "this.launchFeatherPincer(target, nextTicks == 8)" in winged
+assert "this.entityData.set(ATTACK_TICKS, 32)" in winged
+assert "activeState == 1 || activeState == 4" not in winged  # feathers no longer freeze
 assert "this.entityData.get(ATTACK_STATE) == 8) amount *= 1.35F" in winged
 assert "registerCrimsonHit" not in bleeding
 assert ".add(Attributes.MAX_HEALTH, 450.0D)" in guardian
 assert ".add(Attributes.MAX_HEALTH, 650.0D)" in winged
 
-print("Crimson boss bleeding: only one proc per 12 ticks, normal melee untouched.")
-print("Three timed hits: Guardian warns with its ordinary slam; Winged Executioner retreats.")
-print("No new immunities, no surprise damage, no attack/stagger animation resets.")
+import json
+sounds = json.loads((Path("src/main/resources/assets/aetherium/sounds.json")).read_text(encoding="utf-8"))
+for event in ("guardian_hurt", "astral_hurt"):
+    assert sounds[event]["sounds"][0]["volume"] <= 0.04
+
+print("Crimson bleed rate preserved; direct melee pressure can trigger boss responses.")
+print("Guardian double-fracture and Executioner mobile feather pincer have warning windows.")
+print("Boss hurt audio drastically reduced; no new immunity or unexpected phase resets.")
