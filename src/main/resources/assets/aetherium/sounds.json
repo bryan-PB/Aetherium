@@ -67,7 +67,7 @@
     "sounds": [
       {
         "name": "aetherium:astral_hurt",
-        "volume": 0.7
+        "volume": 0.035
       }
     ]
   },
@@ -139,7 +139,7 @@
     "sounds": [
       {
         "name": "aetherium:guardian_hurt",
-        "volume": 0.68
+        "volume": 0.035
       }
     ]
   },
