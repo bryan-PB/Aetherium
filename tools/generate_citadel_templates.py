@@ -157,6 +157,28 @@ def room_blocks(room):
         for x in (center-4,center+4):
             put(x,1,d//2,"minecraft:crying_obsidian")
 
+    elif kind == "crypt":
+        # Optional ruin: concentric ritual stone and a small silent altar.
+        for x in range(3,w-3):
+            for z in range(3,d-3):
+                dx,dz=x-center,z-d//2
+                if 15 <= dx*dx+dz*dz <= 24:
+                    put(x,0,z,"minecraft:polished_blackstone_bricks")
+        put(center,1,d//2,"minecraft:chiseled_stone_bricks")
+        put(center,2,d//2,"minecraft:crying_obsidian")
+
+    elif kind == "forge":
+        # Inert forged metal and bars, no ticking furnace block entities.
+        for x in (4, w-5):
+            for z in (5, 8):
+                for y in (1,2):
+                    put(x,y,z,"minecraft:iron_block")
+        for x in (3, w-4):
+            for z in (3, d-4):
+                for y in (2,3):
+                    put(x,y,z,"minecraft:iron_bars")
+        put(center+2,1,d//2,"minecraft:chiseled_stone_bricks")
+
     elif kind == "arena":
         # Open-air test arena: no roof; lots of unobstructed movement space.
         radius = min(w,d)//2 - 4
@@ -172,11 +194,47 @@ def room_blocks(room):
                 put(x,2,z,"minecraft:crying_obsidian")
         # Arena is empty on purpose. No boss or spawner is installed yet.
 
+    # Branch rooms and the final arena have sealed north/south dead ends,
+    # so players never find a doorway into an unloaded cliff or wall.
+    if room["id"] in ("crypt", "forge"):
+        for z in (0,d-1):
+            for x in range(center-1,center+2):
+                for y in range(1,5):
+                    put(x,y,z,"minecraft:stone_bricks")
+    if room["id"] == "arena_shell":
+        for x in range(center-1,center+2):
+            for y in range(1,5):
+                put(x,y,d-1,"minecraft:polished_blackstone_bricks")
+
+    # Optional wings attach to the eastern corridor and western guardhouse.
+    if room["id"] in ("corridor","guardhouse","crypt","forge"):
+        if room["id"]=="corridor":
+            side_x, side_orientation, pool, mode = w-1, "east_up", "crypt", "out"
+        elif room["id"]=="guardhouse":
+            side_x, side_orientation, pool, mode = 0, "west_up", "forge", "out"
+        elif room["id"]=="crypt":
+            side_x, side_orientation, pool, mode = 0, "west_up", "empty", "in"
+        else:
+            side_x, side_orientation, pool, mode = w-1, "east_up", "empty", "in"
+        for z in range(d//2-1,d//2+2):
+            for y in range(1,5):
+                put(side_x,y,z,"minecraft:air")
+        for z in range(d//2-2,d//2+3):
+            put(side_x,5,z,"minecraft:chiseled_stone_bricks")
+        put(side_x,2,d//2,"minecraft:jigsaw",
+            {"orientation":side_orientation},
+            {"id":"minecraft:jigsaw",
+             "name":"aetherium:citadel/"+("exit" if mode=="out" else "entry"),
+             "target":"aetherium:citadel/"+("entry" if mode=="out" else "exit"),
+             "pool":"aetherium:citadel/"+pool if mode=="out" else "minecraft:empty",
+             "final_state":"minecraft:air",
+             "joint":"aligned"})
+
     # Jigsaw blocks only exist as connectors during world generation;
     # the vanilla jigsaw processor replaces both with final_state AIR.
     links = ["corridor", "guardhouse", "archive", "arena_shell", None]
     ordering = ["gateway", "corridor", "guardhouse", "archive", "arena_shell"]
-    index = ordering.index(room["id"])
+    index = ordering.index(room["id"]) if room["id"] in ordering else -1
     if index > 0:
         put(center,2,0,"minecraft:jigsaw",
             {"orientation":"north_up"},
@@ -186,7 +244,7 @@ def room_blocks(room):
              "pool":"minecraft:empty",
              "final_state":"minecraft:air",
              "joint":"aligned"})
-    if links[index]:
+    if index >= 0 and links[index]:
         target_pool = "arena" if links[index] == "arena_shell" else links[index]
         put(center,2,d-1,"minecraft:jigsaw",
             {"orientation":"south_up"},

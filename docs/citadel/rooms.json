@@ -77,6 +77,38 @@
       "chest": null,
       "loot": null,
       "roof": "open"
+    },
+    {
+      "id": "crypt",
+      "size": [
+        17,
+        11,
+        17
+      ],
+      "kind": "crypt",
+      "chest": [
+        12,
+        1,
+        12
+      ],
+      "loot": "aetherium:chests/citadel_archive",
+      "roof": "solid"
+    },
+    {
+      "id": "forge",
+      "size": [
+        17,
+        10,
+        17
+      ],
+      "kind": "forge",
+      "chest": [
+        4,
+        1,
+        12
+      ],
+      "loot": "aetherium:chests/citadel_guardhouse",
+      "roof": "solid"
     }
   ],
   "naturalGeneration": true,
@@ -85,7 +117,9 @@
     "corridor",
     "guardhouse",
     "archive",
-    "arena"
+    "arena",
+    "crypt",
+    "forge"
   ],
-  "maxConnectedModules": 5
+  "maxConnectedModules": 7
 }

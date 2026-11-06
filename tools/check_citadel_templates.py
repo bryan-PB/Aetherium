@@ -20,6 +20,7 @@ VALID = {
     "minecraft:purple_stained_glass", "minecraft:crying_obsidian",
     "minecraft:soul_lantern", "minecraft:air", "minecraft:chest",
     "minecraft:bookshelf", "minecraft:dark_oak_planks", "minecraft:jigsaw",
+    "minecraft:iron_block", "minecraft:iron_bars",
 }
 
 
@@ -127,19 +128,24 @@ def validate_room(room, read):
     mid=w//2
     connectors=[(tuple(it["pos"]),it["nbt"]) for it in blocks
                 if names[it["state"]]=="minecraft:jigsaw"]
-    expected_connectors= (1 if room["id"]=="gateway" else
-                         1 if room["id"]=="arena_shell" else 2)
+    expected_connectors= {
+        "gateway":1, "corridor":3, "guardhouse":3,
+        "archive":2, "arena_shell":1, "crypt":1, "forge":1,
+    }[room["id"]]
     assert len(connectors)==expected_connectors,(room["id"],connectors)
-    if room["id"]!="gateway":
+    if room["id"] not in ("gateway","crypt","forge"):
         assert any(p==(mid,2,0) and data["name"]=="aetherium:citadel/entry"
                    for p,data in connectors), "Missing entry connector"
-    if room["id"]!="arena_shell":
+    if room["id"] not in ("arena_shell","crypt","forge"):
         assert any(p==(mid,2,d-1) and data["name"]=="aetherium:citadel/exit"
                    for p,data in connectors), "Missing exit connector"
     for side in (0,d-1):
         for x in range(mid-1,mid+2):
             for y in range(1,5):
-                assert coords[(x,y,side)] in ("minecraft:air","minecraft:jigsaw"), (
+                if room["id"] in ("crypt","forge") or (room["id"]=="arena_shell" and side==d-1):
+                    assert coords[(x,y,side)] not in ("minecraft:air","minecraft:jigsaw")
+                else:
+                    assert coords[(x,y,side)] in ("minecraft:air","minecraft:jigsaw"), (
                     room["id"],"door clearance",x,y,side)
     if room["roof"]=="open":
         assert coords[(mid,h-2,d//2)]=="minecraft:air"
@@ -184,8 +190,8 @@ def validate_loot(read):
 
 def validate(lookup):
     total=0
-    pool_names=["start","corridor","guardhouse","archive","arena"]
-    expected_rooms=["gateway","corridor","guardhouse","archive","arena_shell"]
+    pool_names=["start","corridor","guardhouse","archive","arena","crypt","forge"]
+    expected_rooms=["gateway","corridor","guardhouse","archive","arena_shell","crypt","forge"]
     for name,room_id in zip(pool_names,expected_rooms):
         path="data/aetherium/worldgen/template_pool/citadel/"+name+".json"
         pool=json.loads(lookup(path).decode("utf-8"))
@@ -202,10 +208,10 @@ def validate(lookup):
     assert SPEC["namespace"]=="aetherium"
     assert SPEC["status"]=="registered-overworld-jigsaw-worldgen"
     assert SPEC["naturalGeneration"] is True
-    assert SPEC["maxConnectedModules"]==5
+    assert SPEC["maxConnectedModules"]==7
     assert SPEC["roomCapFuture"]<=9
     rooms=SPEC["rooms"]
-    assert len(rooms)==5
+    assert len(rooms)==7
     assert len({r["id"] for r in rooms})==len(rooms)
     for room in rooms:
         assert 5<=room["size"][0]<=31

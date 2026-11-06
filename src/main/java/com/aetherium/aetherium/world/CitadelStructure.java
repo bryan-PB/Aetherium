@@ -72,7 +72,7 @@ public final class CitadelStructure extends Structure<NoFeatureConfig> {
             JigsawManager.addPieces(
                     registries,
                     new VillageConfig(() -> registries.registryOrThrow(Registry.TEMPLATE_POOL_REGISTRY)
-                            .get(new ResourceLocation(AetheriumMod.MOD_ID, "citadel/start")), 6),
+                            .get(new ResourceLocation(AetheriumMod.MOD_ID, "citadel/start")), 8),
                     AbstractVillagePiece::new, generator, templates, origin,
                     this.pieces, this.random, false, true);
             if (this.pieces.isEmpty()) return;
