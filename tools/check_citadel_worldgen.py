@@ -61,7 +61,8 @@ assert "biome.getGenerationSettings()" in commands
 assert ".isValidStart(CitadelWorldGen.CITADEL.get())" in commands
 assert "CitadelStructure.canGenerateOnColumn(" in commands
 assert "public static boolean canGenerateOnColumn(" in structure
-assert "return canGenerateOnColumn(generator," in structure
+assert "if (!canGenerateOnColumn(generator, x, z))" in structure
+assert "return canGenerateMegaSite(generator, x, z);" in structure
 assert 'Commands.literal("preview")' in commands
 assert 'source.hasPermission(2)' in commands
 assert 'new CitadelPieces.Room(' in structure
@@ -172,7 +173,8 @@ assert 'if (!templates.get(i).placeInWorld(' in commands
 assert "CitadelWorldGen.register(" in main
 assert "CitadelWorldGen::onCommonSetup" in main
 assert "MinecraftForge.EVENT_BUS.register(CitadelWorldGen.class)" in main
-assert "@SubscribeEvent" in main
+assert "MinecraftForge.EVENT_BUS.register(CitadelWorldGen.class)" in main
+assert "@SubscribeEvent\n    public static void onWorldLoad" in gen
 assert '"citadelEnabled", true' in config
 assert '"citadelSpacingChunks", 26, 16, 128' in config
 assert '"citadelMinSeparationChunks", 10, 4, 16' in config
