@@ -38,6 +38,15 @@ Para comprobar que los edificios realmente se pueden colocar, en un **mundo vac�
 
 Este comando genera **una vez** las siete salas cerca del jugador, usando exactamente los archivos NBT del JAR. **SOBRESCRIBE un área aproximada de 50×95 bloques**: úsalo solamente en un mundo creativo descartable. La vista previa es una herramienta de diagnóstico; **no sustituye** a la generación natural.
 
+
+## Revisión de coherencia entre vista previa y generación natural
+
+Las siete posiciones de salas se definen ahora en `CitadelLayout.java`. Tanto la estructura nativa como `/kryzorae citadel preview` utilizan exactamente el mismo orden y desplazamientos. No se ha cambiado el plano, la frecuencia, los minerales, los jefes ni los botines.
+
+Se corrigió también un desfase de **un bloque en altura** exclusivo de la vista previa: `WORLD_SURFACE` ya devuelve la primera posición libre encima del suelo, por lo que no hay que sumar otra unidad. Si una sala de la vista previa no puede colocarse, el comando ahora informa qué sala falló; **el terreno de prueba puede quedar parcialmente modificado** y por eso debe usarse únicamente en un mundo descartable.
+
+Las pruebas automatizadas validan la igualdad del plano, la continuidad de las siete salas, sus límites sin solapamientos y los NBT reales incluidos en el JAR. La colocación natural y el aspecto visual todavía requieren una comprobación en Minecraft.
+
 ## Configuración
 - Archivo: `config/aetherium-common.toml`
 - `citadelEnabled = true`
