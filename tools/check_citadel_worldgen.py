@@ -151,6 +151,12 @@ for name,room in rooms.items():
         tx,ty,tz,tnx,tnz=ports(target)[name]
         assert (tx,ty,tz)==(x+nx,y,z+nz),("Misaligned door",name,target)
         assert (tnx,tnz)==(-nx,-nz),("Incompatible door direction",name,target)
+        role=[v for k,v in room["doorRoles"].items()
+              if room["doors"][k]==target]
+        inverse=[v for k,v in rooms[target]["doorRoles"].items()
+                 if rooms[target]["doors"][k]==name]
+        assert len(role)==len(inverse)==1 and role[0]!=inverse[0], (
+            "Entry/exit Jigsaw roles do not match",name,target)
 
 # Upper rooms provide ladder shafts into distinct, non-overlapping undercrofts.
 for upper,lower in (("crypt","catacombs"),("archive","archive_vault")):
@@ -173,7 +179,6 @@ assert 'if (!templates.get(i).placeInWorld(' in commands
 assert "CitadelWorldGen.register(" in main
 assert "CitadelWorldGen::onCommonSetup" in main
 assert "MinecraftForge.EVENT_BUS.register(CitadelWorldGen.class)" in main
-assert "MinecraftForge.EVENT_BUS.register(CitadelWorldGen.class)" in main
 assert "@SubscribeEvent\n    public static void onWorldLoad" in gen
 assert '"citadelEnabled", true' in config
 assert '"citadelSpacingChunks", 26, 16, 128' in config
@@ -184,4 +189,4 @@ for field in ("field_236191_b_", "field_202247_j", "field_236193_d_"):
 
 # No unnatural mass generation or custom per-tick simulations in the Citadel.
 assert re.search(r"\b(?:onTick|playerTick|chunkTick|EntityJoinWorldEvent)\b",gen) is None
-print("Citadel worldgen verified: Overworld registration, seven non-overlapping deterministic NBT pieces, 3x4 connections, and spacing.")
+print("Mega Citadel worldgen verified: Overworld registration, 17 non-overlapping 3D pieces, transformed 3x4 doors, bounded foundations and spacing.")
