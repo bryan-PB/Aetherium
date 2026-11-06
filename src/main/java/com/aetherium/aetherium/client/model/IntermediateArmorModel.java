@@ -13,12 +13,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
  * Brumacero: closed ivory-steel knight helm, raised GOLD ridges, red brow crest,
  * overlapping shoulder shields, a gold-plated breast and heraldic tabard.
  *
- * Umbracita: layered deep-violet HOOD hiding the face, amber visor slit,
- * swept-back cloth folds, mantle + scarf, strapped orange clasp and light bracers.
+ * Umbracita: tall, slightly asymmetrical wide-brimmed adventurer HAT,
+ * violet ribbon and amber clasp, visible player eyes, lower-face scarf,
+ * fabric coat, mantle, strapped details and light bracers.
  *
  * Every mesh is attached to its original biped pivot. No client tick, emissive
  * rendering, animated cape, shader or extra entity; only normal armor cuboids.
- * Minecraft player skin is never used as the base armor surface.
+ * Brumacero encloses the head, while Umbracita intentionally leaves the
+ * upper face exposed beneath the hat brim. No eyes are painted over the skin.
  *
  * Texture layout: 256x128, 48x48 patches at x=0/48/96/144/192,
  * row 0 / row 64. All boxes sample coherent material/trim/cloth patches.
@@ -47,7 +49,7 @@ public final class IntermediateArmorModel extends BipedModel<LivingEntity> {
         this.leftLeg = part(1.9F, 12, 0);
 
         if (shade) {
-            hood();
+            sorcererHat();
             shadowRobe();
         } else {
             knightHelm();
@@ -94,30 +96,54 @@ public final class IntermediateArmorModel extends BipedModel<LivingEntity> {
         cube(head, SHADOW,0, -4.2F,-2.2F,4.25F, 8.4F,2.55F,0.75F);
     }
 
-    private void hood() {
-        // Layered hood is broad and swept BACK rather than a plain armor helmet.
-        // Deep recessed face and TWO amber eyes are visible beneath the brim.
-        cube(head, FABRIC,ROW, -4.45F,-8.4F,-4.4F, 8.9F,8.8F,8.9F);
-        cube(head, VOID,0, -3.9F,-5.35F,-5.03F, 7.8F,4.3F,0.82F);
-        cube(head, FACE,ROW, -3.3F,-4.65F,-5.12F, 6.6F,2.8F,0.45F);
-        cube(head, GLOW,ROW, -2.65F,-4.25F,-5.43F, 1.9F,0.62F,0.36F);
-        cube(head, GLOW,ROW, 0.75F,-4.25F,-5.43F, 1.9F,0.62F,0.36F);
+    /**
+     * Umbracita is a real BROAD-BRIMMED HAT, not a hard-shell helmet or hood.
+     * The face is deliberately open from Y=-6.5 to -3.1, so the wearer's
+     * skin and eyes can show under the shadow of the brim. A cloth mask wraps
+     * only the mouth/neck. The wide rim and tall crown follow the head pivot.
+     */
+    private void sorcererHat() {
+        // Dark felt under-brim: very wide and thin, with a softly stepped
+        // outline. The large horizontal silhouette is visible from the back,
+        // front and sides (unlike the old cubic hood).
+        cube(head, VOID, 0, -7.70F, -7.88F, -6.65F, 15.40F, 0.45F, 13.30F);
+        cube(head, FABRIC, ROW, -7.22F, -8.10F, -6.30F, 14.44F, 0.43F, 12.60F);
+        cube(head, SHADOW, 0, -7.10F, -7.78F, -7.12F, 14.20F, 0.55F, 0.90F);
+        cube(head, LIGHT, ROW, -6.98F, -7.73F, -7.20F, 13.96F, 0.24F, 0.42F);
+        cube(head, LIGHT, ROW, -7.08F, -7.75F, 6.18F, 14.16F, 0.24F, 0.48F);
 
-        // Distinct 3-tier hood: dark under-layer, large curved (stepped)
-        // outer brim, chunky side drape, back folds. Every part follows HEAD.
-        cube(head, SHADOW,0, -5.05F,-9.3F,-4.65F, 10.1F,3.3F,9.7F);
-        cube(head, LIGHT,ROW, -4.75F,-9.7F,-4.96F, 9.5F,1.25F,9.65F);
-        cube(head, FABRIC,ROW, -5.15F,-8.0F,-5.0F, 10.3F,2.1F,10.4F);
-        cube(head, SHADOW,0, -5.6F,-7.0F,-3.9F, 2.3F,7.1F,8.7F);
-        cube(head, SHADOW,0, 3.3F,-7.0F,-3.9F, 2.3F,7.1F,8.7F);
-        cube(head, LIGHT,ROW, -5.9F,-6.7F,-3.85F, 1.0F,4.4F,8.4F);
-        cube(head, LIGHT,ROW, 4.9F,-6.7F,-3.85F, 1.0F,4.4F,8.4F);
-        cube(head, FABRIC,ROW, -4.2F,-9.85F,1.35F, 8.4F,1.5F,4.6F);
-        cube(head, SHADOW,0, -4.9F,-7.5F,3.75F, 9.8F,3.8F,1.5F);
-        cube(head, FABRIC,ROW, -4.1F,-3.8F,4.15F, 8.2F,4.4F,1.2F);
-        // Orange clasps frame the lower face, not a glowing halo.
-        cube(head, ACCENT,0, -4.15F,-2.25F,-5.25F, 0.9F,1.8F,0.65F);
-        cube(head, ACCENT,0, 3.25F,-2.25F,-5.25F, 0.9F,1.8F,0.65F);
+        // Off-center brim ends make the hat feel worn instead of a perfect
+        // flat square; these are still simple, cheap model cuboids.
+        cube(head, FABRIC, ROW, -8.08F, -7.79F, -4.10F, 1.30F, 0.36F, 8.20F);
+        cube(head, FABRIC, ROW, 6.88F, -7.86F, -3.65F, 1.20F, 0.36F, 7.30F);
+
+        // Crown: broad dark lower ring, narrower upper section, asymmetrical
+        // tapered top. It protrudes ABOVE the head, never encases the face.
+        cube(head, VOID, 0, -3.95F, -9.18F, -3.85F, 7.90F, 1.50F, 7.70F);
+        cube(head, FABRIC, ROW, -3.65F, -13.45F, -3.55F, 7.30F, 4.90F, 7.10F);
+        cube(head, SHADOW, 0, -3.25F, -14.65F, -3.30F, 6.20F, 1.58F, 6.60F);
+        cube(head, FABRIC, ROW, -2.80F, -15.45F, -3.05F, 5.50F, 0.95F, 6.05F);
+        // Purple crown crease and folded-back top, rather than a sharp horn.
+        cube(head, LIGHT, ROW, -2.10F, -15.65F, -2.55F, 4.35F, 0.45F, 5.10F);
+        cube(head, SHADOW, 0, -3.05F, -14.10F, 2.95F, 6.10F, 2.40F, 0.70F);
+
+        // Ribbon immediately above the brim and its single orange medallion.
+        cube(head, SHADOW, 0, -3.92F, -9.74F, -3.92F, 7.84F, 1.26F, 7.84F);
+        cube(head, LIGHT, ROW, -3.82F, -9.47F, -4.05F, 7.64F, 0.73F, 0.54F);
+        cube(head, LIGHT, ROW, -3.82F, -9.47F, 3.51F, 7.64F, 0.73F, 0.54F);
+        cube(head, ACCENT, 0, -0.75F, -9.80F, -4.34F, 1.50F, 1.32F, 0.60F);
+        cube(head, GOLD, 0, -0.37F, -9.58F, -4.65F, 0.74F, 0.85F, 0.42F);
+
+        // Do NOT add a solid cube in front of the eyes. Only a fitted lower
+        // scarf/mask and compact fabric near the ears; hair and eyes stay free.
+        cube(head, FACE, ROW, -4.14F, -2.90F, -4.61F, 8.28F, 2.92F, 0.49F);
+        cube(head, FABRIC, ROW, -4.30F, -2.18F, -4.79F, 8.60F, 1.38F, 0.59F);
+        cube(head, SHADOW, 0, -4.50F, -2.20F, -3.70F, 0.52F, 2.20F, 7.40F);
+        cube(head, SHADOW, 0, 3.98F, -2.20F, -3.70F, 0.52F, 2.20F, 7.40F);
+        cube(head, ACCENT, 0, -4.46F, -1.73F, -4.88F, 0.85F, 0.95F, 0.40F);
+        cube(head, ACCENT, 0, 3.61F, -1.73F, -4.88F, 0.85F, 0.95F, 0.40F);
+        // Compact rear scarf fold, not a second hood.
+        cube(head, FABRIC, ROW, -3.65F, -1.86F, 4.13F, 7.30F, 1.80F, 0.75F);
     }
 
     private void knightChest() {
