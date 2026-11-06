@@ -75,21 +75,23 @@ assert "JigsawManager.addPieces(" not in structure, (
 import json, re
 blueprint=json.loads(Path("docs/citadel/rooms.json").read_text())
 spec={r["id"]:r for r in blueprint["rooms"]}
-positions={
-    "gateway":(0,0),
-    "corridor":(4,15),
-    "guardhouse":(1,32),
-    "archive":(1,49),
-    "arena_shell":(-4,66),
-    "crypt":(15,15),
-    "forge":(-16,32),
-}
-for id_,(x,z) in positions.items():
-    needle='new BlockPos(x%s, y, z%s)' % (
-        (" + "+str(x) if x>0 else " - "+str(-x) if x<0 else ""),
-        (" + "+str(z) if z>0 else " - "+str(-z) if z<0 else ""))
-    # Java's hand-placed base origin is always x=cx-9,z=cz-7.
-    assert needle in structure, (id_,needle)
+# Exactly one room layout powers both natural generation and the creative
+# preview. Parse the production Java coordinates rather than comparing them to
+# a second, manually copied Python dictionary that could hide discrepancies.
+layout=(root/"world/CitadelLayout.java").read_text()
+entries=re.findall(r'new RoomSpec\\("([a-z_]+)",\\s*(-?\\d+),\\s*(-?\\d+)\\)',layout)
+assert len(entries)==7, ("Expected seven Java room specs",entries)
+positions={name:(int(x),int(z)) for name,x,z in entries}
+assert len(positions)==len(entries), "Duplicate Citadel room IDs in shared layout"
+assert set(positions)==set(spec), "Citadel layout differs from NBT room manifest"
+assert "for (CitadelLayout.RoomSpec room : CitadelLayout.rooms())" in structure
+assert "room.position(origin)" in structure
+assert "CitadelLayout.originForChunk(chunkX, chunkZ, y)" in structure
+assert "for (CitadelLayout.RoomSpec room : CitadelLayout.rooms())" in commands
+assert "CitadelLayout.rooms().get(i).position(base)" in commands
+assert "int[][] locations" not in commands, "Preview must not duplicate room offsets"
+assert "player.getX(), z) + 1" not in commands, "Preview must use first free surface Y"
+assert 'if (!templates.get(i).placeInWorld(' in commands, "Preview must report failed room placement"
 boxes={k:(x,z,x+spec[k]["size"][0]-1,z+spec[k]["size"][2]-1)
        for k,(x,z) in positions.items()}
 for a,aa in boxes.items():
