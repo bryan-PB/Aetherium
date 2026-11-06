@@ -124,5 +124,15 @@
   "death.attack.kryzorae_bleeding": "%1$s bled out",
   "death.attack.kryzorae_bleeding.player": "%1$s bled out",
   "tooltip.aetherium.item.aetherium_sword.detail": "Slash deals 5 HP (50% base damage). 0.45 s between waves.",
-  "tooltip.aetherium.item.astral_sword.detail": "Lasts 5 s after the last hit. Three stacks deal 6 HP/s."
+  "tooltip.aetherium.item.astral_sword.detail": "Lasts 5 s after the last hit. Three stacks deal 6 HP/s.",
+  "item.aetherium.guide_book": "Kryzorae Codex",
+  "tooltip.aetherium.guide_book": "Right-click to open the Kryzorae guide.",
+  "guide.aetherium.page.1": "§5KRYZORAE CODEX§r\n\nA guide to exploration, equipment and bosses.\n\nThis edition describes content already available. Future expansions will add more chapters.",
+  "guide.aetherium.page.2": "§5FIRST STEPS§r\n\nFind Kryzorae ore in deep caves. Mine it and smelt the raw material into ingots.\n\nPrepare your equipment before entering dangerous areas.",
+  "guide.aetherium.page.3": "§5VIOLET SWORD§r\n\nSwing to release an energy slash travelling about 5 blocks.\n\nSlashes have a 0.45 s cooldown and stop when they reach solid blocks.",
+  "guide.aetherium.page.4": "§4CRIMSON SWORD§r\n\nSuccessful hits apply Bleeding. Up to 3 stacks deal 2, 4 or 6 health points per second.\n\nBleeding stacks are rate-limited against bosses.",
+  "guide.aetherium.page.5": "§5RIFT GUARDIAN§r\n\nUse the Guardian Sigil on a solid block to summon the boss.\n\nDodge its charges and shockwaves. Its Rift Core helps craft the next summon.",
+  "guide.aetherium.page.6": "§4WINGED EXECUTIONER§r\n\nThe Astral Seal needs materials from the Guardian.\n\nThe Executioner uses charges, iron feathers and mirages. Its drops help forge astral gear.",
+  "guide.aetherium.page.7": "§5USEFUL TOOLS§r\n\nThe magnet pulls nearby items when enabled.\n\nThe flare highlights nearby enemies and grants night vision. Some accessories support optional Curios.",
+  "guide.aetherium.page.8": "§5FUTURE EXPANSIONS§r\n\nThis book will grow as new ores, forges, armor and creatures are added to the game.\n\nCheck recipes in Minecraft or JEI if installed."
 }
