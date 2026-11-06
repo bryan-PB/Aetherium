@@ -202,6 +202,7 @@ def validate_room(room, read):
         assert coords[(4,0,4)]=="minecraft:air", "Upper ladder has no entry"
     if room["id"] in ("catacombs","archive_vault"):
         assert coords[(4,h-1,4)]=="minecraft:ladder", "Underground shaft sealed"
+    mid=w//2
     if room["roof"]=="open":
         assert coords[(mid,h-2,d//2)]=="minecraft:air"
     else:
