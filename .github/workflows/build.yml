@@ -334,6 +334,16 @@ jobs:
               print('Validated visible arm and shoulder texture variation in both armor sets')
           PY
 
+      - name: Prueba de arranque de registros en Forge (sin servidor EULA)
+        shell: bash
+        timeout-minutes: 6
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          cd "$AETHERIUM_PROJECT_DIR"
+          # Loads mod registries and configured worldgen without starting a server.
+          gradle runData --no-daemon --console=plain
+
       - name: Subir JAR compilado
         uses: actions/upload-artifact@v7
         with:
