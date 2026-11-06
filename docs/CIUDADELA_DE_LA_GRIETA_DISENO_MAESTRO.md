@@ -1,7 +1,7 @@
 # Kryzorae — Documento maestro: Ciudadela de la Grieta
 **Versión del diseño:** 1.0 · **Objetivo:** Minecraft Java 1.16.5 / Forge 36.2.42 / Java 8 · **ID heredado del mod:** `aetherium`
 
-> **Estado:** **fase 1 implementada en código: registro nativo de estructura Forge 1.16.5, generación natural en chunks nuevos del Overworld, siete plantillas conectadas por jigsaw y tres tablas de botín**. Compila en CI; falta probar la aparición y el diseño en Minecraft. Los tres enemigos, minijefe y Custodio **aún no están implementados**. Los valores de combate del documento son objetivos de balance, no estadísticas registradas. Los valores de combate aquí son objetivos de balance, no estadísticas ya registradas.
+> **Estado:** **fase 1 implementada en código: registro nativo de estructura Forge 1.16.5, generación natural en chunks nuevos del Overworld, siete plantillas conectadas por plantillas NBT y tres tablas de botín**. Compila en CI; falta probar la aparición y el diseño en Minecraft. Los tres enemigos, minijefe y Custodio **aún no están implementados**. Los valores de combate del documento son objetivos de balance, no estadísticas registradas. Los valores de combate aquí son objetivos de balance, no estadísticas ya registradas.
 
 ## 1. Identidad y papel en el mod
 
@@ -156,3 +156,7 @@ Prohibido introducir mediante cofres comunes `rift_core`, `astral_heart`, `astra
 ## 10. Estado de implementación del sistema de estructuras
 
 Los 7 módulos comparten un camino principal de 5 habitaciones, con dos desvíos: cripta al este del corredor y forja al oeste del cuartel. Dos conectores (entrada/salida) se sustituyen por aire durante la generación. La entrada usa torres de piedra negra y almenas; el interior tiene detalles estáticos. La estructura se genera únicamente en bosques, llanuras, taigas y colinas terrestres de nuevas regiones del Overworld, sin modificar chunks previos. La dificultad final (enemigos, puertas selladas y Custodio) pertenece a los siguientes hitos, no a la versión actual.
+
+## 11. Corrección tras fallo de generación reportado
+
+El usuario confirmó que la versión #256 no mostraba Ciudadelas tras usar comandos. Se sustituyó el ensamblaje jigsaw aleatorio por **siete `TemplateStructurePiece` de posición determinista**, con registro de `IStructurePieceType`, comprobación de boxes, encuentros centrados y geometría exacta. Se corrigió el filtro de altura (antes Y≥65; ahora 60–126) y se amplió el abanico de biomas terrestres. Se añadieron `/kryzorae citadel status` y `/kryzorae citadel preview` para distinguir fallas de registro, activos NBT y terreno. La prueba de preview es manual y **sobrescribe bloques** en un mundo de test; la generación natural usa la estructura del Overworld y conserva todas las reglas de espaciado. El sistema no añade cálculos por tick.

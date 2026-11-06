@@ -1,35 +1,42 @@
-# Prueba de generación natural — Ciudadela de la Grieta (Kryzorae 1.16.5)
+# Kryzorae — Ciudadela de la Grieta · Prueba de la corrección de generación
+**Versión de Minecraft:** Java 1.16.5, Forge 36.2.42. **Mod ID:** `aetherium`.
 
-**La Ciudadela ya está registrada como estructura del Overworld**, pero esta versión todavía es una **primera base arquitectónica**: los enemigos nuevos, minijefe y jefe final no están activos.
+## Qué se corrigió
+La versión anterior tenía dos problemas que podían hacer que no apareciera la Ciudadela:
 
-## Cómo localizarla realmente
+- Rechazaba alturas menores de Y=65, habituales en llanuras y bosques. Ahora acepta terreno firme entre Y=60 y 126.
+- Admitía solo cuatro categorías de bioma y descartaba lugares comunes como sabanas y desiertos. Ahora acepta muchos biomas terrestres y excluye océanos, ríos, playas, pantanos y otras dimensiones.
 
-1. **Sustituye** el JAR anterior por el nuevo, dejando solo **un** Kryzorae en `mods`. Utiliza Minecraft **1.16.5** con Forge **36.2.42**.
-2. Lo mejor es crear un **mundo nuevo normal**, con trampas/comandos habilitados, para probar generación natural sin que los chunks explorados anteriormente lo impidan. Un mundo existente solo genera contenido en chunks todavía no visitados; haz copia de seguridad.
-3. En el Overworld (no en Nether ni End), ejecuta: `/locate aetherium:citadel`. La estructura está registrada para ser encontrada por ese comando.
-4. Dirígete a las coordenadas de la respuesta. El portón debería ser de piedra oscura, con torres; detrás aparecen el corredor, el cuartel, el archivo y la arena, además de dos alas laterales (cripta y forja).
-5. Abre los cofres del portón, cuartel y archivo, revisa la iluminación y prueba si hay corredores sin salida o salas incrustadas en montañas.
+Además, la Ciudadela ya **no depende de un ensamblaje jigsaw aleatorio**. Las siete salas se distribuyen en posiciones fijas y comprobadas, usando piezas NBT auténticas de Minecraft; las conexiones se alinean y no hay salas solapadas. Conservamos los mismos recursos V3 y las tres tablas de botín.
 
-**La ubicación no es inmediata:** hay un candidato de generación por cada región de **26×26 chunks** por defecto, con separación mínima de 10, condicionado a biomas adecuados (bosques, taiga, llanuras y colinas) y alturas seguras. No necesariamente aparece en cada región.
+## Cómo probar su aparición natural
+1. Elimina el JAR antiguo de la carpeta `mods` y deja **solo uno de Kryzorae**.
+2. Para probar generación, crea un **mundo normal NUEVO del Overworld**, con comandos activos. No uses un mundo superplano.
+3. Escribe `/locate aetherium:citadel`. Si el juego devuelve coordenadas, usa `/tp @s X 95 Z` y busca la ciudadela también por debajo de tu altura, cerca del lugar indicado.
+4. La distribución debe incluir portón, corredor, cuartel, archivo y arena, más cripta y forja laterales. Comprueba las puertas y abre los cofres.
 
-## Si no aparece
+**Importante:** los chunks ya generados en partidas antiguas no se regeneran; `/locate` encuentra la estructura como candidato de generación, pero no remodela terreno viejo. En un mundo nuevo la prueba es mucho más fiable.
 
-- En `config/aetherium-common.toml`, revisa `citadelEnabled = true` y los valores `citadelSpacingChunks = 26` / `citadelMinSeparationChunks = 10`.
-- Asegúrate de que no estás en un mundo **superplano**; está excluido expresamente.
-- Prueba un mundo normal nuevo, especialmente bosques/llanuras, y deja que se generen nuevas regiones.
-- Si el comando `/locate aetherium:citadel` no reconoce la estructura, copia el **mensaje de error exacto y el archivo latest.log**. Si la encuentra pero el lugar está vacío, comparte las coordenadas y la semilla del mundo.
-- Si aparecen solamente algunas salas, toma capturas desde arriba para revisar las uniones.
+## Si no aparece todavía: diagnóstico real
+Con permisos de operador (trucos activados), escribe:
 
-## Qué puedes usar en creativo de forma alternativa
+`/kryzorae citadel status`
 
-Las siete plantillas todavía se pueden cargar individualmente con `/give @s minecraft:structure_block` en modo LOAD, por ejemplo:
+Obtendrás información de: habilitación, dimensión, registro, estructura configurada, espaciado y **7/7 NBT**. Comparte una captura del mensaje si alguno aparece en `false`.
 
-`aetherium:citadel/gateway` · `aetherium:citadel/corridor` · `aetherium:citadel/guardhouse` · `aetherium:citadel/archive` · `aetherium:citadel/arena_shell` · `aetherium:citadel/crypt` · `aetherium:citadel/forge`
+Para comprobar que los edificios realmente se pueden colocar, en un **mundo vacío de pruebas**, puedes escribir:
 
-Esto sirve para inspeccionar detalles; para **verificar la generación natural**, utiliza el procedimiento de `/locate`, no el bloque de estructuras.
+`/kryzorae citadel preview`
 
-## Rendimiento y compatibilidad
+Este comando genera **una vez** las siete salas cerca del jugador, usando exactamente los archivos NBT del JAR. **SOBRESCRIBE un área aproximada de 50×95 bloques**: úsalo solamente en un mundo creativo descartable. La vista previa es una herramienta de diagnóstico; **no sustituye** a la generación natural.
 
-El generador emplea `StructureSeparationSettings` y `JigsawManager` de Minecraft 1.16.5; máximo siete módulos en esta fase, sin procesar chunks ya explorados. No se añadieron bloques con tick ni spawners persistentes. La presencia en mundos con otros mods de worldgen todavía debe comprobarse jugando.
+## Configuración
+- Archivo: `config/aetherium-common.toml`
+- `citadelEnabled = true`
+- `citadelSpacingChunks = 26` (distancia media por cuadrícula, en chunks)
+- `citadelMinSeparationChunks = 10`
 
-**Estado de QA:** compilación y validación del JAR automatizadas; inicio de registros mediante `runData` en CI en evaluación; no se ha probado todavía la ciudadela manualmente dentro del cliente Minecraft.
+## Calidad y rendimiento
+Generación limitada por el sistema nativo de estructuras y exclusivamente en nuevos chunks; ninguna entidad nueva, efectos visuales permanentes, bloque con tick personalizado ni búsqueda cada tick. Los comandos de diagnóstico solo se ejecutan cuando el jugador los invoca.
+
+**Estado:** pruebas de compilación y arranque de registros automatizadas; generación visual real del cliente Minecraft requiere verificación en juego.

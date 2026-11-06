@@ -47,6 +47,20 @@ for phrase in (
 ):
     assert phrase in pieces, phrase
 assert "CitadelPieces.register();" in gen
+commands=(root/"world/CitadelCommands.java").read_text()
+assert 'Commands.literal("kryzorae")' in commands
+assert 'Commands.literal("citadel")' in commands
+assert 'Commands.literal("status")' in commands
+assert 'Commands.literal("preview")' in commands
+assert 'source.hasPermission(2)' in commands
+assert 'new CitadelPieces.Room(' in structure
+assert 'manager.get(new ResourceLocation(' in commands
+assert 'JigsawReplacementStructureProcessor.INSTANCE' in commands
+assert 'CitadelCommands::register' in main
+assert "category == Biome.Category.OCEAN" in gen
+assert "category == Biome.Category.NETHER" in gen
+assert "category != Biome.Category.FOREST" not in gen
+
 assert "JigsawManager.addPieces(" not in structure, (
     "Cannot fall back to the previous unreliable jigsaw-only layout")
 
