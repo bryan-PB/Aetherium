@@ -47,7 +47,7 @@ for phrase in (
     "postProcess(ISeedReader world",
     'nbt.putString("CitadelTemplate"',
     'nbt.getString("CitadelTemplate")',
-    "this.setup(template, position, placement())",
+    "this.setup(template, room.position(origin), placement(rotation, mirror))",
     "this.setup(manager.getOrCreate(this.templateId),",
 ):
     assert phrase in pieces, phrase
