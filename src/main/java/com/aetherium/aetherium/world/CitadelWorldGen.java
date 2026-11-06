@@ -55,6 +55,8 @@ public final class CitadelWorldGen {
 
     public static void onCommonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
+            // Register the template room piece decoder before worlds can load.
+            CitadelPieces.register();
             int spacing = AetheriumConfig.CITADEL_SPACING.get();
             int minDistance = Math.min(spacing - 1, AetheriumConfig.CITADEL_SEPARATION.get());
             separation = new StructureSeparationSettings(spacing, minDistance, 1583096713);

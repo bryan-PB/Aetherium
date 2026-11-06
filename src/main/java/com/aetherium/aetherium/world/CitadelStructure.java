@@ -3,14 +3,11 @@ package com.aetherium.aetherium.world;
 import com.aetherium.aetherium.AetheriumMod;
 import com.mojang.serialization.Codec;
 import net.minecraft.block.BlockState;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SharedSeedRandom;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MutableBoundingBox;
-import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.registry.DynamicRegistries;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.provider.BiomeProvider;
@@ -18,17 +15,16 @@ import net.minecraft.world.gen.ChunkGenerator;
 import net.minecraft.world.gen.GenerationStage;
 import net.minecraft.world.gen.Heightmap;
 import net.minecraft.world.gen.feature.NoFeatureConfig;
-import net.minecraft.world.gen.feature.jigsaw.JigsawManager;
-import net.minecraft.world.gen.feature.structure.AbstractVillagePiece;
 import net.minecraft.world.gen.feature.structure.Structure;
-import net.minecraft.world.gen.feature.structure.StructurePiece;
 import net.minecraft.world.gen.feature.structure.StructureStart;
-import net.minecraft.world.gen.feature.structure.VillageConfig;
 import net.minecraft.world.gen.feature.template.TemplateManager;
 
 /**
- * Five connected modular rooms on the surface of the Overworld. Each room is
- * a cached structure template processed by vanilla's chunk-safe jigsaw system.
+ * Guaranteed connected, seven-room Citadel.
+ *
+ * The previous jigsaw version could produce an empty or incomplete start and
+ * rejected low plains (Y<65). All seven original room NBTs now have explicit
+ * chunk-safe locations, using Minecraft's normal template-structure pipeline.
  */
 public final class CitadelStructure extends Structure<NoFeatureConfig> {
     public CitadelStructure(Codec<NoFeatureConfig> codec) {
@@ -51,11 +47,15 @@ public final class CitadelStructure extends Structure<NoFeatureConfig> {
                                      Biome biome, ChunkPos chunkPos, NoFeatureConfig config) {
         int x = chunkX * 16 + 8;
         int z = chunkZ * 16 + 8;
-        int y = generator.getFirstOccupiedHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG);
-        if (y < 65 || y > 115) return false; // Never attempt ocean/sky fortresses.
+        int height = generator.getFirstOccupiedHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG);
+
+        // Plains and many vanilla forests are at Y=62..64; the old Y>=65
+        // condition excluded most ordinary regions and broke /locate results.
+        if (height < 60 || height > 126) return false;
         IBlockReader column = generator.getBaseColumn(x, z);
-        BlockState ground = column.getBlockState(new BlockPos(x, y - 1, z));
-        return ground.getFluidState().isEmpty();
+        BlockState surface = column.getBlockState(new BlockPos(x, height - 1, z));
+        return surface.getFluidState().isEmpty()
+                && !surface.isAir();
     }
 
     public static final class Start extends StructureStart<NoFeatureConfig> {
@@ -68,22 +68,36 @@ public final class CitadelStructure extends Structure<NoFeatureConfig> {
         public void generatePieces(DynamicRegistries registries, ChunkGenerator generator,
                                    TemplateManager templates, int chunkX, int chunkZ,
                                    Biome biome, NoFeatureConfig config) {
-            BlockPos origin = new BlockPos(chunkX * 16 + 8, 0, chunkZ * 16 + 8);
-            JigsawManager.addPieces(
-                    registries,
-                    new VillageConfig(() -> registries.registryOrThrow(Registry.TEMPLATE_POOL_REGISTRY)
-                            .get(new ResourceLocation(AetheriumMod.MOD_ID, "citadel/start")), 8),
-                    AbstractVillagePiece::new, generator, templates, origin,
-                    this.pieces, this.random, false, true);
-            if (this.pieces.isEmpty()) return;
-            this.pieces.forEach(piece -> piece.move(0, 1, 0));
+            int cx = chunkX * 16 + 8;
+            int cz = chunkZ * 16 + 8;
+            int y = generator.getFirstOccupiedHeight(cx, cz, Heightmap.Type.WORLD_SURFACE_WG);
+            if (y < 60 || y > 126) return;
 
-            // The start pool anchors a corner by default; center on the safe
-            // heightmap location used in isFeatureChunk.
-            Vector3i center = this.pieces.get(0).getBoundingBox().getCenter();
-            int dx = origin.getX() - center.getX();
-            int dz = origin.getZ() - center.getZ();
-            for (StructurePiece piece : this.pieces) piece.move(dx, 0, dz);
+            // No random attachment/retry: the boxes only meet at their door
+            // faces. North/south doors are 3 wide and 4 tall, and all rooms
+            // share a common floor Y. Side wings do not intersect the spine.
+            int x = cx - 9;
+            int z = cz - 7;
+            try {
+                this.pieces.add(new CitadelPieces.Room(templates, "gateway",
+                        new BlockPos(x, y, z)));
+                this.pieces.add(new CitadelPieces.Room(templates, "corridor",
+                        new BlockPos(x + 4, y, z + 15)));
+                this.pieces.add(new CitadelPieces.Room(templates, "guardhouse",
+                        new BlockPos(x + 1, y, z + 32)));
+                this.pieces.add(new CitadelPieces.Room(templates, "archive",
+                        new BlockPos(x + 1, y, z + 49)));
+                this.pieces.add(new CitadelPieces.Room(templates, "arena_shell",
+                        new BlockPos(x - 4, y, z + 66)));
+                this.pieces.add(new CitadelPieces.Room(templates, "crypt",
+                        new BlockPos(x + 15, y, z + 15)));
+                this.pieces.add(new CitadelPieces.Room(templates, "forge",
+                        new BlockPos(x - 16, y, z + 32)));
+            } catch (IllegalStateException missingTemplate) {
+                this.pieces.clear();
+                AetheriumMod.LOGGER.error("Citadel templates missing; cannot generate", missingTemplate);
+                return;
+            }
             this.calculateBoundingBox();
         }
     }
