@@ -348,6 +348,13 @@ jobs:
           # Limit the persistent Gradle daemon to 1 GiB and the separate Forge
           # data JVM (configured in build.gradle) to 1 GiB. This avoids two
           # potentially multi-gigabyte Java processes on the same CI worker.
+          # Prevent Forge 1.16.5 from writing a half-corrected fml.toml
+          # while its NightConfig file watcher is already reading it.
+          mkdir -p run/config
+          cat > run/config/fml.toml <<'TOML'
+          defaultConfigPath = "defaultconfigs"
+          maxThreads = -1
+          TOML
           echo "Available memory before Forge smoke test:"
           free -h || true
           set +e
