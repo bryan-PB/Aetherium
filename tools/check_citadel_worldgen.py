@@ -10,6 +10,15 @@ main=(root/"AetheriumMod.java").read_text()
 config=(root/"config/AetheriumConfig.java").read_text()
 gradle=Path("build.gradle").read_text()
 at=Path("src/main/resources/META-INF/accesstransformer.cfg").read_text()
+architecture=Path("tools/citadel_architecture.py").read_text()
+nbt_generator=Path("tools/generate_citadel_templates.py").read_text()
+assert "from citadel_architecture import design_room" in nbt_generator
+assert "design_room(room, put)" in nbt_generator
+assert "def design_room(room, put):" in architecture
+assert "center_clear()" in architecture
+assert "inputs.file('tools/citadel_architecture.py')" in gradle, (
+    "Gradle incremental Citadel NBTs must rebuild when architecture changes")
+
 
 for text in (
     'STRUCTURES.register("citadel"',
