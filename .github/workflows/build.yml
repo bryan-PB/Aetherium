@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - fix/boss-attack-visibility
   pull_request:
     branches:
       - main
@@ -171,7 +172,8 @@ jobs:
           set -euo pipefail
           cd "$AETHERIUM_PROJECT_DIR"
           gradle --version
-          python3 tools/generate_citadel_templates.py
+          # Gradle must generate the Citadel NBTs as a build dependency.
+          # Avoid generating them here, so CI catches missing local-build wiring.
           python3 tools/generate_intermediate_equipment_art.py
           python3 tools/generate_custom_armor_art.py
           gradle build --no-daemon
@@ -335,6 +337,7 @@ jobs:
           PY
 
       - name: Prueba de arranque de registros en Forge (sin servidor EULA)
+        id: forge_startup
         shell: bash
         timeout-minutes: 6
         continue-on-error: true
@@ -343,6 +346,17 @@ jobs:
           cd "$AETHERIUM_PROJECT_DIR"
           # Loads mod registries and configured worldgen without starting a server.
           gradle runData --no-daemon --console=plain
+
+      - name: Informar resultado real de prueba de arranque
+        if: always()
+        shell: bash
+        run: |
+          if [[ "${{ steps.forge_startup.outcome }}" == "success" ]]; then
+            echo "Forge runData: PASO" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::Forge runData no paso: el JAR compilo, pero el arranque de registros NO ESTA CERTIFICADO. Revisa los logs."
+            echo "Forge runData: NO VERIFICADO (revisar logs; no confundir con una prueba exitosa)" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Subir JAR compilado
         uses: actions/upload-artifact@v7
