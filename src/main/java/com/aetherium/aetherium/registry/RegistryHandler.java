@@ -22,6 +22,7 @@ import com.aetherium.aetherium.content.boss.BossMirageEntity;
 import com.aetherium.aetherium.content.boss.RiftGuardianEntity;
 import com.aetherium.aetherium.content.boss.AstralDevourerEntity;
 import com.aetherium.aetherium.content.item.BossSummoningItem;
+import com.aetherium.aetherium.content.item.GuideBookItem;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EntityClassification;
@@ -157,6 +158,10 @@ public final class RegistryHandler {
             () -> new BlockItem(AETHERIUM_ORE.get(), new Item.Properties().tab(ItemGroup.TAB_BUILDING_BLOCKS)));
     public static final RegistryObject<Item> AETHERIUM_BLOCK_ITEM = ITEMS.register("aetherium_block",
             () -> new BlockItem(AETHERIUM_BLOCK.get(), new Item.Properties().tab(ItemGroup.TAB_BUILDING_BLOCKS)));
+
+    // First-play guide, also craftable if a player loses it.
+    public static final RegistryObject<Item> GUIDE_BOOK = ITEMS.register("guide_book",
+            () -> new GuideBookItem(new Item.Properties().tab(ItemGroup.TAB_MISC).stacksTo(1)));
 
     // Materials
     public static final RegistryObject<Item> RAW_AETHERIUM = ITEMS.register("raw_aetherium",
