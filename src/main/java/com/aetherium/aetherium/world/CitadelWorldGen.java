@@ -90,7 +90,9 @@ public final class CitadelWorldGen {
     /**
      * Land biomes only. The old 4-category whitelist excluded entire common
      * spawn biomes such as savannas and deserts, giving /locate no candidates.
-     * Dimension spacing is deliberately registered in the Overworld only.
+     * Swamps are allowed on dry ground only: CitadelStructure checks the
+     * terrain surface and rejects steep candidate starts. Dimension spacing
+     * is deliberately registered in the Overworld only.
      */
     public static void onBiomeLoading(BiomeLoadingEvent event) {
         if (!AetheriumConfig.CITADEL_ENABLED.get() || configuredCitadel == null) return;
@@ -98,7 +100,6 @@ public final class CitadelWorldGen {
         if (category == Biome.Category.OCEAN
                 || category == Biome.Category.RIVER
                 || category == Biome.Category.BEACH
-                || category == Biome.Category.SWAMP
                 || category == Biome.Category.NETHER
                 || category == Biome.Category.THEEND
                 || category == Biome.Category.NONE) return;
