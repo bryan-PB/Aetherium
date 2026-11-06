@@ -33,8 +33,8 @@ public class AetheriumMod {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(AetheriumEntityEvents::onCommonSetup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(AetheriumCuriosIntegration::onInterModEnqueue);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGH, AetheriumWorldGen::onBiomeLoading);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGH, CitadelWorldGen::onBiomeLoading);
-        MinecraftForge.EVENT_BUS.addListener(CitadelWorldGen::onWorldLoad);
+        // Register exactly once: static @SubscribeEvent handlers at high priority.
+        MinecraftForge.EVENT_BUS.register(CitadelWorldGen.class);
         MinecraftForge.EVENT_BUS.addListener(CitadelCommands::register);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGH, AetheriumEntityEvents::onBiomeLoading);
         LOGGER.info("Kryzorae is loading (legacy mod id: aetherium).");
