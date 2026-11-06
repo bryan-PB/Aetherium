@@ -87,14 +87,21 @@ public final class CitadelWorldGen {
         });
     }
 
-    /** Restrict the Citadel to temperate, wooded and taiga Overworld areas. */
+    /**
+     * Land biomes only. The old 4-category whitelist excluded entire common
+     * spawn biomes such as savannas and deserts, giving /locate no candidates.
+     * Dimension spacing is deliberately registered in the Overworld only.
+     */
     public static void onBiomeLoading(BiomeLoadingEvent event) {
         if (!AetheriumConfig.CITADEL_ENABLED.get() || configuredCitadel == null) return;
         Biome.Category category = event.getCategory();
-        if (category != Biome.Category.FOREST
-                && category != Biome.Category.TAIGA
-                && category != Biome.Category.PLAINS
-                && category != Biome.Category.EXTREME_HILLS) return;
+        if (category == Biome.Category.OCEAN
+                || category == Biome.Category.RIVER
+                || category == Biome.Category.BEACH
+                || category == Biome.Category.SWAMP
+                || category == Biome.Category.NETHER
+                || category == Biome.Category.THEEND
+                || category == Biome.Category.NONE) return;
         event.getGeneration().getStructures().add(() -> configuredCitadel);
     }
 
