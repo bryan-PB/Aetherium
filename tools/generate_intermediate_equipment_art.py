@@ -251,13 +251,15 @@ def main():
         for piece in ("helmet","chestplate","leggings","boots"):
             armor_icon(piece,pal,name=="umbracita").png(
                 ASSETS/"item"/(name+"_"+piece+".png"))
-        for piece in ("sword","pickaxe","axe","shovel","hoe"):
+        # Sword textures are hand-drawn 64x64 PNGs committed to source;
+        # never overwrite them with the obsolete 32px tool sprite.
+        for piece in ("pickaxe","axe","shovel","hoe"):
             tool_icon(piece,pal,name=="umbracita").png(
                 ASSETS/"item"/(name+"_"+piece+".png"))
         for layer in (1,2):
             worn_layer(name,pal,layer==2).png(
                 ASSETS/"models"/"armor"/(name+"_layer_"+str(layer)+".png"))
-    print("Generated 18 equipment icons and 4 worn armor atlases (no rendering hooks).")
+    print("Generated 16 tool/armor icons (2 source swords preserved) and 4 worn armor atlases (no rendering hooks).")
 
 
 if __name__=="__main__":
