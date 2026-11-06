@@ -111,6 +111,17 @@ def validate_rgba_png(path):
         if tag == b"IEND": break
     pixels=zlib.decompress(compressed)
     assert len(pixels)==64*(1+64*4), path
+    # 32 logical art pixels, losslessly doubled to 64: details cannot
+    # degenerate into single-pixel fragments invisible in Minecraft's hotbar.
+    assert all(pixels[y*257] == 0 for y in range(64)), path
+    for y in range(0,64,2):
+        first=pixels[y*257+1:(y+1)*257]
+        second=pixels[(y+1)*257+1:(y+2)*257]
+        assert first == second, "Partial vertical art pixel: " + str(path)
+        for x in range(0,64,2):
+            assert first[x*4:x*4+4] == first[(x+1)*4:(x+2)*4], (
+                "Subpixel texture detail lost in hotbar: " + str(path))
+
     alpha=[pixels[y*(1+64*4)+1+x*4+3] for y in range(64) for x in range(64)]
     assert 200 < sum(a!=0 for a in alpha) < 3000, path
     assert 0 in alpha and 255 in alpha
