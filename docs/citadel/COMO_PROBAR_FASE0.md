@@ -20,9 +20,17 @@ Además, la Ciudadela ya **no depende de un ensamblaje jigsaw aleatorio**. Las s
 ## Si no aparece todavía: diagnóstico real
 Con permisos de operador (trucos activados), escribe:
 
-`/kryzorae citadel status`
+\`/kryzorae citadel status\`
 
-Obtendrás información de: habilitación, dimensión, registro, estructura configurada, espaciado y **7/7 NBT**. Comparte una captura del mensaje si alguno aparece en `false`.
+Obtendrás información de: habilitación, dimensión, registro, estructura configurada, espaciado y **7/7 NBT**. Comparte una captura del mensaje si alguno aparece en \`false\`.
+
+**Prueba adicional (sin modificar bloques ni generar chunks):**
+
+\`/kryzorae citadel probe\`
+
+Este comando examina la columna **donde estás parado** y muestra la altura calculada por el generador, el bloque del suelo, si el bioma realmente incluye \`aetherium:citadel\` en sus estructuras y si la columna acepta los filtros de altura y líquidos. Usa la misma función de elegibilidad del terreno que la generación real. Una lectura \`bioma admite ciudadela=false\` en un bosque o llanura nueva apunta a un fallo de inyección del bioma; \`terreno apto=false\` indica altura o superficie no válida. En una playa, río o pantano es normal que la primera condición sea falsa.
+
+**Importante:** que un bioma y terreno sean válidos no significa que el chunk actual sea el candidato de la cuadrícula ni prueba que la estructura se haya colocado; para eso sigue siendo necesario \`/locate aetherium:citadel\` en un mundo nuevo y visitar las coordenadas. El comando \`probe\` no escanea regiones, no fuerza chunks ni garantiza una ubicación.
 
 Para comprobar que los edificios realmente se pueden colocar, en un **mundo vacío de pruebas**, puedes escribir:
 
