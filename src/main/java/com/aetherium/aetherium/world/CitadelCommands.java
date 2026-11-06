@@ -100,7 +100,8 @@ public final class CitadelCommands {
         // Manual opt-in, never triggered by worldgen. Spawn the entire
         // architectural layout near the operator so it can be visually tested.
         // Important: it replaces terrain/builds in an approximately 60x100 area.
-        BlockPos player = source.getPosition();
+        BlockPos player = new BlockPos(
+                source.getPosition().x, source.getPosition().y, source.getPosition().z);
         int x = player.getX() - 9;
         int z = player.getZ() + 14;
         int y = world.getHeight(Heightmap.Type.WORLD_SURFACE, player.getX(), z) + 1;
