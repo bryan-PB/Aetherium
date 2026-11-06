@@ -40,17 +40,23 @@ def textured_patch(a, u, v, colors, seed):
     shine, base, dark, highlight = colors
     for y in range(48):
         for x in range(48):
-            n=((x*31+y*19+(x//5)*11+(y//7)*7+seed*13) ^ ((x*y+seed*11)//11))%53
-            c=base if n<29 else dark if n<41 else shine if n<50 else highlight
-            # Subtle stepped bevel/blacksmith surface instead of noisy blocks.
-            if (x%18 in (0,1) or y%22==0) and n%3==0:
+            # Larger coherent regions of color: plate and fabric surfaces should
+            # NOT look like television static or an ore texture when worn.
+            n=((x//6)*7+(y//7)*11+seed*3)%53
+            c=base
+            if n < 5: c=dark
+            elif n > 49: c=shine
+            # Gentle top-left lighting and lower-right bevel.
+            if y in (2,3) and 3 < x < 43: c=shine
+            if x in (2,3) and 3 < y < 40: c=shine
+            if y in (44,45) or x in (44,45): c=dark
+            # Sparse intentional metal engraving, never random per-pixel salt.
+            if (x%17 in (0,1) and 7 < y < 35 and (x+y)%4<2):
                 c=dark
-            elif (x%17 in (2,3) or y%18 in (2,3)) and n%7<2:
+            if (y%19 == 0 and 7 < x < 38 and x%4<2):
                 c=shine
-            if x in (0,1) or y in (0,1):
+            if x in (0,1,46,47) or y in (0,1,46,47):
                 c=dark
-            if x in (46,47) or y in (46,47):
-                c=dark if (x+y)%3 else base
             a.put(u+x,v+y,c)
     # Borders and scattered rivets, fully inside each patch.
     for x in (4,23,41):
