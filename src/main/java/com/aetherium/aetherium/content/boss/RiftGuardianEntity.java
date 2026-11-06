@@ -62,6 +62,9 @@ public class RiftGuardianEntity extends MonsterEntity {
             EntityDataManager.defineId(RiftGuardianEntity.class, DataSerializers.INT);
     private int phase = 1;
     private int minionCooldown = 0;
+    // Cache shoreline results while submerged; expensive terrain searches are server-only.
+    private BlockPos waterExitTarget;
+    private int waterSearchCooldown = 0;
     private int mirageCooldown = 165;
     private int attackPattern = 0;
     private double sweepDirectionX;
@@ -156,24 +159,31 @@ public class RiftGuardianEntity extends MonsterEntity {
     @Override
     public void tick() {
         super.tick();
+        // Server owns boss movement and collision. Client-side world scans duplicated
+        // thousands of block queries per submerged boss without influencing the AI.
+        if (this.level.isClientSide) return;
         if (this.isInWater()) {
             Vector3d motion = this.getDeltaMovement();
             this.setDeltaMovement(motion.x * 0.92D, Math.max(motion.y, 0.24D), motion.z * 0.92D);
             this.hasImpulse = true;
-            if (this.tickCount % 20 == 0) {
-                BlockPos shore = this.findNearestDryPosition();
-                if (shore != null) {
-                    double shoreX = shore.getX() + 0.5D - this.getX();
-                    double shoreZ = shore.getZ() + 0.5D - this.getZ();
-                    double shoreLength = Math.max(0.001D, Math.sqrt(shoreX * shoreX + shoreZ * shoreZ));
-                    this.setDeltaMovement(motion.x * 0.55D + shoreX / shoreLength * 0.20D,
-                            Math.max(motion.y, 0.24D),
-                            motion.z * 0.55D + shoreZ / shoreLength * 0.20D);
-                    this.hasImpulse = true;
-                }
+            if (this.waterSearchCooldown > 0) this.waterSearchCooldown--;
+            if (this.waterSearchCooldown <= 0) {
+                this.waterExitTarget = this.findNearestDryPosition();
+                this.waterSearchCooldown = 25;
             }
+            if (this.waterExitTarget != null) {
+                double shoreX = this.waterExitTarget.getX() + 0.5D - this.getX();
+                double shoreZ = this.waterExitTarget.getZ() + 0.5D - this.getZ();
+                double shoreLength = Math.max(0.001D, Math.sqrt(shoreX * shoreX + shoreZ * shoreZ));
+                this.setDeltaMovement(motion.x * 0.55D + shoreX / shoreLength * 0.20D,
+                        Math.max(motion.y, 0.24D),
+                        motion.z * 0.55D + shoreZ / shoreLength * 0.20D);
+            }
+            this.hasImpulse = true;
+        } else {
+            this.waterExitTarget = null;
+            this.waterSearchCooldown = 0;
         }
-        if (this.level.isClientSide) return;
         if (this.crimsonCounterCooldown > 0) this.crimsonCounterCooldown--;
         this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
         if (this.phase >= 2 && this.entityData.get(ATTACK_STATE) == 0 && this.tickCount % 6 == 0) {
@@ -879,7 +889,9 @@ public class RiftGuardianEntity extends MonsterEntity {
         if (this.entityData.get(ATTACK_STATE) == 5) amount *= 1.45F;
         boolean damaged = super.hurt(source, amount);
         if (damaged && !this.level.isClientSide) {
-            this.dispelMirage();
+            // Do not erase a separate illusion merely because the real Guardian was
+            // hit. Copies have their own lifetime and can be dispelled by attacking
+            // them directly, just like the Executioner's harmless mirror images.
             if (source.getEntity() instanceof PlayerEntity
                     && (source.getDirectEntity() == source.getEntity()
                         || source.getDirectEntity() instanceof DarkSlashEntity))
