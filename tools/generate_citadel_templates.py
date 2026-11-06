@@ -39,6 +39,28 @@ def integer(name, value):
     return named(3, name, struct.pack(">i", value))
 
 
+def short(name, value):
+    return named(2, name, struct.pack(">h", value))
+
+
+def tag_fields(data):
+    """Correct 1.16.5 block-entity NBT types, including spawner SpawnData."""
+    fields = []
+    for key, value in data.items():
+        if isinstance(value, dict):
+            fields.append(compound(key, tag_fields(value)))
+        elif isinstance(value, int):
+            fields.append(short(key, value) if key in (
+                "Delay", "MinSpawnDelay", "MaxSpawnDelay", "SpawnCount",
+                "MaxNearbyEntities", "RequiredPlayerRange", "SpawnRange"
+            ) else integer(key, value))
+        elif isinstance(value, str):
+            fields.append(string(key, value))
+        else:
+            raise TypeError("Unsupported NBT tag: " + repr((key, value)))
+    return fields
+
+
 def int_list(name, values):
     return named(9, name, bytes((3,)) + struct.pack(">i", len(values)) +
                  b"".join(struct.pack(">i", n) for n in values))
@@ -255,12 +277,28 @@ def room_blocks(room):
              "final_state":"minecraft:air",
              "joint":"aligned"})
 
+    chest_specs = []
     if room["chest"]:
-        x,y,z = room["chest"]
-        assert kind not in ("arena","connector")
+        chest_specs.append({"pos": room["chest"], "loot": room["loot"]})
+    chest_specs.extend(room.get("extraChests", []))
+    for entry in chest_specs:
+        x, y, z = entry["pos"]
         put(x,y,z,"minecraft:chest",
             {"facing":"north","type":"single","waterlogged":"false"},
-            {"id":"minecraft:chest","LootTable":room["loot"]})
+            {"id":"minecraft:chest","LootTable":entry["loot"]})
+
+    if room.get("spawner"):
+        info=room["spawner"]
+        x,y,z=info["pos"]
+        # Native vanilla spawner: strictly bounded spawning and slow delay.
+        # Unlike tick-based custom AI this runs only near a player.
+        put(x,y,z,"minecraft:spawner",data={
+            "id":"minecraft:mob_spawner",
+            "SpawnData":{"id":info["mob"]},
+            "Delay":200,"MinSpawnDelay":800,"MaxSpawnDelay":1400,
+            "SpawnCount":2,"MaxNearbyEntities":3,
+            "RequiredPlayerRange":14,"SpawnRange":3
+        })
 
     return OrderedDict(sorted(blocks.items(),key=lambda p:(p[0][1],p[0][2],p[0][0])))
 
@@ -282,7 +320,7 @@ def encode_room(room):
         fields = [int_list("pos",position),
                   integer("state",palette_index[state])]
         if entity is not None:
-            fields.append(compound("nbt",[string(k,v) for k,v in entity.items()]))
+            fields.append(compound("nbt",tag_fields(entity)))
         elements.append(fields)
 
     root = compound("",[
