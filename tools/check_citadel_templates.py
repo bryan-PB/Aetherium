@@ -191,6 +191,10 @@ def validate_room(room, read):
             state=palette[next(it["state"] for it in blocks
                                if tuple(it["pos"])==center)]
             assert state["Properties"]["orientation"]==side+"_up"
+        elif side in room.get("exterior", []):
+            assert room["id"]=="gateway" and side=="north"
+            assert all(coords[p]=="minecraft:air" for p in border), (
+                room["id"],side,"front entry blocked")
         else:
             assert all(coords[p] not in ("minecraft:air","minecraft:jigsaw")
                        for p in border), (room["id"],side,"dangling door")
