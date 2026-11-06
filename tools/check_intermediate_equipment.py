@@ -78,7 +78,7 @@ model_code=(java/"client/model/IntermediateArmorModel.java").read_text(encoding=
 armor_item=(java/"content/armor/IntermediateArmorItem.java").read_text(encoding="utf-8")
 assert "extends BipedModel<LivingEntity>" in model_code
 assert "KryzoraeArmorModel" not in model_code, "Do not alter approved endgame armor models"
-for token in ("knightHelm();", "knightChest();", "hood();", "shadowRobe();",
+for token in ("knightHelm();", "knightChest();", "sorcererHat();", "shadowRobe();",
               "cube(head,", "cube(body,", "cube(arm,", "cube(root,",
               "model.setAllVisible(false)", "copyPropertiesTo(model)",
               "model.head.visible = true", "model.rightArm.visible = true",
@@ -87,6 +87,12 @@ for token in ("knightHelm();", "knightChest();", "hood();", "shadowRobe();",
 assert "new IntermediateArmorModel(true,true)" in model_code
 assert "new IntermediateArmorModel(false,true)" in model_code
 assert "256" in model_code and "128" in model_code
+assert "private void sorcererHat()" in model_code
+assert "private void hood()" not in model_code
+assert "15.40F, 0.45F, 13.30F" in model_code, "Hat brim must be noticeably wider than the skull"
+assert "face is deliberately open" in model_code.lower(), "Ensure upper face remains exposed"
+assert "new IntermediateArmorModel(true,true)" in model_code
+
 assert "IntermediateArmorModel.forSlot(umbracita, slot, original)" in armor_item
 for material in ("BRUMACERO", "UMBRACITA"):
     for part in ("helmet","chestplate","leggings","boots"):
@@ -98,4 +104,9 @@ generator=Path("tools/generate_custom_armor_art.py").read_text(encoding="utf-8")
 assert 'a.png(ASSETS/"models"/"armor"/f"{name}_layer_{layer}.png")' in generator
 assert "build_atlas(family)" in generator
 
+for loc in ("en_us", "es_es", "es_cl", "es_mx", "es_ar"):
+    lang=json.loads((assets/"lang"/(loc+".json")).read_text(encoding="utf-8"))
+    assert ("Hat" if loc=="en_us" else "Sombrero") in lang["item.aetherium.umbracita_helmet"]
+icon_generator=Path("tools/generate_custom_armor_art.py").read_text(encoding="utf-8")
+assert "Miniature of the actual wide-brimmed" in icon_generator
 print("18 registered crafted items, 18 original sprite textures, four fitted 256x128 worn atlases, five languages and server-light set bonuses validated.")
