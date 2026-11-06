@@ -50,6 +50,10 @@ minecraft {
 
         data {
             workingDirectory project.file('run')
+            // Headless CI runners have finite memory: cap Forge's separate
+            // data-generator JVM instead of allowing a second unbounded heap.
+            // This is only a development run configuration; not a gameplay cap.
+            jvmArgs '-Xms128m', '-Xmx1024m', '-XX:MaxMetaspaceSize=384m'
             args '--mod', 'aetherium', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
             mods {
                 aetherium {
