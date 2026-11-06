@@ -111,6 +111,30 @@ assert "new ArmorItem(IntermediateArmorMaterial." not in reg
 generator=Path("tools/generate_custom_armor_art.py").read_text(encoding="utf-8")
 assert 'a.png(ASSETS/"models"/"armor"/f"{name}_layer_{layer}.png")' in generator
 assert "build_atlas(family)" in generator
+# Coat redesign: these elements must be distinct and attached to normal biped
+# pivots so the look survives walking, combat and first/third-person swaps.
+for marker in (
+        "private void shadowRobe()",
+        "ModelRenderer strap = part(2.83F, 1.05F, -3.64F)",
+        "strap.zRot = 0.43F",
+        "cube(strap, DETAIL, ROW",
+        "cube(body, LIGHT, ROW, -4.81F, 17.64F",
+        "cube(body, FABRIC, ROW, -3.95F, 10.82F, 2.65F",
+        "private void leg(ModelRenderer root, boolean shade, boolean leggings,",
+        "leg(leftLeg, shade, leggings, true)",
+        "leg(rightLeg, shade, leggings, false)",
+        "cube(root, DETAIL, ROW, -2.44F, 3.10F",
+        "cube(root, LIGHT, ROW, -1.36F, 11.05F",
+        "cube(arm, DETAIL, ROW, -2.89F, 8.42F",
+):
+    assert marker in model_code, "Missing fitted cloth detail: " + marker
+assert "if (left)" in model_code
+assert "tickCount" not in model_code, "The outfit must have no extra per-tick animation"
+assert "minecraft.client.renderer" not in generator
+for marker in ("Long OPEN COAT", "Fitted dark trousers", "Fashionable ankle boots",
+               "Woven folds, stitched borders", "painted into the prebuilt atlas"):
+    assert marker in generator, "Missing visual detail: "+marker
+
 
 for loc in ("en_us", "es_es", "es_cl", "es_mx", "es_ar"):
     lang=json.loads((assets/"lang"/(loc+".json")).read_text(encoding="utf-8"))
