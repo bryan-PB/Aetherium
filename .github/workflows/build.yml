@@ -171,6 +171,7 @@ jobs:
           set -euo pipefail
           cd "$AETHERIUM_PROJECT_DIR"
           gradle --version
+          python3 tools/generate_citadel_templates.py
           python3 tools/generate_intermediate_equipment_art.py
           python3 tools/generate_custom_armor_art.py
           gradle build --no-daemon
@@ -181,6 +182,7 @@ jobs:
           python3 tools/check_crimson_combo_resistance.py
           python3 tools/check_boss_stability.py
           python3 tools/check_first_minerals.py
+          python3 tools/check_citadel_templates.py
           python3 tools/check_approved_visual_assets.py
           python3 tools/check_intermediate_equipment.py
           python3 tools/check_guide_book.py
