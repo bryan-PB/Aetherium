@@ -176,13 +176,12 @@ def validate_room(room, read):
                        for p in border), (room["id"],side,"door blocked")
             data=matches[0]
             assert data["joint"]=="aligned"
+            outgoing=room["doorRoles"][side]=="exit"
             assert data["name"]==("aetherium:citadel/exit"
-                                  if side in ("south","east")
-                                  else "aetherium:citadel/entry")
+                                  if outgoing else "aetherium:citadel/entry")
             assert data["target"]==("aetherium:citadel/entry"
-                                    if side in ("south","east")
-                                    else "aetherium:citadel/exit")
-            if side in ("south","east"):
+                                    if outgoing else "aetherium:citadel/exit")
+            if outgoing:
                 target=doors[side]
                 target_pool={"gateway":"start","arena_shell":"arena"}.get(target,target)
                 assert data["pool"]=="aetherium:citadel/"+target_pool
