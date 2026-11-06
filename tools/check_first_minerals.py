@@ -52,7 +52,22 @@ for name in ["brumacero_ore","umbracita_ore","prismalita_ore","raw_brumacero","r
     tex=r/"assets/aetherium/textures"/folder/(name+".png")
     raw=tex.read_bytes()
     assert raw[:8]==bytes([137,80,78,71,13,10,26,10])
-    assert unpack(">II",raw[16:24])==(16,16)
+    assert unpack(">II",raw[16:24])==((32,32) if name.endswith("_ore") else (16,16)), name
+# Asset regression: Minecraft's magenta/black blocks mean an ore model
+# references a PNG that was omitted from the packaged resources.
+# Check BOTH the four side textures AND their separate upper faces.
+for ore in ("aetherium_ore", "brumacero_ore", "umbracita_ore", "prismalita_ore"):
+    model=json.loads((r/"assets/aetherium/models/block"/(ore+".json")).read_text(encoding="utf-8"))
+    assert model["parent"]=="minecraft:block/cube_bottom_top"
+    for face in ("side","top","bottom"):
+        texture=model["textures"][face]
+        assert texture.startswith("aetherium:block/"), (ore,face,texture)
+        png=r/"assets/aetherium/textures/block"/(texture.split("/")[-1]+".png")
+        assert png.is_file(), "Missing "+str(png)
+        data=png.read_bytes()
+        assert data[:8]==bytes([137,80,78,71,13,10,26,10])
+        assert unpack(">II",data[16:24])==(32,32), str(png)
+
 for loc in ("en_us","es_es","es_cl","es_mx","es_ar"):
     d=json.loads((r/"assets/aetherium/lang"/(loc+".json")).read_text(encoding="utf-8"))
     for name in materials:
