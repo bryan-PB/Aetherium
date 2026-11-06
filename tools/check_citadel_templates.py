@@ -162,7 +162,7 @@ def validate_room(room, read):
         info=room["spawner"]
         expect_spawners.append((info["pos"],info["mob"]))
     assert spawners==expect_spawners,(room["id"],spawners,expect_spawners)
-    if room["spawner"] and ("east" in room["doors"] or "west" in room["doors"]):
+    if room.get("spawner") and ("east" in room["doors"] or "west" in room["doors"]):
         assert not (d//2-1<=spawners[0][0][2]<=d//2+1), (
             room["id"], "mob spawner blocks the east/west connection")
     # Main corridors must stay three blocks wide: the spawner belongs in
