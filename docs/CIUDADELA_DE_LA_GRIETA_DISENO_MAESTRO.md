@@ -1,7 +1,9 @@
 # Kryzorae — Documento maestro: Ciudadela de la Grieta
-**Versión del diseño:** 1.0 · **Objetivo:** Minecraft Java 1.16.5 / Forge 36.2.42 / Java 8 · **ID heredado del mod:** `aetherium`
+**Versión del diseño:** 2.0 (base modular) · **Objetivo:** Minecraft Java 1.16.5 / Forge 36.2.42 / Java 8 · **ID heredado del mod:** `aetherium`
 
 > **Estado:** **fase 1 implementada en código: registro nativo de estructura Forge 1.16.5, generación natural en chunks nuevos del Overworld, siete plantillas conectadas por plantillas NBT y tres tablas de botín**. Compila en CI; falta probar la aparición y el diseño en Minecraft. Los tres enemigos, minijefe y Custodio **aún no están implementados**. Los valores de combate del documento son objetivos de balance, no estadísticas registradas. Los valores de combate aquí son objetivos de balance, no estadísticas ya registradas.
+
+> **Actualización prioritaria (6 nov 2026):** el prototipo de siete piezas fue ampliado a una **megaestructura de 17 NBT independientes**, 19 cofres, tres spawners vanilla limitados, dos torres, dos subniveles, trampas ambientales y cinco tablas de botín. Usa `CitadelLayout.java` con rotaciones y sin colisiones. La guía de implementación y el estado actual se encuentran en [MEGAESTRUCTURA_FORGE_1_16_5.md](citadel/MEGAESTRUCTURA_FORGE_1_16_5.md). **Las secciones históricas que hablan de siete salas describen el prototipo anterior**, no la arquitectura V2. La nueva generación aún necesita prueba dentro de Minecraft; los enemigos y jefes originales de la Ciudadela no se han implementado.
 
 ## 1. Identidad y papel en el mod
 
