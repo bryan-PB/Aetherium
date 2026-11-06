@@ -100,7 +100,7 @@
       },
       "spawner": {
         "pos": [
-          8,
+          5,
           1,
           8
         ],
@@ -348,9 +348,9 @@
       ],
       "kind": "tower",
       "chest": [
-        3,
-        10,
-        3
+        5,
+        9,
+        5
       ],
       "loot": "aetherium:chests/citadel_supplies",
       "roof": "open",
@@ -424,7 +424,7 @@
       "roof": "solid",
       "spawner": {
         "pos": [
-          8,
+          5,
           1,
           8
         ],
@@ -453,9 +453,9 @@
       ],
       "kind": "tower",
       "chest": [
-        3,
-        10,
-        3
+        5,
+        9,
+        5
       ],
       "loot": "aetherium:chests/citadel_guardhouse",
       "roof": "open",
@@ -529,7 +529,7 @@
       "roof": "solid",
       "spawner": {
         "pos": [
-          8,
+          5,
           1,
           8
         ],
