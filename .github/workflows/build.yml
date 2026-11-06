@@ -340,7 +340,6 @@ jobs:
         id: forge_startup
         shell: bash
         timeout-minutes: 6
-        continue-on-error: true
         run: |
           set -euo pipefail
           cd "$AETHERIUM_PROJECT_DIR"
@@ -386,6 +385,7 @@ jobs:
           fi
 
       - name: Subir JAR compilado
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: Kryzorae-jar
