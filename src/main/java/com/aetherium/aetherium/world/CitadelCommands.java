@@ -136,39 +136,48 @@ public final class CitadelCommands {
             return 0;
         }
         TemplateManager manager = world.getServer().getStructureManager();
-        String[] rooms = {"gateway","corridor","guardhouse","archive","arena_shell","crypt","forge"};
-        int[][] locations = {{0,0},{4,15},{1,32},{1,49},{-4,66},{15,15},{-16,32}};
         List<Template> templates = new ArrayList<>();
-        for (String name : rooms) {
-            Template template = manager.get(new ResourceLocation(AetheriumMod.MOD_ID, "citadel/" + name));
+        for (CitadelLayout.RoomSpec room : CitadelLayout.rooms()) {
+            Template template = manager.get(new ResourceLocation(
+                    AetheriumMod.MOD_ID, "citadel/" + room.template));
             if (template == null) {
                 source.sendFailure(new StringTextComponent(
-                        "Falta el archivo NBT de la sala " + name + " en el JAR."));
+                        "Falta el archivo NBT de la sala " + room.template + " en el JAR."));
                 return 0;
             }
             templates.add(template);
         }
 
-        // Manual opt-in, never triggered by worldgen. Spawn the entire
-        // architectural layout near the operator so it can be visually tested.
-        // Important: it replaces terrain/builds in an approximately 60x100 area.
+        // Manual opt-in, never triggered by worldgen. Spawn the same layout
+        // as natural generation, near the operator, in a disposable test world.
+        // Important: this command replaces terrain/builds in a ~60x100 area.
         BlockPos player = new BlockPos(
                 source.getPosition().x, source.getPosition().y, source.getPosition().z);
         int x = player.getX() - 9;
         int z = player.getZ() + 14;
-        int y = world.getHeight(Heightmap.Type.WORLD_SURFACE, player.getX(), z) + 1;
+        // WORLD_SURFACE already returns the first free block above the surface.
+        // Adding 1 here made the preview float a block higher than worldgen.
+        int y = world.getHeight(Heightmap.Type.WORLD_SURFACE, player.getX(), z);
         if (y < 60 || y > 120) {
             source.sendFailure(new StringTextComponent("Busca una llanura o bosque entre Y 60 y 120."));
             return 0;
         }
-        for (int i=0; i<rooms.length; i++) {
+        BlockPos base = new BlockPos(x, y, z);
+        for (int i = 0; i < CitadelLayout.rooms().size(); i++) {
             PlacementSettings placement = new PlacementSettings()
                     .setRotation(Rotation.NONE)
                     .setMirror(Mirror.NONE)
                     .addProcessor(JigsawReplacementStructureProcessor.INSTANCE)
                     .setIgnoreEntities(true);
-            BlockPos origin = new BlockPos(x + locations[i][0], y, z + locations[i][1]);
-            templates.get(i).placeInWorld(world, origin, origin, placement, world.random, 2);
+            BlockPos roomOrigin = CitadelLayout.rooms().get(i).position(base);
+            if (!templates.get(i).placeInWorld(
+                    world, roomOrigin, roomOrigin, placement, world.random, 2)) {
+                source.sendFailure(new StringTextComponent(
+                        "[Kryzorae] Fallo al colocar la sala "
+                        + CitadelLayout.rooms().get(i).template
+                        + ". El terreno de prueba puede haberse modificado parcialmente."));
+                return 0;
+            }
         }
         source.sendSuccess(new StringTextComponent(
                 "[Kryzorae] Ciudadela de prueba de 7 salas construida cerca de X="
