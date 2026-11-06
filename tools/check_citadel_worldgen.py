@@ -61,7 +61,12 @@ assert "biome.getGenerationSettings()" in commands
 assert ".isValidStart(CitadelWorldGen.CITADEL.get())" in commands
 assert "CitadelStructure.canGenerateOnColumn(" in commands
 assert "public static boolean canGenerateOnColumn(" in structure
-assert "if (!canGenerateOnColumn(generator, x, z))" in structure
+assert "int findPlacementY(ChunkGenerator generator, int x, int z)" in structure
+assert "MAX_RELIEF = 5" in structure
+assert "for (CitadelLayout.RoomSpec room : CitadelLayout.rooms())" in structure
+assert "java.util.Collections.sort(centralHeights)" in structure
+assert "Math.abs(height - chosenY) > MAX_RELIEF" in structure
+assert "isDryGround(generator, sx, sz, height)" in structure
 assert "return canGenerateMegaSite(generator, x, z);" in structure
 assert 'Commands.literal("preview")' in commands
 assert 'source.hasPermission(2)' in commands
@@ -173,7 +178,16 @@ assert "setRotation(room.rotation)" in commands
 assert "setMirror(room.mirror)" in commands
 assert "CitadelLayout.rooms().size()" in commands
 assert "CitadelLayout.originForChunk(chunkX, chunkZ, y)" in structure
-assert "canGenerateMegaSite(generator, chunkX * 16 + 8, chunkZ * 16 + 8)" in structure
+assert "int y = findPlacementY(" in structure
+assert "generator, chunkX * 16 + 8, chunkZ * 16 + 8" in structure
+assert "findPlacementY(" in commands
+assert "new CitadelPieces.Room(manager, room, base)" in commands
+assert ".placePreviewFoundations(world)" in commands
+assert "private void placeFoundations(" in pieces
+assert "supportColumn(world, chunkBox, x, bounds.z0, y);" in pieces
+assert "supportColumn(world, chunkBox, x, bounds.z1, y);" in pieces
+assert 'id.endsWith("/crypt") || id.endsWith("/archive")' in pieces
+assert "chunkBox.isInside(below)" in pieces
 assert "int[][] locations" not in commands
 assert 'if (!templates.get(i).placeInWorld(' in commands
 assert "CitadelWorldGen.register(" in main
