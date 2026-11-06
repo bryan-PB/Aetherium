@@ -128,12 +128,39 @@ for marker in (
         "cube(arm, DETAIL, ROW, -2.89F, 8.42F",
 ):
     assert marker in model_code, "Missing fitted cloth detail: " + marker
+# Brumacero refinement remains a real articulated three-dimensional kit,
+# not recolored vanilla armor. Enforce the separate visor, breastplates,
+# abdominal lames, overlapping shoulders, kneecaps and armored toe.
+for marker in (
+        "private void knightHelm()",
+        "private void knightChest()",
+        "cube(head, FACE, ROW, -3.1F, -5.55F",
+        "cube(head, ACCENT, 0, -0.60F, -10.28F",
+        "cube(body, LIGHT, ROW, -4.27F, 1.53F",
+        "cube(body, LIGHT, ROW, 0.61F, 1.53F",
+        "cube(body, ACCENT, 0, -0.79F, 2.64F",
+        "cube(body, PLATE, 0, -3.75F, 6.57F",
+        "cube(body, PLATE, 0, -3.63F, 8.28F",
+        "cube(arm, PLATE, 0, -3.88F, -3.62F",
+        "cube(arm, PLATE, 0, -3.65F, -1.26F",
+        "cube(root, PLATE, 0, -2.65F, 6.40F",
+        "cube(root, PLATE, 0, -2.48F, 11.01F",
+):
+    assert marker in model_code, "Missing Brumacero armor detail: " + marker
+for marker in ("noble", "gilded", "Articulated", "heraldic"):
+    assert marker.lower() in model_code.lower()
+
 assert "if (left)" in model_code
 assert "tickCount" not in model_code, "The outfit must have no extra per-tick animation"
 assert "minecraft.client.renderer" not in generator
 for marker in ("Long OPEN COAT", "Fitted dark trousers", "Fashionable ankle boots",
                "Woven folds, stitched borders", "painted into the prebuilt atlas"):
     assert marker in generator, "Missing visual detail: "+marker
+for marker in ("Polished forged steel", "closed noble helmet",
+               "Gilded greave cuffs", "Layered symmetrical breast",
+               "Separate shaped upper plates"):
+    assert marker.lower() in generator.lower(), marker
+
 
 
 for loc in ("en_us", "es_es", "es_cl", "es_mx", "es_ar"):
