@@ -164,7 +164,7 @@ assert "setRotation(room.rotation)" in commands
 assert "setMirror(room.mirror)" in commands
 assert "CitadelLayout.rooms().size()" in commands
 assert "CitadelLayout.originForChunk(chunkX, chunkZ, y)" in structure
-assert "canGenerateMegaSite(generator, cx, cz)" in structure
+assert "canGenerateMegaSite(generator, chunkX * 16 + 8, chunkZ * 16 + 8)" in structure
 assert "int[][] locations" not in commands
 assert 'if (!templates.get(i).placeInWorld(' in commands
 assert "CitadelWorldGen.register(" in main
