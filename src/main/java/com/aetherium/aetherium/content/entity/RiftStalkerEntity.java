@@ -20,7 +20,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
@@ -91,7 +90,7 @@ public class RiftStalkerEntity extends MonsterEntity {
                 ((ServerWorld)this.level).sendParticles(ParticleTypes.CRIT,
                         this.getX(), this.getY() + 0.7D, this.getZ(), 6, 0.2D, 0.3D, 0.2D, 0.04D);
             }
-            this.playSound(RegistryHandler.RIFT_STALKER_POUNCE.get(), 0.72F,
+            this.playSound(RegistryHandler.RIFT_STALKER_POUNCE.get(), 0.62F,
                     0.88F + this.random.nextFloat() * 0.18F);
             this.pounceCooldown = 100;
         }
@@ -99,17 +98,17 @@ public class RiftStalkerEntity extends MonsterEntity {
 
     @Override
     protected net.minecraft.util.SoundEvent getAmbientSound() {
-        return SoundEvents.ENDERMAN_AMBIENT;
+        return this.getTarget() == null ? RegistryHandler.STALKER_AMBIENT.get() : null;
     }
 
     @Override
     protected net.minecraft.util.SoundEvent getHurtSound(net.minecraft.util.DamageSource source) {
-        return SoundEvents.ENDERMAN_HURT;
+        return RegistryHandler.STALKER_HURT.get();
     }
 
     @Override
     protected net.minecraft.util.SoundEvent getDeathSound() {
-        return SoundEvents.ENDERMAN_DEATH;
+        return RegistryHandler.STALKER_DEATH.get();
     }
 
     @Override

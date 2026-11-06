@@ -1,0 +1,597 @@
+{
+  "version": 2,
+  "format": "minecraft-java-1.16.5",
+  "namespace": "aetherium",
+  "generator": "tools/generate_citadel_templates.py",
+  "status": "registered-overworld-jigsaw-worldgen",
+  "roomCapFuture": 17,
+  "rooms": [
+    {
+      "id": "gateway",
+      "size": [
+        19,
+        11,
+        15
+      ],
+      "kind": "entrance",
+      "chest": [
+        4,
+        1,
+        8
+      ],
+      "loot": "aetherium:chests/citadel_entrance",
+      "roof": "solid",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "rotation": "NONE",
+      "mirror": "NONE",
+      "doors": {
+        "south": "corridor"
+      },
+      "exterior": [
+        "north"
+      ],
+      "doorRoles": {
+        "south": "exit"
+      }
+    },
+    {
+      "id": "corridor",
+      "size": [
+        11,
+        9,
+        17
+      ],
+      "kind": "connector",
+      "chest": [
+        3,
+        1,
+        12
+      ],
+      "loot": "aetherium:chests/citadel_supplies",
+      "roof": "solid",
+      "offset": [
+        4,
+        0,
+        15
+      ],
+      "rotation": "NONE",
+      "mirror": "NONE",
+      "doors": {
+        "north": "gateway",
+        "south": "guardhouse",
+        "east": "crypt"
+      },
+      "doorRoles": {
+        "north": "entry",
+        "south": "exit",
+        "east": "exit"
+      }
+    },
+    {
+      "id": "guardhouse",
+      "size": [
+        17,
+        10,
+        17
+      ],
+      "kind": "combat",
+      "chest": [
+        4,
+        1,
+        12
+      ],
+      "loot": "aetherium:chests/citadel_guardhouse",
+      "roof": "solid",
+      "offset": [
+        1,
+        0,
+        32
+      ],
+      "rotation": "NONE",
+      "mirror": "NONE",
+      "doors": {
+        "north": "corridor",
+        "south": "courtyard",
+        "west": "forge"
+      },
+      "spawner": {
+        "pos": [
+          5,
+          1,
+          5
+        ],
+        "mob": "minecraft:skeleton"
+      },
+      "doorRoles": {
+        "north": "entry",
+        "south": "exit",
+        "west": "exit"
+      }
+    },
+    {
+      "id": "courtyard",
+      "size": [
+        27,
+        12,
+        27
+      ],
+      "kind": "courtyard",
+      "chest": [
+        5,
+        1,
+        8
+      ],
+      "loot": "aetherium:chests/citadel_supplies",
+      "roof": "open",
+      "extraChests": [
+        {
+          "pos": [
+            21,
+            1,
+            18
+          ],
+          "loot": "aetherium:chests/citadel_supplies"
+        }
+      ],
+      "offset": [
+        -4,
+        0,
+        49
+      ],
+      "rotation": "NONE",
+      "mirror": "NONE",
+      "doors": {
+        "north": "guardhouse",
+        "south": "archive",
+        "east": "watchtower",
+        "west": "barracks"
+      },
+      "doorRoles": {
+        "north": "entry",
+        "south": "exit",
+        "east": "exit",
+        "west": "exit"
+      }
+    },
+    {
+      "id": "archive",
+      "size": [
+        17,
+        11,
+        17
+      ],
+      "kind": "puzzle",
+      "chest": [
+        4,
+        1,
+        12
+      ],
+      "loot": "aetherium:chests/citadel_archive",
+      "roof": "solid",
+      "offset": [
+        1,
+        0,
+        76
+      ],
+      "rotation": "NONE",
+      "mirror": "NONE",
+      "doors": {
+        "north": "courtyard",
+        "south": "arena_shell",
+        "east": "prison"
+      },
+      "doorRoles": {
+        "north": "entry",
+        "south": "exit",
+        "east": "exit"
+      }
+    },
+    {
+      "id": "arena_shell",
+      "size": [
+        27,
+        15,
+        27
+      ],
+      "kind": "arena",
+      "chest": null,
+      "loot": null,
+      "roof": "open",
+      "offset": [
+        -4,
+        0,
+        93
+      ],
+      "rotation": "NONE",
+      "mirror": "NONE",
+      "doors": {
+        "north": "archive",
+        "south": "threshold",
+        "east": "east_bastion",
+        "west": "west_gallery"
+      },
+      "doorRoles": {
+        "north": "entry",
+        "south": "exit",
+        "east": "exit",
+        "west": "exit"
+      }
+    },
+    {
+      "id": "threshold",
+      "size": [
+        23,
+        15,
+        23
+      ],
+      "kind": "threshold",
+      "chest": [
+        5,
+        1,
+        17
+      ],
+      "loot": "aetherium:chests/citadel_supplies",
+      "roof": "solid",
+      "offset": [
+        -2,
+        0,
+        120
+      ],
+      "rotation": "NONE",
+      "mirror": "NONE",
+      "doors": {
+        "north": "arena_shell",
+        "south": "sanctum"
+      },
+      "doorRoles": {
+        "north": "entry",
+        "south": "exit"
+      }
+    },
+    {
+      "id": "sanctum",
+      "size": [
+        31,
+        19,
+        31
+      ],
+      "kind": "sanctum",
+      "chest": [
+        5,
+        1,
+        24
+      ],
+      "loot": "aetherium:chests/citadel_reliquary",
+      "roof": "open",
+      "offset": [
+        -6,
+        0,
+        143
+      ],
+      "rotation": "NONE",
+      "mirror": "NONE",
+      "doors": {
+        "north": "threshold"
+      },
+      "doorRoles": {
+        "north": "entry"
+      }
+    },
+    {
+      "id": "crypt",
+      "size": [
+        17,
+        11,
+        17
+      ],
+      "kind": "crypt",
+      "chest": [
+        12,
+        1,
+        12
+      ],
+      "loot": "aetherium:chests/citadel_archive",
+      "roof": "solid",
+      "offset": [
+        15,
+        0,
+        15
+      ],
+      "rotation": "NONE",
+      "mirror": "NONE",
+      "doors": {
+        "west": "corridor"
+      },
+      "doorRoles": {
+        "west": "entry"
+      }
+    },
+    {
+      "id": "forge",
+      "size": [
+        17,
+        10,
+        17
+      ],
+      "kind": "forge",
+      "chest": [
+        4,
+        1,
+        12
+      ],
+      "loot": "aetherium:chests/citadel_guardhouse",
+      "roof": "solid",
+      "offset": [
+        -16,
+        0,
+        32
+      ],
+      "rotation": "NONE",
+      "mirror": "NONE",
+      "doors": {
+        "east": "guardhouse"
+      },
+      "doorRoles": {
+        "east": "entry"
+      }
+    },
+    {
+      "id": "watchtower",
+      "size": [
+        11,
+        24,
+        11
+      ],
+      "kind": "tower",
+      "chest": [
+        5,
+        9,
+        5
+      ],
+      "loot": "aetherium:chests/citadel_supplies",
+      "roof": "open",
+      "offset": [
+        23,
+        0,
+        57
+      ],
+      "rotation": "NONE",
+      "mirror": "NONE",
+      "doors": {
+        "west": "courtyard"
+      },
+      "doorRoles": {
+        "west": "entry"
+      }
+    },
+    {
+      "id": "barracks",
+      "size": [
+        17,
+        10,
+        17
+      ],
+      "kind": "combat",
+      "chest": [
+        4,
+        1,
+        12
+      ],
+      "loot": "aetherium:chests/citadel_guardhouse",
+      "roof": "solid",
+      "extraChests": [
+        {
+          "pos": [
+            12,
+            1,
+            4
+          ],
+          "loot": "aetherium:chests/citadel_supplies"
+        }
+      ],
+      "offset": [
+        -21,
+        0,
+        54
+      ],
+      "rotation": "CLOCKWISE_180",
+      "mirror": "NONE",
+      "doors": {
+        "west": "courtyard"
+      },
+      "doorRoles": {
+        "west": "entry"
+      }
+    },
+    {
+      "id": "prison",
+      "size": [
+        17,
+        10,
+        17
+      ],
+      "kind": "prison",
+      "chest": [
+        4,
+        1,
+        12
+      ],
+      "loot": "aetherium:chests/citadel_supplies",
+      "roof": "solid",
+      "spawner": {
+        "pos": [
+          5,
+          1,
+          5
+        ],
+        "mob": "minecraft:zombie"
+      },
+      "offset": [
+        18,
+        0,
+        76
+      ],
+      "rotation": "NONE",
+      "mirror": "NONE",
+      "doors": {
+        "west": "archive"
+      },
+      "doorRoles": {
+        "west": "entry"
+      }
+    },
+    {
+      "id": "east_bastion",
+      "size": [
+        11,
+        24,
+        11
+      ],
+      "kind": "tower",
+      "chest": [
+        5,
+        9,
+        5
+      ],
+      "loot": "aetherium:chests/citadel_guardhouse",
+      "roof": "open",
+      "offset": [
+        23,
+        0,
+        101
+      ],
+      "rotation": "CLOCKWISE_180",
+      "mirror": "NONE",
+      "doors": {
+        "east": "arena_shell"
+      },
+      "doorRoles": {
+        "east": "entry"
+      }
+    },
+    {
+      "id": "west_gallery",
+      "size": [
+        17,
+        11,
+        17
+      ],
+      "kind": "gallery",
+      "chest": [
+        4,
+        1,
+        12
+      ],
+      "loot": "aetherium:chests/citadel_archive",
+      "roof": "solid",
+      "extraChests": [
+        {
+          "pos": [
+            12,
+            1,
+            4
+          ],
+          "loot": "aetherium:chests/citadel_supplies"
+        }
+      ],
+      "offset": [
+        -21,
+        0,
+        98
+      ],
+      "rotation": "CLOCKWISE_180",
+      "mirror": "NONE",
+      "doors": {
+        "west": "arena_shell"
+      },
+      "doorRoles": {
+        "west": "entry"
+      }
+    },
+    {
+      "id": "catacombs",
+      "size": [
+        17,
+        10,
+        17
+      ],
+      "kind": "catacombs",
+      "chest": [
+        12,
+        1,
+        12
+      ],
+      "loot": "aetherium:chests/citadel_reliquary",
+      "roof": "solid",
+      "spawner": {
+        "pos": [
+          5,
+          1,
+          8
+        ],
+        "mob": "minecraft:spider"
+      },
+      "underground": true,
+      "offset": [
+        15,
+        -10,
+        15
+      ],
+      "rotation": "NONE",
+      "mirror": "NONE",
+      "doors": {},
+      "doorRoles": {}
+    },
+    {
+      "id": "archive_vault",
+      "size": [
+        17,
+        9,
+        17
+      ],
+      "kind": "vault",
+      "chest": [
+        12,
+        1,
+        12
+      ],
+      "loot": "aetherium:chests/citadel_reliquary",
+      "roof": "solid",
+      "underground": true,
+      "offset": [
+        1,
+        -9,
+        76
+      ],
+      "rotation": "NONE",
+      "mirror": "NONE",
+      "doors": {},
+      "doorRoles": {}
+    }
+  ],
+  "naturalGeneration": true,
+  "pools": [
+    "start",
+    "corridor",
+    "guardhouse",
+    "archive",
+    "arena",
+    "crypt",
+    "forge",
+    "courtyard",
+    "threshold",
+    "sanctum",
+    "watchtower",
+    "barracks",
+    "prison",
+    "east_bastion",
+    "west_gallery",
+    "catacombs",
+    "archive_vault"
+  ],
+  "maxConnectedModules": 17
+}

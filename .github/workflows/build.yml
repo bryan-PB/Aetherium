@@ -1,13 +1,17 @@
-name: Compilar Aetherium
+name: Compilar Kryzorae
 
 on:
   push:
     branches:
       - main
+      - fix/boss-attack-visibility
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -123,26 +127,44 @@ jobs:
               )
               wrapper_properties.write_text(wrapper_text, encoding="utf-8")
 
-          (root / "README.md").write_text(
-              "# Aetherium\n\n"
-              "Mod para Minecraft 1.16.5 con Forge 36.2.42.\n\n"
-              "Requiere JDK 8. Compilar con `gradlew build` (Windows: `gradlew.bat build`). "
-              "El JAR se genera en `build/libs/`.\n\n"
-              "Curios es opcional; los accesorios pueden equiparse en los slots Necklace y Ring "
-              "cuando Curios está instalado. Las habilidades de uso directo funcionan sin Curios.\n\n"
-              "Estado: compilación automática en validación; no considerar estable hasta completar "
-              "la compilación y pruebas dentro del juego.\n",
-              encoding="utf-8"
-          )
           PY
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "Expandir fuentes y corregir compatibilidad Forge 1.16.5"
-            git push origin HEAD:main
-          fi
+          # The compatibility fixes are strictly local to this CI workspace.
+          # Never commit or push changes into main from a pull-request build.
+
+      - name: Preparar codificador de audio
+        uses: AnimMouse/setup-ffmpeg@v1
+
+      - name: Generar audio original de Kryzorae
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v ffmpeg
+          command -v ffprobe
+          python3 -m py_compile tools/generate_aetherium_sounds.py
+          python3 tools/generate_aetherium_sounds.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          import subprocess
+
+          root = Path('src/main/resources/assets/aetherium')
+          sound_events = json.loads((root / 'sounds.json').read_text(encoding='utf-8'))
+          for event, definition in sound_events.items():
+              for entry in definition.get('sounds', []):
+                  name = entry['name'] if isinstance(entry, dict) else entry
+                  relative = name.partition(':')[2]
+                  path = root / 'sounds' / (relative + '.ogg')
+                  if not path.is_file():
+                      raise SystemExit('Missing sound: ' + str(path))
+                  duration = float(subprocess.check_output([
+                      'ffprobe', '-v', 'error', '-show_entries',
+                      'format=duration', '-of', 'default=nw=1:nk=1', str(path)
+                  ], text=True).strip())
+                  if duration < .2:
+                      raise SystemExit('Too-short or truncated audio: ' + str(path))
+          print('All registered original and existing OGG sound assets were validated.')
+          PY
 
       - name: Compilar mod
         shell: bash
@@ -150,11 +172,222 @@ jobs:
           set -euo pipefail
           cd "$AETHERIUM_PROJECT_DIR"
           gradle --version
+          # Gradle must generate the Citadel NBTs as a build dependency.
+          # Avoid generating them here, so CI catches missing local-build wiring.
+          python3 tools/generate_intermediate_equipment_art.py
+          python3 tools/generate_custom_armor_art.py
           gradle build --no-daemon
+          python3 tools/check_armor_arm_coverage.py
+          python3 tools/check_sword_combat.py
+          python3 tools/check_boss_redesign.py
+          python3 tools/check_boss_balance.py
+          python3 tools/check_crimson_combo_resistance.py
+          python3 tools/check_boss_stability.py
+          python3 tools/check_first_minerals.py
+          python3 tools/check_citadel_templates.py
+          python3 tools/check_citadel_worldgen.py
+          python3 tools/check_approved_visual_assets.py
+          python3 tools/check_intermediate_equipment.py
+          python3 tools/check_guide_book.py
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json
+          import struct
+          import zlib
+
+          root = Path('src/main/resources/assets/aetherium')
+          events = json.loads((root / 'sounds.json').read_text(encoding='utf-8'))
+          sound_files = {
+              'assets/aetherium/sounds/' +
+              (entry['name'] if isinstance(entry, dict) else entry).split(':', 1)[1] + '.ogg'
+              for event in events.values() for entry in event.get('sounds', [])
+          }
+          jars = [p for p in Path('build/libs').glob('*.jar')
+                  if not p.name.endswith('-sources.jar')]
+          if not jars:
+              raise SystemExit('No compiled mod JAR was found')
+          texture_name = 'assets/aetherium/textures/entity/boss/winged_executioner.png'
+          for jar in jars:
+              with ZipFile(jar) as z:
+                  included = set(z.namelist())
+                  if texture_name not in included:
+                      raise SystemExit(f'{jar} is missing the new Winged Executioner texture')
+                  png = z.read(texture_name)
+              missing = sound_files - included
+              if missing:
+                  raise SystemExit(f'{jar} is missing {len(missing)} OGG resources: {sorted(missing)}')
+              if 'assets/aetherium/sounds.json' not in included:
+                  raise SystemExit(f'{jar} lacks sounds.json')
+              if not png.startswith(b'\x89PNG\r\n\x1a\n'):
+                  raise SystemExit('Winged Executioner is not a PNG texture')
+              width, height = struct.unpack('>II', png[16:24])
+              if (width, height) != (128, 128):
+                  raise SystemExit(f'Wrong Winged Executioner texture size: {width}x{height}')
+              chunks = []
+              offset = 8
+              while offset + 12 <= len(png):
+                  length, = struct.unpack('>I', png[offset:offset + 4])
+                  name = png[offset + 4:offset + 8]
+                  data = png[offset + 8:offset + 8 + length]
+                  expected_crc, = struct.unpack('>I', png[offset + 8 + length:offset + 12 + length])
+                  if zlib.crc32(name + data) != expected_crc:
+                      raise SystemExit('Winged Executioner PNG has a bad chunk CRC')
+                  if name == b'IDAT':
+                      chunks.append(data)
+                  offset += 12 + length
+                  if name == b'IEND':
+                      break
+              pixels = zlib.decompress(b''.join(chunks))
+              if len(pixels) != 128 * 129:
+                  raise SystemExit('Winged Executioner PNG pixel data is truncated')
+              print(f'Validated 128x128 executioner texture and {len(sound_files)} audio files in {jar.name}')
+              # Both tiers must ship real item sprites AND separate worn armor
+              # layers. Old 16x16 blue/purple resources must not be mistaken for
+              # the new, hand-authored 32x32 designs.
+              gear = []
+              for tier in ('aetherium', 'astral'):
+                  for item in ('sword', 'axe', 'pickaxe',
+                               'helmet', 'chestplate', 'leggings', 'boots'):
+                      size = (64, 64) if item == 'sword' else (32, 32)
+                      gear.append((f'assets/aetherium/textures/item/{tier}_{item}.png', size))
+                  for layer in (1, 2):
+                      gear.append((f'assets/aetherium/textures/models/armor/{tier}_layer_{layer}.png',
+                                   (256, 128)))
+              # Also verify the separate 18px harmful-effect inventory icon.
+              gear.append(('assets/aetherium/textures/mob_effect/bleeding.png', (18, 18)))
+              with ZipFile(jar) as z:
+                  for asset, expected_dimensions in gear:
+                      if asset not in included:
+                          raise SystemExit(f'{jar.name} is missing equipment texture {asset}')
+                      data = z.read(asset)
+                      if not data.startswith(b'\x89PNG\r\n\x1a\n'):
+                          raise SystemExit(f'Invalid equipment PNG signature: {asset}')
+                      w, h = struct.unpack('>II', data[16:24])
+                      if (w, h) != expected_dimensions:
+                          raise SystemExit(f'Wrong equipment dimensions for {asset}: {w}x{h}')
+                      # Validate every PNG chunk and the compressed pixel data.
+                      pos, compressed, ended = 8, [], False
+                      while pos + 12 <= len(data):
+                          length, = struct.unpack('>I', data[pos:pos+4])
+                          chunk = data[pos+4:pos+8]
+                          payload = data[pos+8:pos+8+length]
+                          if len(payload) != length or pos + 12 + length > len(data):
+                              raise SystemExit(f'Truncated PNG chunk: {asset}')
+                          expected_crc, = struct.unpack('>I', data[pos+8+length:pos+12+length])
+                          if zlib.crc32(chunk + payload) != expected_crc:
+                              raise SystemExit(f'Corrupt PNG chunk: {asset}')
+                          if chunk == b'IDAT':
+                              compressed.append(payload)
+                          pos += 12 + length
+                          if chunk == b'IEND':
+                              ended = True
+                              break
+                      if not ended or not compressed:
+                          raise SystemExit(f'Missing equipment PNG pixel data: {asset}')
+                      pixel_bytes = zlib.decompress(b''.join(compressed))
+                      depth, color_type = data[24], data[25]
+                      # Sprite art is indexed (with transparency) and worn armor
+                      # is indexed opaque. Accept valid 8-bit RGBA too.
+                      channels = {2: 3, 3: 1, 6: 4}.get(color_type)
+                      if depth != 8 or channels is None:
+                          raise SystemExit(f'Unsupported PNG color mode for {asset}: {depth}/{color_type}')
+                      if len(pixel_bytes) != h * (1 + w * channels):
+                          raise SystemExit(f'Truncated equipment pixel data: {asset}')
+              print(f'Validated {len(gear)} weapon, armor and bleeding-icon textures in {jar.name}')
+              with ZipFile(jar) as z:
+                  for classname in (
+                      'com/aetherium/aetherium/content/effect/BleedingEffect.class',
+                      'com/aetherium/aetherium/content/projectile/DarkSlashEntity.class',
+                      'com/aetherium/aetherium/client/renderer/DarkSlashRenderer.class',
+                      'com/aetherium/aetherium/client/renderer/BossMirageRenderer.class',
+                      'com/aetherium/aetherium/client/renderer/AetherBoltRenderer.class'):
+                      if classname not in included:
+                          raise SystemExit(f'Missing new combat class: {classname}')
+              print('Validated registered bleeding effect and visible dark slash classes')
+              # Prevent the original missing-arm-texture regression: both
+              # 256x128 worn-layer atlases must have real pixel-art material
+              # variation in the arm and pauldron UV zones.
+              with ZipFile(jar) as z:
+                  for tier in ('aetherium', 'astral'):
+                      name = f'assets/aetherium/textures/models/armor/{tier}_layer_1.png'
+                      png = z.read(name)
+                      cursor, idat = 8, []
+                      while cursor + 12 <= len(png):
+                          n, = struct.unpack('>I', png[cursor:cursor+4])
+                          tag = png[cursor+4:cursor+8]
+                          if tag == b'IDAT':
+                              idat.append(png[cursor+8:cursor+8+n])
+                          cursor += n + 12
+                          if tag == b'IEND':
+                              break
+                      if png[25] != 3:
+                          raise SystemExit(f'Expected indexed armor atlas: {name}')
+                      raw = zlib.decompress(b''.join(idat))
+                      if any(raw[y * 257] != 0 for y in range(128)):
+                          raise SystemExit(f'Unexpected PNG filters in armor atlas: {name}')
+                      def uv_colors(x0, y0, x1, y1):
+                          return {raw[y*257+1+x] for y in range(y0, y1)
+                                  for x in range(x0, x1)}
+                      if len(uv_colors(128, 0, 188, 47)) < 8:
+                          raise SystemExit(f'Arm UVs are too flat: {name}')
+                      if len(uv_colors(128, 64, 190, 121)) < 8:
+                          raise SystemExit(f'Pauldron UVs are too flat: {name}')
+              print('Validated visible arm and shoulder texture variation in both armor sets')
+          PY
+
+      - name: Prueba de arranque de registros en Forge (sin servidor EULA)
+        id: forge_startup
+        shell: bash
+        timeout-minutes: 6
+        run: |
+          set -euo pipefail
+          cd "$AETHERIUM_PROJECT_DIR"
+          # Loads mod registries and configured worldgen without a Minecraft server.
+          # Limit the persistent Gradle daemon to 1 GiB and the separate Forge
+          # data JVM (configured in build.gradle) to 1 GiB. This avoids two
+          # potentially multi-gigabyte Java processes on the same CI worker.
+          # Prevent Forge 1.16.5 from writing a half-corrected fml.toml
+          # while its NightConfig file watcher is already reading it.
+          mkdir -p run/config
+          cat > run/config/fml.toml <<'TOML'
+          defaultConfigPath = "defaultconfigs"
+          maxThreads = -1
+          TOML
+          echo "Available memory before Forge smoke test:"
+          free -h || true
+          set +e
+          gradle runData --daemon --no-parallel --max-workers=1 --console=plain --stacktrace \
+            '-Dorg.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=384m -Dfile.encoding=UTF-8'
+          result=$?
+          set -e
+          if (( result != 0 )); then
+            echo "::error::Forge data registry startup exited with status $result"
+            echo "Memory after failure:"
+            free -h || true
+            echo "Processes:"
+            ps -eo pid,ppid,rss,args --sort=-rss | head -25 || true
+            echo "JVM crash files (if any):"
+            find "$AETHERIUM_PROJECT_DIR" "$HOME/.gradle" -name 'hs_err_pid*.log' -print -exec head -70 {} \; 2>/dev/null || true
+            exit "$result"
+          fi
+          echo "Forge runData completed with exit code 0."
+
+      - name: Informar resultado real de prueba de arranque
+        if: always()
+        shell: bash
+        run: |
+          if [[ "${{ steps.forge_startup.outcome }}" == "success" ]]; then
+            echo "Forge runData: PASO" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::Forge runData no paso: el JAR compilo, pero el arranque de registros NO ESTA CERTIFICADO. Revisa los logs."
+            echo "Forge runData: NO VERIFICADO (revisar logs; no confundir con una prueba exitosa)" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Subir JAR compilado
+        if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: Aetherium-jar
+          name: Kryzorae-jar
           path: ${{ env.AETHERIUM_PROJECT_DIR }}/build/libs/*.jar
           if-no-files-found: error

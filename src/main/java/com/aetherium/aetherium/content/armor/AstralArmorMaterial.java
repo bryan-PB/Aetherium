@@ -5,7 +5,6 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.IArmorMaterial;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
 
 /** The rare endgame armor material, repaired with Astral Ingots. */
 public final class AstralArmorMaterial implements IArmorMaterial {
@@ -21,7 +20,7 @@ public final class AstralArmorMaterial implements IArmorMaterial {
     }
     @Override public int getDefenseForSlot(EquipmentSlotType slot) { return DEFENSE[slot.getIndex()]; }
     @Override public int getEnchantmentValue() { return 22; }
-    @Override public SoundEvent getEquipSound() { return SoundEvents.ARMOR_EQUIP_NETHERITE; }
+    @Override public SoundEvent getEquipSound() { return RegistryHandler.ASTRAL_EQUIP.get(); }
     @Override public Ingredient getRepairIngredient() { return Ingredient.of(RegistryHandler.ASTRAL_INGOT.get()); }
     @Override public String getName() { return "aetherium:astral"; }
     @Override public float getToughness() { return 5.0F; }

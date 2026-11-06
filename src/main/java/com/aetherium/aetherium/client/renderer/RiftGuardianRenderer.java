@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.util.ResourceLocation;
 
+/** Guardian renderer draws the real creature only; copies render as entities. */
 public class RiftGuardianRenderer extends MobRenderer<RiftGuardianEntity, RiftGuardianModel> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AetheriumMod.MOD_ID,
             "textures/entity/boss/rift_guardian.png");

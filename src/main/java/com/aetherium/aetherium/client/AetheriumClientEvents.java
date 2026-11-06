@@ -5,8 +5,9 @@ import com.aetherium.aetherium.client.renderer.LumiveloRenderer;
 import com.aetherium.aetherium.client.renderer.RiftStalkerRenderer;
 import com.aetherium.aetherium.client.renderer.RiftGuardianRenderer;
 import com.aetherium.aetherium.client.renderer.AstralDevourerRenderer;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.SpriteRenderer;
+import com.aetherium.aetherium.client.renderer.BossMirageRenderer;
+import com.aetherium.aetherium.client.renderer.DarkSlashRenderer;
+import com.aetherium.aetherium.client.renderer.AetherBoltRenderer;
 import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -26,9 +27,11 @@ public final class AetheriumClientEvents {
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.LUMIVELO.get(), LumiveloRenderer::new);
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.RIFT_GUARDIAN.get(), RiftGuardianRenderer::new);
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.ASTRAL_DEVOURER.get(), AstralDevourerRenderer::new);
-            // A larger full-bright sprite makes the moving bolt readable; its entity adds a continuous light trail.
+            RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.BOSS_MIRAGE.get(), BossMirageRenderer::new);
+            RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.DARK_SLASH.get(), DarkSlashRenderer::new);
+            // Each boss now has its own volumetric blade/air-crescent attack mesh.
             RenderingRegistry.registerEntityRenderingHandler(RegistryHandler.AETHER_BOLT.get(),
-                    manager -> new SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer(), 2.35F, true));
+                    AetherBoltRenderer::new);
         });
     }
 }

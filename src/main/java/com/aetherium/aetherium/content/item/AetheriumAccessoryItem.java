@@ -1,5 +1,6 @@
 package com.aetherium.aetherium.content.item;
 
+import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -8,7 +9,6 @@ import net.minecraft.potion.Effects;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.world.World;
 
 
@@ -40,7 +40,7 @@ public class AetheriumAccessoryItem extends Item {
                 player.getCooldowns().addCooldown(this, 20 * 90);
             }
             world.playSound(null, player.getX(), player.getY(), player.getZ(),
-                    SoundEvents.ENCHANTMENT_TABLE_USE, SoundCategory.PLAYERS, 0.7F, 1.15F);
+                    RegistryHandler.RELIC_ACTIVATION.get(), SoundCategory.PLAYERS, 0.76F, 1.03F);
         }
         return ActionResult.sidedSuccess(stack, world.isClientSide);
     }

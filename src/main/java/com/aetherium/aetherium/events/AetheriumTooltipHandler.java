@@ -19,5 +19,11 @@ public final class AetheriumTooltipHandler {
         if (id == null || !AetheriumMod.MOD_ID.equals(id.getNamespace())) return;
         String key = "tooltip.aetherium.item." + id.getPath();
         event.getToolTip().add(new TranslationTextComponent(key).withStyle(TextFormatting.GRAY));
+        // Sword mechanics need two short, readable lines rather than one very
+        // wide tooltip that can extend beyond Minecraft's inventory screen.
+        if ("aetherium_sword".equals(id.getPath()) || "astral_sword".equals(id.getPath())) {
+            event.getToolTip().add(new TranslationTextComponent(key + ".detail")
+                    .withStyle(TextFormatting.DARK_GRAY));
+        }
     }
 }

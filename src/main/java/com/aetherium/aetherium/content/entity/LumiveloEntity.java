@@ -19,7 +19,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
@@ -28,6 +27,7 @@ import java.util.List;
 
 /** A shy, crystal-grazing animal that lures toward raw Aetherium and reveals nearby threats. */
 public class LumiveloEntity extends AnimalEntity {
+    private int lastThreatChimeTick = -200;
     public LumiveloEntity(EntityType<? extends LumiveloEntity> type, World world) {
         super(type, world);
         this.xpReward = 3;
@@ -62,6 +62,7 @@ public class LumiveloEntity extends AnimalEntity {
                 for (MonsterEntity threat : threats) {
                     threat.addEffect(new EffectInstance(Effects.GLOWING, 60, 0, true, false));
                 }
+                this.lastThreatChimeTick = this.tickCount;
                 this.playSound(RegistryHandler.LUMIVELO_CHIME.get(), 0.42F, 1.05F);
                 if (this.level instanceof ServerWorld) {
                     ((ServerWorld)this.level).sendParticles(ParticleTypes.END_ROD,
@@ -84,17 +85,18 @@ public class LumiveloEntity extends AnimalEntity {
 
     @Override
     protected net.minecraft.util.SoundEvent getAmbientSound() {
-        return RegistryHandler.LUMIVELO_CHIME.get();
+        return this.tickCount - this.lastThreatChimeTick < 80
+                ? null : RegistryHandler.LUMIVELO_CHIME.get();
     }
 
     @Override
     protected net.minecraft.util.SoundEvent getHurtSound(net.minecraft.util.DamageSource source) {
-        return SoundEvents.FOX_HURT;
+        return RegistryHandler.LUMIVELO_HURT.get();
     }
 
     @Override
     protected net.minecraft.util.SoundEvent getDeathSound() {
-        return SoundEvents.FOX_DEATH;
+        return RegistryHandler.LUMIVELO_DEATH.get();
     }
 
     @Override

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "side": "aetherium:block/umbracita_ore",
+    "top": "aetherium:block/umbracita_ore_top",
+    "bottom": "aetherium:block/umbracita_ore"
+  }
+}

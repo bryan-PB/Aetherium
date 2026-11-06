@@ -1,5 +1,6 @@
 package com.aetherium.aetherium.content.item;
 
+import com.aetherium.aetherium.registry.RegistryHandler;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -7,7 +8,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
@@ -31,7 +31,7 @@ public class AetheriumMagnetItem extends Item {
             player.displayClientMessage(new TranslationTextComponent(
                     active ? "message.aetherium.magnet_on" : "message.aetherium.magnet_off"), true);
             world.playSound(null, player.getX(), player.getY(), player.getZ(),
-                    active ? SoundEvents.ENDER_EYE_LAUNCH : SoundEvents.LEVER_CLICK,
+                    active ? RegistryHandler.MAGNET_ON.get() : RegistryHandler.MAGNET_OFF.get(),
                     SoundCategory.PLAYERS, 0.55F, active ? 1.25F : 0.8F);
         }
         return ActionResult.sidedSuccess(stack, world.isClientSide);

@@ -13,6 +13,11 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
     private final ModelRenderer leftHand, rightHand, leftLeg, rightLeg, leftShin, rightShin;
     private final ModelRenderer leftBoot, rightBoot, greatsword, swordGuard, swordGrip, swordPommel;
     private final ModelRenderer[] chestRibs = new ModelRenderer[3];
+    private final ModelRenderer rageCrest, backFinLeft, backFinRight, bladeFangLeft, bladeFangRight;
+    private final ModelRenderer brokenRiftHalo, bladeCore;
+    private final ModelRenderer[] haloShards = new ModelRenderer[9];
+    private float phaseTintRed = 1.0F;
+    private float phaseTintGreen = 1.0F;
 
     public RiftGuardianModel() {
         texWidth = 64;
@@ -49,6 +54,12 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         hornRight.zRot = 0.2F;
         head.addChild(hornRight);
 
+        // During phase II a central broken helm crest makes the head read as a war crown.
+        rageCrest = new ModelRenderer(this, 40, 8);
+        rageCrest.setPos(0.0F, -4.9F, -0.5F);
+        rageCrest.addBox(-1.3F, -6.5F, -1.0F, 2.6F, 6.7F, 2.0F);
+        head.addChild(rageCrest);
+
         neck = new ModelRenderer(this, 0, 0);
         neck.setPos(0.0F, -8.2F, 0.0F);
         neck.addBox(-2.8F, -0.4F, -2.8F, 5.6F, 4.0F, 5.6F);
@@ -68,6 +79,27 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         backPlate.setPos(0.0F, -4.5F, 4.2F);
         backPlate.addBox(-5.0F, -3.0F, 0.0F, 10.0F, 6.0F, 1.3F);
         body.addChild(backPlate);
+
+        // The awakened armor carries a broken halo of floating rift plates.
+        brokenRiftHalo = new ModelRenderer(this, 52, 0);
+        brokenRiftHalo.setPos(0.0F, -12.8F, 5.7F);
+        body.addChild(brokenRiftHalo);
+        for (int i = 0; i < haloShards.length; i++) {
+            haloShards[i] = new ModelRenderer(this, 40, 16);
+            haloShards[i].addBox(-1.8F, -0.7F, -0.6F, 3.6F, 1.4F, 1.2F);
+            brokenRiftHalo.addChild(haloShards[i]);
+        }
+
+        // Armored void fins fold out from the back only when the armor awakens.
+        backFinLeft = new ModelRenderer(this, 40, 16);
+        backFinLeft.setPos(5.0F, -5.4F, 4.0F);
+        backFinLeft.addBox(0.0F, -10.0F, -0.8F, 2.0F, 10.0F, 1.6F);
+        body.addChild(backFinLeft);
+        backFinRight = new ModelRenderer(this, 40, 16);
+        backFinRight.setPos(-5.0F, -5.4F, 4.0F);
+        backFinRight.addBox(-2.0F, -10.0F, -0.8F, 2.0F, 10.0F, 1.6F);
+        body.addChild(backFinRight);
+
         for (int i = 0; i < chestRibs.length; i++) {
             chestRibs[i] = new ModelRenderer(this, 32, 20);
             chestRibs[i].setPos(0.0F, 2.0F + i * 2.0F, -4.62F);
@@ -130,6 +162,22 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         swordPommel.setPos(0.0F, 5.0F, 0.0F);
         swordPommel.addBox(-1.1F, -0.5F, -0.8F, 2.2F, 1.8F, 1.6F);
         greatsword.addChild(swordPommel);
+
+        // A raised dimensional channel runs down the blade in the awakened form.
+        bladeCore = new ModelRenderer(this, 0, 42);
+        bladeCore.setPos(0.0F, -8.5F, -0.75F);
+        bladeCore.addBox(-0.7F, -6.7F, -0.3F, 1.4F, 13.2F, 0.65F);
+        greatsword.addChild(bladeCore);
+
+        // Two cleaving teeth extend from the awakened greatsword's midsection.
+        bladeFangLeft = new ModelRenderer(this, 40, 16);
+        bladeFangLeft.setPos(-1.5F, -9.0F, 0.0F);
+        bladeFangLeft.addBox(-2.5F, -3.1F, -0.6F, 2.5F, 3.1F, 1.2F);
+        greatsword.addChild(bladeFangLeft);
+        bladeFangRight = new ModelRenderer(this, 40, 16);
+        bladeFangRight.setPos(1.5F, -9.0F, 0.0F);
+        bladeFangRight.addBox(0.0F, -3.1F, -0.6F, 2.5F, 3.1F, 1.2F);
+        greatsword.addChild(bladeFangRight);
         rightHand.addChild(greatsword);
 
         leftLeg = new ModelRenderer(this, 0, 0);
@@ -164,44 +212,97 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         float idle = MathHelper.sin(ageInTicks * 0.07F);
         int state = entity.getAttackState();
         float timer = entity.getAttackAnimationTicks();
-        float windup = state == 1 ? MathHelper.clamp((timer - 12.0F) / 12.0F, 0.0F, 1.0F) : 0.0F;
-        float impact = state == 1 ? MathHelper.clamp((12.0F - timer) / 12.0F, 0.0F, 1.0F) : 0.0F;
+        // The slam and sweep both deal damage at timer 11: raise, strike, then recover.
+        // Make the strongest weapon motion land on that frame rather than several ticks later.
+        float weaponRaise = MathHelper.clamp((24.0F - timer) / 10.0F, 0.0F, 1.0F)
+                * MathHelper.clamp((timer - 11.0F) / 3.0F, 0.0F, 1.0F);
+        float weaponStrike = MathHelper.clamp((14.0F - timer) / 3.0F, 0.0F, 1.0F)
+                * MathHelper.clamp((timer - 1.0F) / 10.0F, 0.0F, 1.0F);
+        // New double-fracture: distinct sword lifts and impacts at ticks 20 and 8.
+        float fractureRaise = state == 7 ? Math.max(
+                MathHelper.clamp((36.0F - timer) / 9.0F, 0.0F, 1.0F)
+                        * MathHelper.clamp((timer - 20.0F) / 4.0F, 0.0F, 1.0F),
+                MathHelper.clamp((20.0F - timer) / 5.0F, 0.0F, 1.0F)
+                        * MathHelper.clamp((timer - 8.0F) / 4.0F, 0.0F, 1.0F)) : 0.0F;
+        float fractureStrike = state == 7 ? Math.max(
+                MathHelper.clamp((23.0F - timer) / 3.0F, 0.0F, 1.0F)
+                        * MathHelper.clamp((timer - 13.0F) / 7.0F, 0.0F, 1.0F),
+                MathHelper.clamp((11.0F - timer) / 3.0F, 0.0F, 1.0F)
+                        * MathHelper.clamp((timer - 1.0F) / 7.0F, 0.0F, 1.0F)) : 0.0F;
+        float windup = (state == 1 ? weaponRaise : 0.0F) + fractureRaise;
+        float impact = (state == 1 ? weaponStrike : 0.0F) + fractureStrike;
         float volley = state == 2 ? 1.0F : 0.0F;
+        float windCharge = volley * MathHelper.clamp((28.0F - timer) / 12.0F, 0.0F, 1.0F);
+        float windRecoil = volley * (Math.abs(timer - 16.0F) <= 2.0F
+                || Math.abs(timer - 7.0F) <= 2.0F ? 1.0F : 0.0F);
         float chargeWindup = state == 4 ? MathHelper.clamp((timer - 12.0F) / 12.0F, 0.0F, 1.0F) : 0.0F;
         float chargeRush = state == 4 ? 1.0F - chargeWindup : 0.0F;
         float stagger = state == 5 ? MathHelper.clamp(timer / 50.0F, 0.0F, 1.0F) : 0.0F;
         float phaseShift = state == 6
                 ? MathHelper.sin(MathHelper.clamp(1.0F - timer / 48.0F, 0.0F, 1.0F) * (float)Math.PI)
                 : 0.0F;
-        float sweepWindup = state == 3 ? MathHelper.clamp((timer - 12.0F) / 12.0F, 0.0F, 1.0F) : 0.0F;
-        float sweep = state == 3 ? MathHelper.sin(MathHelper.clamp((12.0F - timer) / 12.0F, 0.0F, 1.0F) * (float)Math.PI) : 0.0F;
+        float sweepWindup = state == 3 ? weaponRaise : 0.0F;
+        float sweep = state == 3 ? weaponStrike : 0.0F;
         float rage = entity.getPhase() >= 2 ? 1.0F : 0.0F;
+        rageCrest.visible = rage > 0.0F;
+        backFinLeft.visible = rage > 0.0F;
+        backFinRight.visible = rage > 0.0F;
+        bladeFangLeft.visible = rage > 0.0F;
+        bladeFangRight.visible = rage > 0.0F;
+        bladeCore.visible = rage > 0.0F;
+        brokenRiftHalo.visible = rage > 0.0F;
+        brokenRiftHalo.zRot = ageInTicks * 0.008F;
+        for (int i = 0; i < haloShards.length; i++) {
+            float angle = (float)(Math.PI * 2.0D * i / haloShards.length);
+            haloShards[i].x = MathHelper.cos(angle) * 11.2F;
+            haloShards[i].y = MathHelper.sin(angle) * 8.5F;
+            haloShards[i].zRot = angle + (float)Math.PI * 0.5F;
+        }
+        backFinLeft.zRot = 0.40F + MathHelper.sin(ageInTicks * 0.065F) * 0.045F;
+        backFinRight.zRot = -backFinLeft.zRot;
+        bladeFangLeft.zRot = 0.35F;
+        bladeFangRight.zRot = -0.35F;
+        // A colder void hue makes the second phase apparent even between attacks.
+        this.phaseTintRed = rage > 0.0F ? 0.78F : 1.0F;
+        this.phaseTintGreen = rage > 0.0F ? 0.68F : 1.0F;
+        float death = MathHelper.clamp(entity.deathTime / 20.0F, 0.0F, 1.0F);
 
         head.yRot = netHeadYaw * ((float)Math.PI / 180.0F);
         head.xRot = headPitch * ((float)Math.PI / 180.0F) - windup * 0.12F
-                + impact * 0.2F + stagger * 0.18F;
+                + impact * 0.2F + stagger * 0.18F + death * 0.28F;
         jaw.xRot = MathHelper.sin(ageInTicks * 0.08F) * 0.035F + rage * 0.1F;
-        hornLeft.zRot = -0.2F - rage * 0.08F + idle * 0.025F;
+        hornLeft.zRot = -0.2F - rage * 0.45F + idle * 0.025F;
         hornRight.zRot = -hornLeft.zRot;
+        hornLeft.xRot = -rage * 0.12F;
+        hornRight.xRot = -rage * 0.12F;
 
         body.y = idle * 0.14F + windup * 0.35F - impact * 0.4F;
-        body.xRot = -windup * 0.14F + impact * 0.24F + chargeWindup * 0.12F
-                - chargeRush * 0.48F + stagger * 0.22F - phaseShift * 0.24F;
-        chestPlate.xRot = -windup * 0.05F + impact * 0.1F - phaseShift * 0.32F;
+        body.xRot = -windup * 0.14F + impact * 0.24F - windCharge * 0.12F
+                + windRecoil * 0.13F + chargeWindup * 0.12F
+                - chargeRush * 0.48F + stagger * 0.22F - phaseShift * 0.24F
+                + death * 0.82F;
+        chestPlate.xRot = -windup * 0.05F + impact * 0.1F - phaseShift * 0.32F
+                - rage * 0.08F;
         core.y = -0.2F - phaseShift * 0.62F
                 + MathHelper.sin(ageInTicks * (0.16F + rage * 0.12F)) * (0.3F + rage * 0.25F);
         core.xRot = phaseShift * 0.7F;
         core.zRot = ageInTicks * (0.025F + rage * 0.035F + phaseShift * 0.13F);
-        backPlate.xRot = 0.08F + rage * 0.2F;
+        backPlate.xRot = 0.08F + rage * 0.62F + phaseShift * 0.18F;
+        backPlate.yRot = MathHelper.sin(ageInTicks * 0.045F) * rage * 0.08F;
         for (int i = 0; i < chestRibs.length; i++) {
-            chestRibs[i].zRot = MathHelper.sin(ageInTicks * 0.05F + i) * 0.025F;
+            float ribSide = i == 1 ? 0.0F : (i == 0 ? -1.0F : 1.0F);
+            chestRibs[i].zRot = MathHelper.sin(ageInTicks * (0.05F + rage * 0.035F) + i) * 0.025F
+                    + ribSide * (rage * 0.20F + phaseShift * 0.08F);
         }
 
         leftArm.xRot = -MathHelper.cos(gait) * 0.3F * walk - windup * 1.25F
-                + impact * 1.45F - volley * 0.45F + stagger * 0.72F - phaseShift * 0.9F;
+                + impact * 1.45F - windCharge * 0.54F
+                + windRecoil * 0.13F + stagger * 0.72F - phaseShift * 0.9F
+                + death * 1.0F;
         rightArm.xRot = MathHelper.cos(gait) * 0.3F * walk - windup * 1.55F + impact * 1.65F
-                - volley * 0.35F - sweepWindup * 1.35F + sweep * 2.0F - chargeWindup * 1.5F
-                + chargeRush * 1.0F + stagger * 0.78F + phaseShift * 0.9F;
+                - windCharge * 0.65F + windRecoil * 0.29F
+                - sweepWindup * 1.35F + sweep * 2.0F - chargeWindup * 1.5F
+                + chargeRush * 1.0F + stagger * 0.78F + phaseShift * 0.9F + death * 1.0F;
         leftArm.zRot = -0.06F - rage * 0.12F + sweep * 0.42F - phaseShift * 0.42F;
         rightArm.zRot = 0.08F + rage * 0.08F + sweepWindup * 0.32F - sweep * 1.45F
                 + chargeWindup * 0.18F - chargeRush * 0.12F + phaseShift * 0.42F;
@@ -209,19 +310,37 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
         rightForearm.xRot = 0.12F + windup * 0.5F + impact * 0.5F + sweepWindup * 0.55F - sweep * 0.45F;
         leftHand.xRot = -0.05F - impact * 0.12F;
         rightHand.xRot = -0.08F - sweep * 0.28F;
-        leftShoulder.xRot = leftArm.xRot * 0.2F;
-        rightShoulder.xRot = rightArm.xRot * 0.2F;
-        leftSpike.xRot = -0.12F - rage * 0.25F;
-        rightSpike.xRot = -0.12F - rage * 0.25F;
+        leftShoulder.xRot = leftArm.xRot * 0.2F - rage * 0.08F;
+        rightShoulder.xRot = rightArm.xRot * 0.2F - rage * 0.08F;
+        leftShoulder.zRot = -rage * 0.1F;
+        rightShoulder.zRot = rage * 0.1F;
+        leftSpike.xRot = -0.12F - rage * 0.42F;
+        rightSpike.xRot = -0.12F - rage * 0.42F;
+        leftSpike.zRot = -rage * 0.28F;
+        rightSpike.zRot = rage * 0.28F;
 
+        leftLeg.x = 3.6F + rage * 0.80F;
+        rightLeg.x = -3.6F - rage * 0.80F;
         leftLeg.xRot = MathHelper.cos(gait) * 0.46F * walk + impact * 0.15F;
         rightLeg.xRot = MathHelper.cos(gait + (float)Math.PI) * 0.46F * walk + impact * 0.15F;
         leftShin.xRot = Math.max(0.0F, -leftLeg.xRot) * 0.5F;
         rightShin.xRot = Math.max(0.0F, -rightLeg.xRot) * 0.5F;
         leftBoot.xRot = -leftShin.xRot * 0.35F;
         rightBoot.xRot = -rightShin.xRot * 0.35F;
-        greatsword.zRot = -0.12F + sweep * 0.12F + chargeWindup * 0.28F
-                - chargeRush * 0.18F + stagger * 0.24F;
+        // Give each heavy attack a readable weapon silhouette before the hit lands.
+        // The blade is a child of the right hand, so these rotations layer onto the arm pose.
+        greatsword.xRot = -windup * 0.95F - sweepWindup * 0.72F
+                - windCharge * 0.34F + windRecoil * 0.32F
+                + impact * 0.62F + sweep * 1.18F
+                - chargeWindup * 0.28F + chargeRush * 0.82F
+                + stagger * 0.34F + phaseShift * 0.52F - rage * 0.12F;
+        greatsword.yRot = -sweepWindup * 0.22F + sweep * 0.68F
+                + chargeRush * 0.16F + phaseShift * 0.24F;
+        greatsword.zRot = -0.12F + windup * 0.22F + impact * 0.18F
+                + sweepWindup * 0.38F - sweep * 0.82F
+                + chargeWindup * 0.28F - chargeRush * 0.18F
+                + stagger * 0.24F + phaseShift * 0.36F + death * 0.72F
+                - rage * 0.08F;
     }
 
     @Override
@@ -229,14 +348,16 @@ public class RiftGuardianModel extends EntityModel<RiftGuardianEntity> {
                                com.mojang.blaze3d.vertex.IVertexBuilder buffer,
                                int packedLight, int packedOverlay,
                                float red, float green, float blue, float alpha) {
-        head.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        neck.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        body.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        leftShoulder.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        rightShoulder.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        leftArm.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        rightArm.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        leftLeg.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
-        rightLeg.render(stack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        float tintedRed = red * this.phaseTintRed;
+        float tintedGreen = green * this.phaseTintGreen;
+        head.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        neck.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        body.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        leftShoulder.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        rightShoulder.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        leftArm.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        rightArm.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        leftLeg.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
+        rightLeg.render(stack, buffer, packedLight, packedOverlay, tintedRed, tintedGreen, blue, alpha);
     }
 }

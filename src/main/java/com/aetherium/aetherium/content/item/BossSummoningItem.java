@@ -11,7 +11,6 @@ import net.minecraft.item.ItemUseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -64,7 +63,7 @@ public class BossSummoningItem extends Item {
                 ItemStack stack = context.getItemInHand();
                 stack.shrink(1);
             }
-            world.playSound(null, spawnPos, SoundEvents.END_PORTAL_SPAWN,
+            world.playSound(null, spawnPos, RegistryHandler.BOSS_SUMMON.get(),
                     SoundCategory.HOSTILE, 0.9F, this.astral ? 0.72F : 0.9F);
             return ActionResultType.CONSUME;
         }

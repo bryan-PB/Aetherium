@@ -3,6 +3,10 @@ package com.aetherium.aetherium.registry;
 import com.aetherium.aetherium.AetheriumMod;
 import com.aetherium.aetherium.content.armor.AetheriumArmorMaterial;
 import com.aetherium.aetherium.content.armor.AstralArmorMaterial;
+import com.aetherium.aetherium.content.armor.KryzoraeArmorItem;
+import com.aetherium.aetherium.content.armor.IntermediateArmorMaterial;
+import com.aetherium.aetherium.content.armor.IntermediateArmorItem;
+import com.aetherium.aetherium.content.item.IntermediateItemTier;
 import com.aetherium.aetherium.content.item.AetheriumAccessoryItem;
 import com.aetherium.aetherium.content.item.AetheriumItemTier;
 import com.aetherium.aetherium.content.item.AstralItemTier;
@@ -15,17 +19,24 @@ import com.aetherium.aetherium.content.item.AstralSwordItem;
 import com.aetherium.aetherium.content.entity.RiftStalkerEntity;
 import com.aetherium.aetherium.content.entity.LumiveloEntity;
 import com.aetherium.aetherium.content.boss.AetherBoltEntity;
+import com.aetherium.aetherium.content.effect.BleedingEffect;
+import com.aetherium.aetherium.content.projectile.DarkSlashEntity;
+import com.aetherium.aetherium.content.boss.BossMirageEntity;
 import com.aetherium.aetherium.content.boss.RiftGuardianEntity;
 import com.aetherium.aetherium.content.boss.AstralDevourerEntity;
 import com.aetherium.aetherium.content.item.BossSummoningItem;
+import com.aetherium.aetherium.content.item.GuideBookItem;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EntityClassification;
+import net.minecraft.potion.Effect;
 import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraft.item.BlockItem;
-import net.minecraft.item.ArmorItem;
 import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.item.ArmorItem;
 import net.minecraft.item.SwordItem;
+import net.minecraft.item.ShovelItem;
+import net.minecraft.item.HoeItem;
 import net.minecraft.item.PickaxeItem;
 import net.minecraft.item.AxeItem;
 import net.minecraft.item.Item;
@@ -50,6 +61,11 @@ public final class RegistryHandler {
             DeferredRegister.create(ForgeRegistries.ENTITIES, AetheriumMod.MOD_ID);
     public static final DeferredRegister<SoundEvent> SOUNDS =
             DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, AetheriumMod.MOD_ID);
+    public static final DeferredRegister<Effect> EFFECTS =
+            DeferredRegister.create(ForgeRegistries.POTIONS, AetheriumMod.MOD_ID);
+
+    public static final RegistryObject<Effect> BLEEDING =
+            EFFECTS.register("bleeding", BleedingEffect::new);
 
     private static RegistryObject<SoundEvent> sound(String id) {
         ResourceLocation location = new ResourceLocation(AetheriumMod.MOD_ID, id);
@@ -62,6 +78,38 @@ public final class RegistryHandler {
     public static final RegistryObject<SoundEvent> LUMIVELO_CHIME = sound("lumivelo_chime");
     public static final RegistryObject<SoundEvent> RIFT_GUARDIAN_SLAM = sound("rift_guardian_slam");
     public static final RegistryObject<SoundEvent> ASTRAL_DEVOURER_PULSE = sound("astral_devourer_pulse");
+
+    // Procedurally synthesized, original Aetherium cues: no Minecraft mob recordings.
+    public static final RegistryObject<SoundEvent> ASTRAL_AMBIENT = sound("astral_ambient");
+    public static final RegistryObject<SoundEvent> ASTRAL_AWAKEN = sound("astral_awaken");
+    public static final RegistryObject<SoundEvent> ASTRAL_HURT = sound("astral_hurt");
+    public static final RegistryObject<SoundEvent> ASTRAL_DEATH = sound("astral_death");
+    public static final RegistryObject<SoundEvent> ASTRAL_LASER_CHARGE = sound("astral_laser_charge");
+    public static final RegistryObject<SoundEvent> ASTRAL_LASER_FIRE = sound("astral_laser_fire");
+    public static final RegistryObject<SoundEvent> ASTRAL_DASH = sound("astral_dash");
+    public static final RegistryObject<SoundEvent> ASTRAL_MIRAGE = sound("astral_mirage");
+    public static final RegistryObject<SoundEvent> ASTRAL_NOVA = sound("astral_nova");
+    public static final RegistryObject<SoundEvent> GUARDIAN_AMBIENT = sound("guardian_ambient");
+    public static final RegistryObject<SoundEvent> GUARDIAN_AWAKEN = sound("guardian_awaken");
+    public static final RegistryObject<SoundEvent> GUARDIAN_HURT = sound("guardian_hurt");
+    public static final RegistryObject<SoundEvent> GUARDIAN_DEATH = sound("guardian_death");
+    public static final RegistryObject<SoundEvent> GUARDIAN_WINDUP = sound("guardian_windup");
+    public static final RegistryObject<SoundEvent> GUARDIAN_CHARGE = sound("guardian_charge");
+    public static final RegistryObject<SoundEvent> GUARDIAN_SWEEP = sound("guardian_sweep");
+    public static final RegistryObject<SoundEvent> GUARDIAN_MIRAGE = sound("guardian_mirage");
+    public static final RegistryObject<SoundEvent> STALKER_AMBIENT = sound("stalker_ambient");
+    public static final RegistryObject<SoundEvent> STALKER_HURT = sound("stalker_hurt");
+    public static final RegistryObject<SoundEvent> STALKER_DEATH = sound("stalker_death");
+    public static final RegistryObject<SoundEvent> LUMIVELO_HURT = sound("lumivelo_hurt");
+    public static final RegistryObject<SoundEvent> LUMIVELO_DEATH = sound("lumivelo_death");
+
+    public static final RegistryObject<SoundEvent> AETHERIUM_EQUIP = sound("aetherium_equip");
+    public static final RegistryObject<SoundEvent> ASTRAL_EQUIP = sound("astral_equip");
+    public static final RegistryObject<SoundEvent> RELIC_ACTIVATION = sound("relic_activation");
+    public static final RegistryObject<SoundEvent> FLARE_ACTIVATION = sound("flare_activation");
+    public static final RegistryObject<SoundEvent> MAGNET_ON = sound("magnet_on");
+    public static final RegistryObject<SoundEvent> MAGNET_OFF = sound("magnet_off");
+    public static final RegistryObject<SoundEvent> BOSS_SUMMON = sound("boss_summon");
 
     // Blocks
     public static final RegistryObject<Block> AETHERIUM_ORE = BLOCKS.register("aetherium_ore",
@@ -78,6 +126,31 @@ public final class RegistryHandler {
                     .sound(SoundType.METAL)
                     .harvestTool(ToolType.PICKAXE)
                     .harvestLevel(3)
+                    .requiresCorrectToolForDrops()));
+
+    // First expansion: raw Overworld ore deposits (no armor/weapons yet).
+    public static final RegistryObject<Block> BRUMACERO_ORE = BLOCKS.register("brumacero_ore",
+            () -> new Block(Block.Properties.of(Material.STONE)
+                    .strength(3.0F, 5.0F)
+                    .sound(SoundType.STONE)
+                    .harvestTool(ToolType.PICKAXE)
+                    .harvestLevel(1)
+                    .requiresCorrectToolForDrops()));
+
+    public static final RegistryObject<Block> UMBRACITA_ORE = BLOCKS.register("umbracita_ore",
+            () -> new Block(Block.Properties.of(Material.STONE)
+                    .strength(3.5F, 6.0F)
+                    .sound(SoundType.STONE)
+                    .harvestTool(ToolType.PICKAXE)
+                    .harvestLevel(2)
+                    .requiresCorrectToolForDrops()));
+
+    public static final RegistryObject<Block> PRISMALITA_ORE = BLOCKS.register("prismalita_ore",
+            () -> new Block(Block.Properties.of(Material.STONE)
+                    .strength(3.5F, 6.0F)
+                    .sound(SoundType.STONE)
+                    .harvestTool(ToolType.PICKAXE)
+                    .harvestLevel(2)
                     .requiresCorrectToolForDrops()));
 
     // Custom creatures: small tracking/update values limit network and ticking overhead.
@@ -99,11 +172,108 @@ public final class RegistryHandler {
             () -> EntityType.Builder.<AetherBoltEntity>of(AetherBoltEntity::new, EntityClassification.MISC)
                     .sized(0.32F, 0.32F).clientTrackingRange(8).updateInterval(2).build("aetherium:aether_bolt"));
 
+    /** Eight-tick diagonal wave spawned by every valid violet sword swing. */
+    public static final RegistryObject<EntityType<DarkSlashEntity>> DARK_SLASH = ENTITIES.register("dark_slash",
+            () -> EntityType.Builder.<DarkSlashEntity>of(DarkSlashEntity::new, EntityClassification.MISC)
+                    .sized(0.48F, 0.48F).clientTrackingRange(10).updateInterval(1)
+                    .build("aetherium:dark_slash"));
+
+    /** Attackable phantom hitboxes; the parent boss renderer draws their copies. */
+    public static final RegistryObject<EntityType<BossMirageEntity>> BOSS_MIRAGE = ENTITIES.register("boss_mirage",
+            () -> EntityType.Builder.<BossMirageEntity>of(BossMirageEntity::new, EntityClassification.MISC)
+                    .sized(2.0F, 3.1F).clientTrackingRange(12).updateInterval(1)
+                    .build("aetherium:boss_mirage"));
+
     // Block items
     public static final RegistryObject<Item> AETHERIUM_ORE_ITEM = ITEMS.register("aetherium_ore",
             () -> new BlockItem(AETHERIUM_ORE.get(), new Item.Properties().tab(ItemGroup.TAB_BUILDING_BLOCKS)));
     public static final RegistryObject<Item> AETHERIUM_BLOCK_ITEM = ITEMS.register("aetherium_block",
             () -> new BlockItem(AETHERIUM_BLOCK.get(), new Item.Properties().tab(ItemGroup.TAB_BUILDING_BLOCKS)));
+
+    // Inventory entries for the new stone deposits.
+    public static final RegistryObject<Item> BRUMACERO_ORE_ITEM = ITEMS.register("brumacero_ore",
+            () -> new BlockItem(BRUMACERO_ORE.get(),
+                    new Item.Properties().tab(ItemGroup.TAB_BUILDING_BLOCKS)));
+    public static final RegistryObject<Item> UMBRACITA_ORE_ITEM = ITEMS.register("umbracita_ore",
+            () -> new BlockItem(UMBRACITA_ORE.get(),
+                    new Item.Properties().tab(ItemGroup.TAB_BUILDING_BLOCKS)));
+    public static final RegistryObject<Item> PRISMALITA_ORE_ITEM = ITEMS.register("prismalita_ore",
+            () -> new BlockItem(PRISMALITA_ORE.get(),
+                    new Item.Properties().tab(ItemGroup.TAB_BUILDING_BLOCKS)));
+
+    // First-play guide, also craftable if a player loses it.
+    public static final RegistryObject<Item> GUIDE_BOOK = ITEMS.register("guide_book",
+            () -> new GuideBookItem(new Item.Properties().tab(ItemGroup.TAB_MISC).stacksTo(1)));
+
+    // Basic ore products and catalysts for the upcoming crafting tiers.
+    public static final RegistryObject<Item> RAW_BRUMACERO = ITEMS.register("raw_brumacero",
+            () -> new Item(new Item.Properties().tab(ItemGroup.TAB_MATERIALS)));
+    public static final RegistryObject<Item> BRUMACERO_INGOT = ITEMS.register("brumacero_ingot",
+            () -> new Item(new Item.Properties().tab(ItemGroup.TAB_MATERIALS)));
+    public static final RegistryObject<Item> RAW_UMBRACITA = ITEMS.register("raw_umbracita",
+            () -> new Item(new Item.Properties().tab(ItemGroup.TAB_MATERIALS)));
+    public static final RegistryObject<Item> UMBRACITA_INGOT = ITEMS.register("umbracita_ingot",
+            () -> new Item(new Item.Properties().tab(ItemGroup.TAB_MATERIALS)));
+    public static final RegistryObject<Item> PRISMALITA_SHARD = ITEMS.register("prismalita_shard",
+            () -> new Item(new Item.Properties().tab(ItemGroup.TAB_MATERIALS)));
+
+    // BRUMACERO — first two distinct intermediate sets. Uses standard biped armor geometry.
+    public static final RegistryObject<Item> BRUMACERO_SWORD =
+            ITEMS.register("brumacero_sword", () -> new SwordItem(IntermediateItemTier.BRUMACERO, 3, -2.4F,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> BRUMACERO_PICKAXE =
+            ITEMS.register("brumacero_pickaxe", () -> new PickaxeItem(IntermediateItemTier.BRUMACERO, 1, -2.8F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> BRUMACERO_AXE =
+            ITEMS.register("brumacero_axe", () -> new AxeItem(IntermediateItemTier.BRUMACERO, 5.5F, -3.1F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> BRUMACERO_SHOVEL =
+            ITEMS.register("brumacero_shovel", () -> new ShovelItem(IntermediateItemTier.BRUMACERO, 1.5F, -3.0F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> BRUMACERO_HOE =
+            ITEMS.register("brumacero_hoe", () -> new HoeItem(IntermediateItemTier.BRUMACERO, -2, -1.0F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> BRUMACERO_HELMET =
+            ITEMS.register("brumacero_helmet", () -> new IntermediateArmorItem(IntermediateArmorMaterial.BRUMACERO,
+                    EquipmentSlotType.HEAD, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> BRUMACERO_CHESTPLATE =
+            ITEMS.register("brumacero_chestplate", () -> new IntermediateArmorItem(IntermediateArmorMaterial.BRUMACERO,
+                    EquipmentSlotType.CHEST, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> BRUMACERO_LEGGINGS =
+            ITEMS.register("brumacero_leggings", () -> new IntermediateArmorItem(IntermediateArmorMaterial.BRUMACERO,
+                    EquipmentSlotType.LEGS, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> BRUMACERO_BOOTS =
+            ITEMS.register("brumacero_boots", () -> new IntermediateArmorItem(IntermediateArmorMaterial.BRUMACERO,
+                    EquipmentSlotType.FEET, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+
+    // UMBRACITA — first two distinct intermediate sets. Uses standard biped armor geometry.
+    public static final RegistryObject<Item> UMBRACITA_SWORD =
+            ITEMS.register("umbracita_sword", () -> new SwordItem(IntermediateItemTier.UMBRACITA, 3, -2.4F,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> UMBRACITA_PICKAXE =
+            ITEMS.register("umbracita_pickaxe", () -> new PickaxeItem(IntermediateItemTier.UMBRACITA, 1, -2.8F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> UMBRACITA_AXE =
+            ITEMS.register("umbracita_axe", () -> new AxeItem(IntermediateItemTier.UMBRACITA, 5.5F, -3.1F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> UMBRACITA_SHOVEL =
+            ITEMS.register("umbracita_shovel", () -> new ShovelItem(IntermediateItemTier.UMBRACITA, 1.5F, -3.0F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> UMBRACITA_HOE =
+            ITEMS.register("umbracita_hoe", () -> new HoeItem(IntermediateItemTier.UMBRACITA, -2, -1.0F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> UMBRACITA_HELMET =
+            ITEMS.register("umbracita_helmet", () -> new IntermediateArmorItem(IntermediateArmorMaterial.UMBRACITA,
+                    EquipmentSlotType.HEAD, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> UMBRACITA_CHESTPLATE =
+            ITEMS.register("umbracita_chestplate", () -> new IntermediateArmorItem(IntermediateArmorMaterial.UMBRACITA,
+                    EquipmentSlotType.CHEST, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> UMBRACITA_LEGGINGS =
+            ITEMS.register("umbracita_leggings", () -> new IntermediateArmorItem(IntermediateArmorMaterial.UMBRACITA,
+                    EquipmentSlotType.LEGS, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> UMBRACITA_BOOTS =
+            ITEMS.register("umbracita_boots", () -> new IntermediateArmorItem(IntermediateArmorMaterial.UMBRACITA,
+                    EquipmentSlotType.FEET, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
 
     // Materials
     public static final RegistryObject<Item> RAW_AETHERIUM = ITEMS.register("raw_aetherium",
@@ -145,17 +315,17 @@ public final class RegistryHandler {
 
     // Full armor set
     public static final RegistryObject<Item> AETHERIUM_HELMET = ITEMS.register("aetherium_helmet",
-            () -> new ArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.HEAD,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.HEAD,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), false));
     public static final RegistryObject<Item> AETHERIUM_CHESTPLATE = ITEMS.register("aetherium_chestplate",
-            () -> new ArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.CHEST,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.CHEST,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), false));
     public static final RegistryObject<Item> AETHERIUM_LEGGINGS = ITEMS.register("aetherium_leggings",
-            () -> new ArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.LEGS,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.LEGS,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), false));
     public static final RegistryObject<Item> AETHERIUM_BOOTS = ITEMS.register("aetherium_boots",
-            () -> new ArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.FEET,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AetheriumArmorMaterial.INSTANCE, EquipmentSlotType.FEET,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), false));
 
     // Final Astral tier. Every piece consumes rare boss-derived Astral Ingots.
     public static final RegistryObject<Item> ASTRAL_INGOT = ITEMS.register("astral_ingot",
@@ -170,17 +340,17 @@ public final class RegistryHandler {
             () -> new AstralAxeItem(AstralItemTier.INSTANCE, 7.0F, -3.0F,
                     new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
     public static final RegistryObject<Item> ASTRAL_HELMET = ITEMS.register("astral_helmet",
-            () -> new ArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.HEAD,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.HEAD,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), true));
     public static final RegistryObject<Item> ASTRAL_CHESTPLATE = ITEMS.register("astral_chestplate",
-            () -> new ArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.CHEST,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.CHEST,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), true));
     public static final RegistryObject<Item> ASTRAL_LEGGINGS = ITEMS.register("astral_leggings",
-            () -> new ArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.LEGS,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.LEGS,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), true));
     public static final RegistryObject<Item> ASTRAL_BOOTS = ITEMS.register("astral_boots",
-            () -> new ArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.FEET,
-                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+            () -> new KryzoraeArmorItem(AstralArmorMaterial.INSTANCE, EquipmentSlotType.FEET,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT), true));
 
     // Two optional, survival-friendly utilities with low-frequency server logic.
     public static final RegistryObject<Item> AETHERIUM_MAGNET = ITEMS.register("aetherium_magnet",
@@ -212,5 +382,6 @@ public final class RegistryHandler {
         ITEMS.register(modEventBus);
         ENTITIES.register(modEventBus);
         SOUNDS.register(modEventBus);
+        EFFECTS.register(modEventBus);
     }
 }

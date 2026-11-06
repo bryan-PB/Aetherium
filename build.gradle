@@ -14,13 +14,15 @@ apply plugin: 'maven-publish'
 
 version = mod_version
 group = mod_group
-archivesBaseName = mod_id
+archivesBaseName = 'kryzorae'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 minecraft {
     mappings channel: 'official', version: '1.16.5'
+    // 1.16.5 structure registries expose a handful of final/private maps.
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {
         client {
@@ -48,6 +50,14 @@ minecraft {
 
         data {
             workingDirectory project.file('run')
+            // ForgeGradle 5 run tasks force-exit the Gradle process by default.
+            // A completed runData then looks like a crashed daemon in CI.
+            // Do not force the process exit: let Gradle collect the real status.
+            setForceExit false
+            // Headless CI runners have finite memory: cap Forge's separate
+            // data-generator JVM instead of allowing a second unbounded heap.
+            // This is only a development run configuration; not a gameplay cap.
+            jvmArgs '-Xms128m', '-Xmx1024m', '-XX:MaxMetaspaceSize=384m'
             args '--mod', 'aetherium', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
             mods {
                 aetherium {
@@ -59,6 +69,29 @@ minecraft {
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+// Generate the 17 native 1.16.5 Citadel NBT rooms on local and CI builds.
+// Previously only GitHub Actions generated them; a local gradlew build could
+// silently create a JAR without any Citadel templates.
+tasks.register('generateCitadelTemplates', Exec) {
+    group = 'build'
+    description = 'Generate the 17 Citadel NBT structure templates before packaging.'
+    workingDir projectDir
+    def windows = System.getProperty('os.name').toLowerCase().contains('windows')
+    def python = System.getenv('PYTHON') ?: (windows ? 'py' : 'python3')
+    if (windows && python == 'py') {
+        commandLine 'py', '-3', 'tools/generate_citadel_templates.py'
+    } else {
+        commandLine python, 'tools/generate_citadel_templates.py'
+    }
+    inputs.file('docs/citadel/rooms.json')
+    inputs.file('tools/generate_citadel_templates.py')
+    inputs.file('tools/citadel_architecture.py') // rebuild when interior design changes
+    outputs.dir('src/main/resources/data/aetherium/structures/citadel')
+}
+tasks.named('processResources') {
+    dependsOn tasks.named('generateCitadelTemplates')
+}
 
 repositories {
     // Optional Curios API repository; no Curios dependency is required by Part 2.
@@ -79,11 +112,11 @@ jar {
     manifest {
         attributes([
             'Specification-Title': mod_id,
-            'Specification-Vendor': 'Aetherium Team',
+            'Specification-Vendor': 'Kryzorae Team',
             'Specification-Version': '1',
             'Implementation-Title': project.name,
             'Implementation-Version': project.version,
-            'Implementation-Vendor': 'Aetherium Team'
+            'Implementation-Vendor': 'Kryzorae Team'
         ])
     }
 }

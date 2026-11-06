@@ -3,7 +3,7 @@
 # It downloads the pinned Gradle distribution on first use, then executes it.
 set -eu
 
-GRADLE_VERSION="6.8.3"
+GRADLE_VERSION="7.6.4"
 CACHE_ROOT="${GRADLE_USER_HOME:-$HOME/.gradle}/wrapper/dists/aetherium-bootstrap"
 GRADLE_HOME="$CACHE_ROOT/gradle-$GRADLE_VERSION"
 GRADLE_BIN="$GRADLE_HOME/bin/gradle"
