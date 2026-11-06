@@ -248,7 +248,7 @@ def room_blocks(room):
                         put(x,floor,z,"minecraft:polished_blackstone_bricks")
         for y in range(1,h-1):
             put(3,y,2,"minecraft:polished_blackstone_bricks")
-            put(3,y,3,"minecraft:ladder",{"facing":"north","waterlogged":"false"})
+            put(3,y,3,"minecraft:ladder",{"facing":"south","waterlogged":"false"})
         for y in (5,12,19):
             if y<h-1:
                 for x in (0,w-1):
@@ -361,12 +361,12 @@ def room_blocks(room):
     if room["id"] in ("crypt","archive"):
         put(4,0,4,"minecraft:air")
         for y in range(1,min(h-2,7)):
-            put(4,y,4,"minecraft:ladder",{"facing":"north","waterlogged":"false"})
+            put(4,y,4,"minecraft:ladder",{"facing":"south","waterlogged":"false"})
             put(4,y,3,"minecraft:stone_bricks")
     if room["id"] in ("catacombs","archive_vault"):
         for y in range(1,h):
             put(4,y,3,"minecraft:stone_bricks")
-            put(4,y,4,"minecraft:ladder",{"facing":"north","waterlogged":"false"})
+            put(4,y,4,"minecraft:ladder",{"facing":"south","waterlogged":"false"})
 
     chest_specs = []
     if room["chest"]:
