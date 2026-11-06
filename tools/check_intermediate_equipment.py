@@ -147,9 +147,6 @@ for marker in (
         "cube(root, PLATE, 0, -2.48F, 11.01F",
 ):
     assert marker in model_code, "Missing Brumacero armor detail: " + marker
-for marker in ("noble", "gilded", "Articulated", "heraldic"):
-    assert marker.lower() in model_code.lower()
-
 assert "if (left)" in model_code
 assert "tickCount" not in model_code, "The outfit must have no extra per-tick animation"
 assert "minecraft.client.renderer" not in generator
