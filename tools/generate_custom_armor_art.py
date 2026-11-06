@@ -148,11 +148,11 @@ def hood_icon(which):
         a.rect(19,21,22,22,orange)
         a.line(9,27,23,27,light,1)
 
-        # Dark high crown, distinct top and diagonal folds.
-        a.polygon([(9,15),(10,7),(14,3),(22,4),(25,8),(24,16)],black)
-        a.polygon([(10,14),(12,7),(16,5),(22,6),(24,10),(23,16)],purple)
-        a.polygon([(12,9),(15,5),(21,6),(22,8),(19,9)],light)
-        a.polygon([(21,6),(24,9),(23,15),(21,13)],fold)
+        # Compact stepped crown: lower profile to match the shortened 3D model.
+        a.polygon([(9,15),(10,8),(14,5),(22,6),(25,9),(24,16)],black)
+        a.polygon([(10,14),(12,8),(16,6),(22,7),(24,11),(23,16)],purple)
+        a.polygon([(12,10),(15,6),(21,7),(22,9),(19,10)],light)
+        a.polygon([(21,7),(24,10),(23,15),(21,13)],fold)
         a.line(12,13,23,13,ochre,2)
         a.rect(17,12,19,15,orange)
 
