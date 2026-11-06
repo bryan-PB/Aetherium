@@ -22,7 +22,7 @@ for text in (
     "world.getChunkSource().generator.getSettings().structureConfig",
     "World.OVERWORLD.equals(world.dimension())",
     "instanceof FlatChunkGenerator",
-    "CitadelWorldGen::onBiomeLoading",
+    "MinecraftForge.EVENT_BUS.register(CitadelWorldGen.class)",
 ):
     assert text in gen or text in main, "Missing Forge 1.16.5 structure wiring: " + text
 for text in (
@@ -68,6 +68,8 @@ assert 'new CitadelPieces.Room(' in structure
 assert 'manager.get(new ResourceLocation(' in commands
 assert 'JigsawReplacementStructureProcessor.INSTANCE' in commands
 assert 'CitadelCommands::register' in main
+assert "@SubscribeEvent(priority = EventPriority.HIGH)" in gen
+assert "@SubscribeEvent" in gen
 assert "category == Biome.Category.OCEAN" in gen
 assert "category == Biome.Category.NETHER" in gen
 assert "category != Biome.Category.FOREST" not in gen
@@ -169,8 +171,8 @@ assert "int[][] locations" not in commands
 assert 'if (!templates.get(i).placeInWorld(' in commands
 assert "CitadelWorldGen.register(" in main
 assert "CitadelWorldGen::onCommonSetup" in main
-assert "CitadelWorldGen::onBiomeLoading" in main
-assert "CitadelWorldGen::onWorldLoad" in main
+assert "MinecraftForge.EVENT_BUS.register(CitadelWorldGen.class)" in main
+assert "@SubscribeEvent" in main
 assert '"citadelEnabled", true' in config
 assert '"citadelSpacingChunks", 26, 16, 128' in config
 assert '"citadelMinSeparationChunks", 10, 4, 16' in config
