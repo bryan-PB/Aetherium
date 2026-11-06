@@ -50,39 +50,96 @@ public final class CitadelStructure extends Structure<NoFeatureConfig> {
         return canGenerateMegaSite(generator, x, z);
     }
 
+    // A huge linked fortress cannot follow steep terrain independently at each
+    // room: the 3x4 doorways would be at different heights. Instead choose a
+    // dry, relatively level SITE and use the median ground height for every
+    // above-ground module. The underground pieces retain negative offsets.
+    private static final int MAX_RELIEF = 5;
+
     /**
-     * Sample five main-axis points using WORLD_SURFACE_WG without generating
-     * neighbor chunks. A 170-block building should not start across a sheer
-     * cliff or an open water channel; foundations bridge at most 20 blocks.
-     * This check runs only for candidate structure starts, never on ticks.
+     * Samples the REAL footprints of all fifteen above-ground modules, not
+     * just the original 5 central-axis points. Returns -1 for unsuitable
+     * terrain. Only chunk-generator base columns are queried: no neighboring
+     * chunk is loaded, and no world blocks are read or changed.
      */
-    public static boolean canGenerateMegaSite(ChunkGenerator generator, int x, int z) {
-        if (!canGenerateOnColumn(generator, x, z)) return false;
-        int reference = generator.getFirstOccupiedHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG);
-        for (int dz : new int[] {32, 72, 112, 152}) {
-            int height = generator.getFirstOccupiedHeight(x, z + dz, Heightmap.Type.WORLD_SURFACE_WG);
-            if (height < 60 || height > 126 || Math.abs(height - reference) > 20) {
-                return false;
+    public static int findPlacementY(ChunkGenerator generator, int x, int z) {
+        java.util.List<Integer> centralHeights = new java.util.ArrayList<>();
+        java.util.List<Integer> sampledHeights = new java.util.ArrayList<>();
+        int baseX = x - 9;
+        int baseZ = z - 7;
+
+        for (CitadelLayout.RoomSpec room : CitadelLayout.rooms()) {
+            if (room.offsetY < 0) continue;
+            boolean quarterTurn = room.rotation == net.minecraft.util.Rotation.CLOCKWISE_90
+                    || room.rotation == net.minecraft.util.Rotation.COUNTERCLOCKWISE_90;
+            int width = quarterTurn ? room.depth : room.width;
+            int depth = quarterTurn ? room.width : room.depth;
+            int minX = baseX + room.offsetX;
+            int minZ = baseZ + room.offsetZ;
+            int midX = minX + width / 2;
+            int midZ = minZ + depth / 2;
+            int[][] samples = {
+                    {midX, midZ},
+                    {minX + 2, minZ + 2},
+                    {minX + width - 3, minZ + depth - 3}
+            };
+
+            for (int i = 0; i < samples.length; i++) {
+                int sx = samples[i][0];
+                int sz = samples[i][1];
+                int height = generator.getFirstOccupiedHeight(
+                        sx, sz, Heightmap.Type.WORLD_SURFACE_WG);
+                if (height < 60 || height > 126 || !isDryGround(generator, sx, sz, height)) {
+                    return -1;
+                }
+                sampledHeights.add(height);
+                if (i == 0) centralHeights.add(height);
+            }
+
+            // The largest plazas also require both opposite corners to be
+            // tested; the 17-room citadel must never bridge entire ravines.
+            if (width >= 23 || depth >= 23) {
+                int[][] corners = {
+                        {minX + width - 3, minZ + 2},
+                        {minX + 2, minZ + depth - 3}
+                };
+                for (int[] pos : corners) {
+                    int height = generator.getFirstOccupiedHeight(
+                            pos[0], pos[1], Heightmap.Type.WORLD_SURFACE_WG);
+                    if (height < 60 || height > 126
+                            || !isDryGround(generator, pos[0], pos[1], height)) {
+                        return -1;
+                    }
+                    sampledHeights.add(height);
+                }
             }
         }
-        return true;
+        if (centralHeights.isEmpty()) return -1;
+        java.util.Collections.sort(centralHeights);
+        int chosenY = centralHeights.get(centralHeights.size() / 2);
+        for (int height : sampledHeights) {
+            if (Math.abs(height - chosenY) > MAX_RELIEF) return -1;
+        }
+        return chosenY;
+    }
+
+    public static boolean canGenerateMegaSite(ChunkGenerator generator, int x, int z) {
+        return findPlacementY(generator, x, z) >= 0;
     }
 
     /**
-     * Identical, side-effect-free terrain test for both native structure starts
-     * and /kryzorae citadel probe. No chunks are generated and no world blocks
-     * are changed when this method is called.
+     * Light-weight local test used by /kryzorae citadel probe. Unlike the
+     * full-footprint test, this checks only one column under the operator.
      */
     public static boolean canGenerateOnColumn(ChunkGenerator generator, int x, int z) {
         int height = generator.getFirstOccupiedHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG);
+        return height >= 60 && height <= 126 && isDryGround(generator, x, z, height);
+    }
 
-        // Plains and many vanilla forests are at Y=62..64; the old Y>=65
-        // condition excluded most ordinary regions and broke /locate results.
-        if (height < 60 || height > 126) return false;
+    private static boolean isDryGround(ChunkGenerator generator, int x, int z, int height) {
         IBlockReader column = generator.getBaseColumn(x, z);
         BlockState surface = column.getBlockState(new BlockPos(x, height - 1, z));
-        return surface.getFluidState().isEmpty()
-                && !surface.isAir();
+        return surface.getFluidState().isEmpty() && !surface.isAir();
     }
 
     public static final class Start extends StructureStart<NoFeatureConfig> {
@@ -95,13 +152,11 @@ public final class CitadelStructure extends Structure<NoFeatureConfig> {
         public void generatePieces(DynamicRegistries registries, ChunkGenerator generator,
                                    TemplateManager templates, int chunkX, int chunkZ,
                                    Biome biome, NoFeatureConfig config) {
-            int y = generator.getFirstOccupiedHeight(
-                    chunkX * 16 + 8, chunkZ * 16 + 8, Heightmap.Type.WORLD_SURFACE_WG);
-            if (y < 60 || y > 126) return;
-
-            // The central gateway determines the shared ground-floor Y.
-            // Undercrypts are separate, strictly nonoverlapping Y ranges.
-            if (!canGenerateMegaSite(generator, chunkX * 16 + 8, chunkZ * 16 + 8)) return;
+            // This is the exact same site selector as isFeatureChunk().
+            // Choosing a shared median prevents gates from jumping in height.
+            int y = findPlacementY(
+                    generator, chunkX * 16 + 8, chunkZ * 16 + 8);
+            if (y < 0) return;
             BlockPos origin = CitadelLayout.originForChunk(chunkX, chunkZ, y);
             try {
                 for (CitadelLayout.RoomSpec room : CitadelLayout.rooms()) {
