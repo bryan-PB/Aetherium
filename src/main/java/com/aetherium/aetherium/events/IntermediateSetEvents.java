@@ -2,7 +2,7 @@ package com.aetherium.aetherium.events;
 
 import com.aetherium.aetherium.AetheriumMod;
 import com.aetherium.aetherium.registry.RegistryHandler;
-import net.minecraft.entity.ai.attributes.AttributeInstance;
+import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.monster.MonsterEntity;
@@ -43,7 +43,7 @@ public final class IntermediateSetEvents {
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END || event.player.level.isClientSide
                 || event.player.tickCount % 20 != 0) return;
-        AttributeInstance speed = event.player.getAttribute(Attributes.MOVEMENT_SPEED);
+        ModifiableAttributeInstance speed = event.player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (speed == null) return;
         boolean equipped = isSet(event.player, true);
         boolean applied = speed.getModifier(UMBRACITA_SPEED_ID) != null;
