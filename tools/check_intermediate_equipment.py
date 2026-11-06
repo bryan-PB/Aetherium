@@ -59,7 +59,7 @@ for material in ("brumacero","umbracita"):
         path=assets/"textures/models/armor"/f"{material}_layer_{layer}.png"
         raw=path.read_bytes()
         assert raw[:8]==bytes([137,80,78,71,13,10,26,10])
-        assert unpack(">II",raw[16:24])==(128,64)
+        assert unpack(">II",raw[16:24])==(256,128)
 
     for loc in ("en_us","es_es","es_cl","es_mx","es_ar"):
         lang=json.loads((assets/"lang"/(loc+".json")).read_text(encoding="utf-8"))
@@ -72,4 +72,30 @@ assert 'ITEMS.register("aetherium_sword"' in reg
 assert 'ITEMS.register("astral_sword"' in reg
 assert 'ITEMS.register("aetherium_helmet"' in reg
 assert 'ITEMS.register("astral_helmet"' in reg
-print("18 registered crafted items, 18 original sprite textures, four worn atlases, five languages and server-light set bonuses validated.")
+
+# New fitted armor model rather than the old vanilla biped texture overlay:
+model_code=(java/"client/model/IntermediateArmorModel.java").read_text(encoding="utf-8")
+armor_item=(java/"content/armor/IntermediateArmorItem.java").read_text(encoding="utf-8")
+assert "extends BipedModel<LivingEntity>" in model_code
+assert "KryzoraeArmorModel" not in model_code, "Do not alter approved endgame armor models"
+for token in ("knightHelm();", "knightChest();", "hood();", "shadowRobe();",
+              "cube(head,", "cube(body,", "cube(arm,", "cube(root,",
+              "model.setAllVisible(false)", "copyPropertiesTo(model)",
+              "model.head.visible = true", "model.rightArm.visible = true",
+              "model.leftLeg.visible = true"):
+    assert token in model_code, token
+assert "new IntermediateArmorModel(true,true)" in model_code
+assert "new IntermediateArmorModel(false,true)" in model_code
+assert "256" in model_code and "128" in model_code
+assert "IntermediateArmorModel.forSlot(umbracita, slot, original)" in armor_item
+for material in ("BRUMACERO", "UMBRACITA"):
+    for part in ("helmet","chestplate","leggings","boots"):
+        expected=f'new IntermediateArmorItem(IntermediateArmorMaterial.{material},'
+        assert expected in reg
+assert "new ArmorItem(IntermediateArmorMaterial." not in reg
+
+generator=Path("tools/generate_custom_armor_art.py").read_text(encoding="utf-8")
+assert 'a.png(ASSETS/"models"/"armor"/f"{name}_layer_{layer}.png")' in generator
+assert "build_atlas(family)" in generator
+
+print("18 registered crafted items, 18 original sprite textures, four fitted 256x128 worn atlases, five languages and server-light set bonuses validated.")
