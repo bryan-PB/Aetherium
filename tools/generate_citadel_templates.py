@@ -355,14 +355,13 @@ def room_blocks(room):
             put(x,2,d//2,"minecraft:jigsaw",
                 {"orientation":direction+"_up"},info)
 
-    # Two interior stairwells share X/Z footprints with their upper room.
-    # Removing a single floor and roof cell creates a genuine vertical access
-    # without ever making a solid-volume NBT overlap another NBT.
+    # The undercroft ladders must be CONTINUOUS through the upper floor:
+    # the last rung below is at world Y=-1 and the first upper rung is Y=0.
+    # A one-block AIR opening here broke ladder climbing between levels.
     if room["id"] in ("crypt","archive"):
-        put(4,0,4,"minecraft:air")
-        for y in range(1,min(h-2,7)):
-            put(4,y,4,"minecraft:ladder",{"facing":"south","waterlogged":"false"})
+        for y in range(0,min(h-2,7)):
             put(4,y,3,"minecraft:stone_bricks")
+            put(4,y,4,"minecraft:ladder",{"facing":"south","waterlogged":"false"})
     if room["id"] in ("catacombs","archive_vault"):
         for y in range(1,h):
             put(4,y,3,"minecraft:stone_bricks")
