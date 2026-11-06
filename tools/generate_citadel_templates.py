@@ -328,7 +328,10 @@ def room_blocks(room):
     # expansion, but the current Forge 1.16.5 structure uses a deterministic
     # prechecked layout rather than allowing jigsaw to overlap neighbor chunks.
     for direction, target in room.get("doors", {}).items():
-        outgoing = direction in ("south", "east")
+        # A west-facing door may be an exit (forge wing), and a rotated
+        # east-facing door may be an entry (east bastion). Do not guess from
+        # the raw compass direction; the declared graph specifies the role.
+        outgoing = room["doorRoles"][direction] == "exit"
         info = {
             "id": "minecraft:jigsaw",
             "name": "aetherium:citadel/" + ("exit" if outgoing else "entry"),
