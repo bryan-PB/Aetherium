@@ -19,7 +19,7 @@ El plano ocupa aproximadamente 56 bloques en X por 174 en Z, con 17 módulos: po
 ## Diagnóstico si algo falla
 
 - `status`: verificar activo, Overworld, estructura configurada, espaciado y NBT 17/17.
-- `probe`: verificar el bioma y la altura donde estás (no garantiza que sea un chunk candidato).
+- `probe`: comprobar bioma, columna local y **toda la huella de las 15 salas de superficie**. `zona completa apta=false` significa que hay agua, altura incompatible o desniveles excesivos; busca una zona más plana. No garantiza que el chunk actual sea candidato.
 - `locate`: candidato según las reglas nativas y el mapa mundial.
 - Si una sala no se coloca en `preview`, el comando señala su ID y puede dejar terreno parcialmente cambiado.
 
