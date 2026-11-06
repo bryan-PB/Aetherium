@@ -134,7 +134,7 @@
   "guide.aetherium.page.5": "§5RIFT GUARDIAN§r\n\nUse the Guardian Sigil on a solid block to summon the boss.\n\nDodge its charges and shockwaves. Its Rift Core helps craft the next summon.",
   "guide.aetherium.page.6": "§4WINGED EXECUTIONER§r\n\nThe Astral Seal needs materials from the Guardian.\n\nThe Executioner uses charges, iron feathers and mirages. Its drops help forge astral gear.",
   "guide.aetherium.page.7": "§5USEFUL TOOLS§r\n\nThe magnet pulls nearby items when enabled.\n\nThe flare highlights nearby enemies and grants night vision. Some accessories support optional Curios.",
-  "guide.aetherium.page.8": "§5EARLY EQUIPMENT§r\n\nBrumacero: sturdy armor and reliable tools. A full set reduces damage from hostile mobs by 10%.\n\nUmbracita: lighter armor and tools. A full set gives +10% movement speed and +5% jump impulse.\n\nBoth can be crafted with their matching ingots.",
+  "guide.aetherium.page.8": "§5EARLY EQUIPMENT§r\n\nBrumacero: sturdy knight armor. Full set: 18% less damage from hostile monsters and +25% knockback resistance.\n\nUmbracita: adventurer outfit. Full set: +15% movement speed and +15% jumping impulse.\n\nAll four pieces are required. No bonus from a mixed set.",
   "guide.aetherium.ui.codex": "RIFT ARCHIVES",
   "guide.aetherium.ui.chapter": "CHAPTER",
   "guide.aetherium.ui.hint": "ARROWS: NAVIGATE",
@@ -180,8 +180,10 @@
   "item.aetherium.umbracita_chestplate": "Chestplate of Umbracita",
   "item.aetherium.umbracita_leggings": "Leggings of Umbracita",
   "item.aetherium.umbracita_boots": "Boots of Umbracita",
-  "tooltip.aetherium.brumacero_set": "Full set: reduces damage from hostile monsters by 10%.",
-  "tooltip.aetherium.umbracita_set": "Full set: +10% movement speed and +5% jump impulse.",
+  "tooltip.aetherium.brumacero_set": "Full set: 18% less damage from hostile monsters and +25% knockback resistance.",
+  "tooltip.aetherium.umbracita_set": "Full set: +15% movement speed and +15% jump impulse.",
   "tooltip.aetherium.brumacero_tool": "Reliable early-game metal equipment. Repair with Brumacero ingots.",
-  "tooltip.aetherium.umbracita_tool": "Lightweight exploration equipment. Repair with Umbracita ingots."
+  "tooltip.aetherium.umbracita_tool": "Lightweight exploration equipment. Repair with Umbracita ingots.",
+  "message.aetherium.brumacero_set_active": "Brumacero set activated: bulwark and stability",
+  "message.aetherium.umbracita_set_active": "Umbracita set activated: agility and jump"
 }

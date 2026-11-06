@@ -27,12 +27,24 @@ assert "BRUMACERO(425, 6.5F, 2.0F, 2, 12)" in tiers
 assert "UMBRACITA(950, 7.4F, 2.5F, 2, 17)" in tiers
 assert "new int[]{3, 5, 6, 2}" in armor
 assert "new int[]{2, 4, 6, 2}" in armor
-assert "event.setAmount(event.getAmount() * 0.90F)" in bonuses
-assert "0.10D, AttributeModifier.Operation.MULTIPLY_TOTAL" in bonuses
+assert "event.setAmount(event.getAmount() * 0.82F)" in bonuses
+assert "0.15D, AttributeModifier.Operation.MULTIPLY_TOTAL" in bonuses
 assert "if (event.phase != TickEvent.Phase.END || event.player.level.isClientSide" in bonuses
 assert "event.player.tickCount % 20 != 0" in bonuses
-assert "movement.y * 1.05D" in bonuses
+assert "movement.y * 1.15D" in bonuses
 assert "level.isClientSide" in bonuses
+assert "BRUMACERO_STABILITY_ID" in bonuses
+assert "0.25D, AttributeModifier.Operation.ADDITION" in bonuses
+assert "Attributes.KNOCKBACK_RESISTANCE" in bonuses
+assert "stability.addTransientModifier(BRUMACERO_STABILITY)" in bonuses
+assert "stability.removeModifier(BRUMACERO_STABILITY_ID)" in bonuses
+assert "speed.removeModifier(UMBRACITA_SPEED_ID)" in bonuses
+assert "event.player.tickCount % 20 != 0" in bonuses
+assert "player.displayClientMessage(new TranslationTextComponent(" in bonuses
+# The jump must run on client and server; otherwise prediction can hide it.
+jump_handler=bonuses.split("public static void onJump(",1)[1]
+assert "level.isClientSide" not in jump_handler
+
 assert "UUID.fromString" in bonuses
 
 for material in ("brumacero","umbracita"):
@@ -66,6 +78,8 @@ for material in ("brumacero","umbracita"):
         for part in parts:
             assert lang["item.aetherium."+material+"_"+part]
         assert lang["tooltip.aetherium."+material+"_set"]
+        assert lang["message.aetherium."+material+"_set_active"]
+        assert "+15" in lang["tooltip.aetherium.umbracita_set"] if material=="umbracita" else "18" in lang["tooltip.aetherium.brumacero_set"]
 
 # The source sprites of both swords must remain truly distinct 64x64 PNGs.
 # The build must NOT replace them with the earlier generic 32x32 swords.

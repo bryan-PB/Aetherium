@@ -134,7 +134,7 @@
   "guide.aetherium.page.5": "§5GUARDIÁN DE LA GRIETA§r\n\nEl Sigilo del Guardián lo invoca al usarlo en un bloque sólido.\n\nEsquiva sus embestidas y ondas. Su Núcleo de Grieta permite crear el siguiente sello.",
   "guide.aetherium.page.6": "§4VERDUGO ALADO§r\n\nEl Sello Astral requiere materiales del Guardián.\n\nEl Verdugo combate con embestidas, plumas y espejismos. Su botín permite crear equipo astral.",
   "guide.aetherium.page.7": "§5ARTEFACTOS§r\n\nEl imán atrae objetos cuando está activado.\n\nLa bengala revela enemigos cercanos y da visión nocturna. Algunos accesorios admiten Curios opcionalmente.",
-  "guide.aetherium.page.8": "§5EQUIPAMIENTO INICIAL§r\n\nBrumacero: protección robusta y herramientas fiables. Conjunto completo: -10 % de daño de monstruos.\n\nUmbracita: equipo más ligero. Conjunto completo: +10 % de velocidad y +5 % de impulso de salto.\n\nAmbos se fabrican con sus lingotes.",
+  "guide.aetherium.page.8": "§5EQUIPAMIENTO INICIAL§r\n\nBrumacero: armadura robusta. Conjunto completo: −18 % de daño de monstruos y +25 % de resistencia al retroceso.\n\nUmbracita: atuendo aventurero. Conjunto completo: +15 % de velocidad e impulso de salto.\n\nNecesitas las cuatro piezas del mismo conjunto.",
   "guide.aetherium.ui.codex": "ARCHIVOS DE LA GRIETA",
   "guide.aetherium.ui.chapter": "CAPÍTULO",
   "guide.aetherium.ui.hint": "FLECHAS: NAVEGAR",
@@ -180,8 +180,10 @@
   "item.aetherium.umbracita_chestplate": "Peto de Umbracita",
   "item.aetherium.umbracita_leggings": "Grebas de Umbracita",
   "item.aetherium.umbracita_boots": "Botas de Umbracita",
-  "tooltip.aetherium.brumacero_set": "Conjunto completo: reduce un 10 % el daño recibido de criaturas hostiles.",
-  "tooltip.aetherium.umbracita_set": "Conjunto completo: +10 % de velocidad de movimiento y +5 % de impulso al saltar.",
+  "tooltip.aetherium.brumacero_set": "Conjunto completo: −18 % de daño de monstruos y +25 % de resistencia al retroceso.",
+  "tooltip.aetherium.umbracita_set": "Conjunto completo: +15 % de velocidad y +15 % de impulso de salto.",
   "tooltip.aetherium.brumacero_tool": "Equipo inicial de metal resistente. Se repara con lingotes de Brumacero.",
-  "tooltip.aetherium.umbracita_tool": "Equipo ligero de exploración. Se repara con lingotes de Umbracita."
+  "tooltip.aetherium.umbracita_tool": "Equipo ligero de exploración. Se repara con lingotes de Umbracita.",
+  "message.aetherium.brumacero_set_active": "Conjunto Brumacero activado: defensa y estabilidad",
+  "message.aetherium.umbracita_set_active": "Conjunto Umbracita activado: agilidad y salto"
 }
