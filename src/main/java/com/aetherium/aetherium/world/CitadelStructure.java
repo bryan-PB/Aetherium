@@ -75,31 +75,19 @@ public final class CitadelStructure extends Structure<NoFeatureConfig> {
         public void generatePieces(DynamicRegistries registries, ChunkGenerator generator,
                                    TemplateManager templates, int chunkX, int chunkZ,
                                    Biome biome, NoFeatureConfig config) {
-            int cx = chunkX * 16 + 8;
-            int cz = chunkZ * 16 + 8;
-            int y = generator.getFirstOccupiedHeight(cx, cz, Heightmap.Type.WORLD_SURFACE_WG);
+            int y = generator.getFirstOccupiedHeight(
+                    chunkX * 16 + 8, chunkZ * 16 + 8, Heightmap.Type.WORLD_SURFACE_WG);
             if (y < 60 || y > 126) return;
 
-            // No random attachment/retry: the boxes only meet at their door
-            // faces. North/south doors are 3 wide and 4 tall, and all rooms
-            // share a common floor Y. Side wings do not intersect the spine.
-            int x = cx - 9;
-            int z = cz - 7;
+            // No random attachment/retry: all room offsets come from the
+            // same shared layout used by the operator preview. The boxes only
+            // meet at their 3x4 doors and share a common floor Y.
+            BlockPos origin = CitadelLayout.originForChunk(chunkX, chunkZ, y);
             try {
-                this.pieces.add(new CitadelPieces.Room(templates, "gateway",
-                        new BlockPos(x, y, z)));
-                this.pieces.add(new CitadelPieces.Room(templates, "corridor",
-                        new BlockPos(x + 4, y, z + 15)));
-                this.pieces.add(new CitadelPieces.Room(templates, "guardhouse",
-                        new BlockPos(x + 1, y, z + 32)));
-                this.pieces.add(new CitadelPieces.Room(templates, "archive",
-                        new BlockPos(x + 1, y, z + 49)));
-                this.pieces.add(new CitadelPieces.Room(templates, "arena_shell",
-                        new BlockPos(x - 4, y, z + 66)));
-                this.pieces.add(new CitadelPieces.Room(templates, "crypt",
-                        new BlockPos(x + 15, y, z + 15)));
-                this.pieces.add(new CitadelPieces.Room(templates, "forge",
-                        new BlockPos(x - 16, y, z + 32)));
+                for (CitadelLayout.RoomSpec room : CitadelLayout.rooms()) {
+                    this.pieces.add(new CitadelPieces.Room(
+                            templates, room.template, room.position(origin)));
+                }
             } catch (IllegalStateException missingTemplate) {
                 this.pieces.clear();
                 AetheriumMod.LOGGER.error("Citadel templates missing; cannot generate", missingTemplate);
