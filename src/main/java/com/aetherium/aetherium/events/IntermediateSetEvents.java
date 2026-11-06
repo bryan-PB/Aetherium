@@ -92,8 +92,7 @@ public final class IntermediateSetEvents {
 
     @SubscribeEvent
     public static void onJump(LivingEvent.LivingJumpEvent event) {
-        if (!(event.getEntityLiving() instanceof PlayerEntity)
-                ) return;
+        if (!(event.getEntityLiving() instanceof PlayerEntity)) return;
         PlayerEntity player = (PlayerEntity) event.getEntityLiving();
         if (!isSet(player, true)) return;
         Vector3d movement = player.getDeltaMovement();
