@@ -30,7 +30,10 @@
       "mirror": "NONE",
       "doors": {
         "south": "corridor"
-      }
+      },
+      "exterior": [
+        "north"
+      ]
     },
     {
       "id": "corridor",
