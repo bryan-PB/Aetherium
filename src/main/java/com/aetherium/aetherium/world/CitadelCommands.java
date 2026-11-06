@@ -107,25 +107,33 @@ public final class CitadelCommands {
                 .getBlockState(new BlockPos(player.getX(), Math.max(0, height - 1), player.getZ()));
         boolean terrain = CitadelStructure.canGenerateOnColumn(
                 generator, player.getX(), player.getZ());
+        // This treats the player's X/Z as the gateway candidate location.
+        // Unlike the earlier probe, it checks ALL 15 surface-room footprints.
+        int chosenY = CitadelStructure.findPlacementY(
+                generator, player.getX(), player.getZ());
+        boolean fullSite = chosenY >= 0;
         source.sendSuccess(new StringTextComponent(
                 "[Kryzorae] Probe X=" + player.getX() + " Z=" + player.getZ()
                 + " | Y superficie=" + height + " | suelo=" + ground.getBlock()
                 + " | bioma admite ciudadela=" + biomeHasCitadel
-                + " | terreno apto=" + terrain
+                + " | columna apta=" + terrain
+                + " | zona completa apta=" + fullSite
+                + " | Y base=" + chosenY
                 + " | espaciado=" + spacing
                 + " | activo=" + enabled
                 + " | Overworld=" + overworld), false);
-        if (!overworld || !enabled || !spacing || !biomeHasCitadel || !terrain) {
+        if (!overworld || !enabled || !spacing || !biomeHasCitadel || !fullSite) {
             source.sendFailure(new StringTextComponent(
                     "[Kryzorae] Al menos una condicion local falla. "
-                    + "Busca otro bioma terrestre o revisa configuracion. "
-                    + "Este comando NO genera ni modifica chunks."));
+                    + "El terreno de toda la Ciudadela debe ser relativamente "
+                    + "plano y seco. Busca una gran llanura o bosque sin barrancos. "
+                    + "El comando no genera ni modifica chunks."));
             return 0;
         }
         source.sendSuccess(new StringTextComponent(
-                "[Kryzorae] Esta columna supera las condiciones locales. "
-                + "La aparicion real requiere ademas un chunk candidato de la cuadricula "
-                + "y terreno NUEVO. Prueba /locate aetherium:citadel."), false);
+                "[Kryzorae] Las salas de superficie superan los filtros de "
+                + "altura, agua y relieve. La generacion real requiere un "
+                + "chunk candidato y terreno NUEVO. Usa /locate aetherium:citadel."), false);
         return 1;
     }
 
@@ -156,11 +164,16 @@ public final class CitadelCommands {
                 source.getPosition().x, source.getPosition().y, source.getPosition().z);
         int x = player.getX() - 9;
         int z = player.getZ() + 14;
-        // WORLD_SURFACE already returns the first free block above the surface.
-        // Adding 1 here made the preview float a block higher than worldgen.
-        int y = world.getHeight(Heightmap.Type.WORLD_SURFACE, player.getX(), z);
-        if (y < 60 || y > 120) {
-            source.sendFailure(new StringTextComponent("Busca una llanura o bosque entre Y 60 y 120."));
+        // Use the SAME full-footprint site check and median Y as natural
+        // generation. Previously preview only sampled the gateway, leaving
+        // the distant sanctum and towers buried or floating on hills.
+        int y = CitadelStructure.findPlacementY(
+                world.getChunkSource().getGenerator(), x + 9, z + 7);
+        if (y < 0) {
+            source.sendFailure(new StringTextComponent(
+                    "[Kryzorae] La zona de ~56x174 no es suficientemente plana "
+                    + "y seca. Busca una llanura extensa. Preview no ha "
+                    + "modificado bloques."));
             return 0;
         }
         BlockPos base = new BlockPos(x, y, z);
@@ -180,6 +193,8 @@ public final class CitadelCommands {
                         + ". El terreno de prueba puede haberse modificado parcialmente."));
                 return 0;
             }
+            new CitadelPieces.Room(manager, room, base)
+                    .placePreviewFoundations(world);
         }
         source.sendSuccess(new StringTextComponent(
                 "[Kryzorae] Ciudadela de prueba de " + CitadelLayout.rooms().size()
