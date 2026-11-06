@@ -122,6 +122,31 @@ public final class RegistryHandler {
                     .harvestLevel(3)
                     .requiresCorrectToolForDrops()));
 
+    // First expansion: raw Overworld ore deposits (no armor/weapons yet).
+    public static final RegistryObject<Block> BRUMACERO_ORE = BLOCKS.register("brumacero_ore",
+            () -> new Block(Block.Properties.of(Material.STONE)
+                    .strength(3.0F, 5.0F)
+                    .sound(SoundType.STONE)
+                    .harvestTool(ToolType.PICKAXE)
+                    .harvestLevel(1)
+                    .requiresCorrectToolForDrops()));
+
+    public static final RegistryObject<Block> UMBRACITA_ORE = BLOCKS.register("umbracita_ore",
+            () -> new Block(Block.Properties.of(Material.STONE)
+                    .strength(3.5F, 6.0F)
+                    .sound(SoundType.STONE)
+                    .harvestTool(ToolType.PICKAXE)
+                    .harvestLevel(2)
+                    .requiresCorrectToolForDrops()));
+
+    public static final RegistryObject<Block> PRISMALITA_ORE = BLOCKS.register("prismalita_ore",
+            () -> new Block(Block.Properties.of(Material.STONE)
+                    .strength(3.5F, 6.0F)
+                    .sound(SoundType.STONE)
+                    .harvestTool(ToolType.PICKAXE)
+                    .harvestLevel(2)
+                    .requiresCorrectToolForDrops()));
+
     // Custom creatures: small tracking/update values limit network and ticking overhead.
     public static final RegistryObject<EntityType<RiftStalkerEntity>> RIFT_STALKER = ENTITIES.register("rift_stalker",
             () -> EntityType.Builder.<RiftStalkerEntity>of(RiftStalkerEntity::new, EntityClassification.MONSTER)
@@ -159,9 +184,32 @@ public final class RegistryHandler {
     public static final RegistryObject<Item> AETHERIUM_BLOCK_ITEM = ITEMS.register("aetherium_block",
             () -> new BlockItem(AETHERIUM_BLOCK.get(), new Item.Properties().tab(ItemGroup.TAB_BUILDING_BLOCKS)));
 
+    // Inventory entries for the new stone deposits.
+    public static final RegistryObject<Item> BRUMACERO_ORE_ITEM = ITEMS.register("brumacero_ore",
+            () -> new BlockItem(BRUMACERO_ORE.get(),
+                    new Item.Properties().tab(ItemGroup.TAB_BUILDING_BLOCKS)));
+    public static final RegistryObject<Item> UMBRACITA_ORE_ITEM = ITEMS.register("umbracita_ore",
+            () -> new BlockItem(UMBRACITA_ORE.get(),
+                    new Item.Properties().tab(ItemGroup.TAB_BUILDING_BLOCKS)));
+    public static final RegistryObject<Item> PRISMALITA_ORE_ITEM = ITEMS.register("prismalita_ore",
+            () -> new BlockItem(PRISMALITA_ORE.get(),
+                    new Item.Properties().tab(ItemGroup.TAB_BUILDING_BLOCKS)));
+
     // First-play guide, also craftable if a player loses it.
     public static final RegistryObject<Item> GUIDE_BOOK = ITEMS.register("guide_book",
             () -> new GuideBookItem(new Item.Properties().tab(ItemGroup.TAB_MISC).stacksTo(1)));
+
+    // Basic ore products and catalysts for the upcoming crafting tiers.
+    public static final RegistryObject<Item> RAW_BRUMACERO = ITEMS.register("raw_brumacero",
+            () -> new Item(new Item.Properties().tab(ItemGroup.TAB_MATERIALS)));
+    public static final RegistryObject<Item> BRUMACERO_INGOT = ITEMS.register("brumacero_ingot",
+            () -> new Item(new Item.Properties().tab(ItemGroup.TAB_MATERIALS)));
+    public static final RegistryObject<Item> RAW_UMBRACITA = ITEMS.register("raw_umbracita",
+            () -> new Item(new Item.Properties().tab(ItemGroup.TAB_MATERIALS)));
+    public static final RegistryObject<Item> UMBRACITA_INGOT = ITEMS.register("umbracita_ingot",
+            () -> new Item(new Item.Properties().tab(ItemGroup.TAB_MATERIALS)));
+    public static final RegistryObject<Item> PRISMALITA_SHARD = ITEMS.register("prismalita_shard",
+            () -> new Item(new Item.Properties().tab(ItemGroup.TAB_MATERIALS)));
 
     // Materials
     public static final RegistryObject<Item> RAW_AETHERIUM = ITEMS.register("raw_aetherium",
