@@ -38,24 +38,34 @@ public final class AetheriumWorldGen {
             configuredBrumaceroOre = registerOre("brumacero_ore",
                     RegistryHandler.BRUMACERO_ORE.get(),
                     AetheriumConfig.BRUMACERO_VEIN_SIZE.get(),
-                    AetheriumConfig.BRUMACERO_VEINS_PER_CHUNK.get(),
+                    expandedAttemptCount(AetheriumConfig.BRUMACERO_VEINS_PER_CHUNK.get()),
                     AetheriumConfig.BRUMACERO_MIN_Y.get(),
                     AetheriumConfig.BRUMACERO_MAX_Y.get());
 
             configuredUmbracitaOre = registerOre("umbracita_ore",
                     RegistryHandler.UMBRACITA_ORE.get(),
                     AetheriumConfig.UMBRACITA_VEIN_SIZE.get(),
-                    AetheriumConfig.UMBRACITA_VEINS_PER_CHUNK.get(),
+                    expandedAttemptCount(AetheriumConfig.UMBRACITA_VEINS_PER_CHUNK.get()),
                     AetheriumConfig.UMBRACITA_MIN_Y.get(),
                     AetheriumConfig.UMBRACITA_MAX_Y.get());
 
             configuredPrismalitaOre = registerOre("prismalita_ore",
                     RegistryHandler.PRISMALITA_ORE.get(),
                     AetheriumConfig.PRISMALITA_VEIN_SIZE.get(),
-                    AetheriumConfig.PRISMALITA_VEINS_PER_CHUNK.get(),
+                    expandedAttemptCount(AetheriumConfig.PRISMALITA_VEINS_PER_CHUNK.get()),
                     AetheriumConfig.PRISMALITA_MIN_Y.get(),
                     AetheriumConfig.PRISMALITA_MAX_Y.get());
         });
+    }
+
+    /**
+     * Existing saves may have the old 2/1/1 per-ore settings on disk. Applying
+     * a new separate multiplier also upgrades those worlds without overwriting
+     * the owner's TOML preferences. No work is done while chunks are ticking.
+     */
+    private static int expandedAttemptCount(int configuredBase) {
+        return Math.min(24, Math.max(0, configuredBase)
+                * AetheriumConfig.NEW_ORE_DENSITY_MULTIPLIER.get());
     }
 
     private static ConfiguredFeature<?, ?> registerOre(String id, Block ore, int veinSize,
