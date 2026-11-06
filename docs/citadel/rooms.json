@@ -3,7 +3,7 @@
   "format": "minecraft-java-1.16.5",
   "namespace": "aetherium",
   "generator": "tools/generate_citadel_templates.py",
-  "status": "templates-only-no-natural-worldgen",
+  "status": "registered-overworld-jigsaw-worldgen",
   "roomCapFuture": 9,
   "rooms": [
     {
@@ -78,5 +78,14 @@
       "loot": null,
       "roof": "open"
     }
-  ]
+  ],
+  "naturalGeneration": true,
+  "pools": [
+    "start",
+    "corridor",
+    "guardhouse",
+    "archive",
+    "arena"
+  ],
+  "maxConnectedModules": 5
 }

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Generate deterministic 1.16.5 Java-Edition structure NBT room prototypes.
+"""Generate real 1.16.5 Java-Edition jigsaw NBT modules for native worldgen.
 
 Uses only the Python standard library. The templates are real, static structure
-block assets, generated before Gradle packages the mod. They are NOT a natural
-worldgen registration; this phase deliberately avoids cascading chunk loads.
+block assets, generated before Gradle packages the mod. Vanilla jigsaw code
+handles connected multi-chunk placement; no worldgen cascades from our script.
 """
 from pathlib import Path
 from collections import OrderedDict
@@ -120,6 +120,21 @@ def room_blocks(room):
                 {"hanging":"false","waterlogged":"false"})
 
     if kind == "entrance":
+        # Two recognizable ruined gate towers and a raised parapet.
+        for tower_x in (2, w-3):
+            for tower_z in (2, d-4):
+                for off_x in (-2,-1,0,1,2):
+                    for off_z in (-2,-1,0,1,2):
+                        x, z = tower_x+off_x, tower_z+off_z
+                        if off_x in (-2,2) or off_z in (-2,2):
+                            for y in range(2,h-1):
+                                put(x,y,z,"minecraft:polished_blackstone_bricks")
+                            if (off_x+off_z) % 2 == 0:
+                                put(x,h-1,z,"minecraft:chiseled_stone_bricks")
+        # Elevate the silhouette: dark crest across gateway.
+        for x in range(center-4,center+5):
+            if abs(x-center) in (0,2,4):
+                put(x,h-1,0,"minecraft:polished_blackstone_bricks")
         for x in (center-5,center+5):
             for y in (1,2,3):
                 put(x,y,2,"minecraft:crying_obsidian")
@@ -156,6 +171,31 @@ def room_blocks(room):
                 put(x,1,z,"minecraft:chiseled_stone_bricks")
                 put(x,2,z,"minecraft:crying_obsidian")
         # Arena is empty on purpose. No boss or spawner is installed yet.
+
+    # Jigsaw blocks only exist as connectors during world generation;
+    # the vanilla jigsaw processor replaces both with final_state AIR.
+    links = ["corridor", "guardhouse", "archive", "arena_shell", None]
+    ordering = ["gateway", "corridor", "guardhouse", "archive", "arena_shell"]
+    index = ordering.index(room["id"])
+    if index > 0:
+        put(center,2,0,"minecraft:jigsaw",
+            {"orientation":"north_up"},
+            {"id":"minecraft:jigsaw",
+             "name":"aetherium:citadel/entry",
+             "target":"aetherium:citadel/exit",
+             "pool":"minecraft:empty",
+             "final_state":"minecraft:air",
+             "joint":"aligned"})
+    if links[index]:
+        target_pool = "arena" if links[index] == "arena_shell" else links[index]
+        put(center,2,d-1,"minecraft:jigsaw",
+            {"orientation":"south_up"},
+            {"id":"minecraft:jigsaw",
+             "name":"aetherium:citadel/exit",
+             "target":"aetherium:citadel/entry",
+             "pool":"aetherium:citadel/"+target_pool,
+             "final_state":"minecraft:air",
+             "joint":"aligned"})
 
     if room["chest"]:
         x,y,z = room["chest"]
@@ -201,7 +241,7 @@ def encode_room(room):
 def main():
     spec = json.loads(BLUEPRINT.read_text(encoding="utf-8"))
     assert spec["namespace"] == "aetherium"
-    assert spec["status"] == "templates-only-no-natural-worldgen"
+    assert spec["status"] == "registered-overworld-jigsaw-worldgen"
     OUT.mkdir(parents=True,exist_ok=True)
     for room in spec["rooms"]:
         assert room["id"].replace("_","").isalnum()

@@ -19,7 +19,7 @@ VALID = {
     "minecraft:polished_blackstone_bricks", "minecraft:chiseled_stone_bricks",
     "minecraft:purple_stained_glass", "minecraft:crying_obsidian",
     "minecraft:soul_lantern", "minecraft:air", "minecraft:chest",
-    "minecraft:bookshelf", "minecraft:dark_oak_planks",
+    "minecraft:bookshelf", "minecraft:dark_oak_planks", "minecraft:jigsaw",
 }
 
 
@@ -114,15 +114,32 @@ def validate_room(room, read):
             assert "nbt" in item
             assert item["nbt"]["id"]=="minecraft:chest"
             chests.append((list(pos),item["nbt"]["LootTable"]))
+        elif name == "minecraft:jigsaw":
+            assert item["nbt"]["id"] == "minecraft:jigsaw"
+            assert item["nbt"]["final_state"] == "minecraft:air"
+            assert item["nbt"]["name"].startswith("aetherium:citadel/")
+            assert item["nbt"]["target"].startswith("aetherium:citadel/")
+            assert item["nbt"]["pool"] == "minecraft:empty" or item["nbt"]["pool"].startswith("aetherium:citadel/")
         else:
             assert "nbt" not in item, "Unwanted ticking block entity: "+name
     expected=[(room["chest"],room["loot"])] if room["chest"] else []
     assert chests==expected,(room["id"],chests,expected)
     mid=w//2
+    connectors=[(tuple(it["pos"]),it["nbt"]) for it in blocks
+                if names[it["state"]]=="minecraft:jigsaw"]
+    expected_connectors= (1 if room["id"]=="gateway" else
+                         1 if room["id"]=="arena_shell" else 2)
+    assert len(connectors)==expected_connectors,(room["id"],connectors)
+    if room["id"]!="gateway":
+        assert any(p==(mid,2,0) and data["name"]=="aetherium:citadel/entry"
+                   for p,data in connectors), "Missing entry connector"
+    if room["id"]!="arena_shell":
+        assert any(p==(mid,2,d-1) and data["name"]=="aetherium:citadel/exit"
+                   for p,data in connectors), "Missing exit connector"
     for side in (0,d-1):
         for x in range(mid-1,mid+2):
             for y in range(1,5):
-                assert coords[(x,y,side)]=="minecraft:air", (
+                assert coords[(x,y,side)] in ("minecraft:air","minecraft:jigsaw"), (
                     room["id"],"door clearance",x,y,side)
     if room["roof"]=="open":
         assert coords[(mid,h-2,d//2)]=="minecraft:air"
@@ -167,8 +184,25 @@ def validate_loot(read):
 
 def validate(lookup):
     total=0
+    pool_names=["start","corridor","guardhouse","archive","arena"]
+    expected_rooms=["gateway","corridor","guardhouse","archive","arena_shell"]
+    for name,room_id in zip(pool_names,expected_rooms):
+        path="data/aetherium/worldgen/template_pool/citadel/"+name+".json"
+        pool=json.loads(lookup(path).decode("utf-8"))
+        assert pool["name"]=="aetherium:citadel/"+name
+        assert pool["fallback"]=="minecraft:empty"
+        assert len(pool["elements"])==1
+        entry=pool["elements"][0]
+        assert entry["weight"]==1
+        element=entry["element"]
+        assert element["element_type"]=="minecraft:single_pool_element"
+        assert element["location"]=="aetherium:citadel/"+room_id
+        assert element["projection"]=="rigid"
+        assert element["processors"]=="minecraft:empty"
     assert SPEC["namespace"]=="aetherium"
-    assert SPEC["status"]=="templates-only-no-natural-worldgen"
+    assert SPEC["status"]=="registered-overworld-jigsaw-worldgen"
+    assert SPEC["naturalGeneration"] is True
+    assert SPEC["maxConnectedModules"]==5
     assert SPEC["roomCapFuture"]<=9
     rooms=SPEC["rooms"]
     assert len(rooms)==5
@@ -194,5 +228,8 @@ for jar in jars:
         for room in SPEC["rooms"]:
             path=room_path(room)
             assert z.read(path)==(RES/path).read_bytes(), "NBT changed in build"
+        for name in SPEC["pools"]:
+            path="data/aetherium/worldgen/template_pool/citadel/"+name+".json"
+            assert z.read(path)==(RES/path).read_bytes()
 print("Citadel OK:",len(SPEC["rooms"]),"rooms,",source_count,
-      "NBT cells, 3 safe loot tables, source/JAR verified; natural worldgen pending")
+      "NBT cells, 3 safe loot tables, connected jigsaw rooms source/JAR verified")
