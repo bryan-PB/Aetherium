@@ -8,15 +8,26 @@ assets = Path("src/main/resources/assets/aetherium")
 data = Path("src/main/resources/data/aetherium")
 item = (root / "content/item/GuideBookItem.java").read_text(encoding="utf-8")
 client = (root / "client/GuideBookClient.java").read_text(encoding="utf-8")
+screen = (root / "client/GuideBookScreen.java").read_text(encoding="utf-8")
 events = (root / "events/GuideBookEvents.java").read_text(encoding="utf-8")
 registry = (root / "registry/RegistryHandler.java").read_text(encoding="utf-8")
 
 assert 'GUIDE_BOOK = ITEMS.register("guide_book"' in registry
 assert "new GuideBookItem(" in registry
 assert "DistExecutor.safeRunWhenOn(Dist.CLIENT" in item
-assert "ReadBookScreen.WrittenBookInfo(virtualBook)" in client
-assert "new ItemStack(Items.WRITTEN_BOOK)" in client
-assert "page <= 8" in client
+assert "new GuideBookScreen()" in client
+assert "extends Screen" in screen
+assert "CHAPTERS = 8" in screen
+assert "renderCover(" in screen
+assert "renderSidebar(" in screen
+assert "renderPage(" in screen
+assert "mouseClicked(" in screen
+assert "mouseScrolled(" in screen
+assert "keyPressed(" in screen
+assert "panelScale = Math.min(" in screen
+assert "RegistryHandler.AETHERIUM_SWORD.get()" in screen
+assert "RegistryHandler.ASTRAL_SWORD.get()" in screen
+assert "GuideBookEvents" not in screen
 assert "if (!(event.getPlayer() instanceof ServerPlayerEntity)) return;" in events
 assert 'STARTER_FLAG = "KryzoraeGuideReceived"' in events
 assert "persistent.getBoolean(STARTER_FLAG)" in events
@@ -35,9 +46,12 @@ for locale in ("en_us", "es_es", "es_cl", "es_mx", "es_ar"):
     d = json.loads((assets / f"lang/{locale}.json").read_text(encoding="utf-8"))
     assert d["item.aetherium.guide_book"]
     assert d["tooltip.aetherium.guide_book"]
+    for key in ("guide.aetherium.ui.codex", "guide.aetherium.ui.chapter", "guide.aetherium.ui.hint"):
+        assert d[key]
     for i in range(1, 9):
+        assert d[f"guide.aetherium.chapter.{i}"]
         text = d[f"guide.aetherium.page.{i}"]
         assert 50 <= len(text) <= 400, (locale, i)
         assert len(text.splitlines()) >= 2, (locale, i)
 
-print("Guide: item, first login delivery, respawn persistence, recipe, GUI and five languages validated.")
+print("Guide: item, first login delivery, respawn persistence, recipe, custom GUI and five languages validated.")
