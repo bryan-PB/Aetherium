@@ -148,11 +148,11 @@ def hood_icon(which):
         a.rect(19,21,22,22,orange)
         a.line(9,27,23,27,light,1)
 
-        # Compact stepped crown: lower profile to match the shortened 3D model.
-        a.polygon([(9,15),(10,8),(14,5),(22,6),(25,9),(24,16)],black)
-        a.polygon([(10,14),(12,8),(16,6),(22,7),(24,11),(23,16)],purple)
-        a.polygon([(12,10),(15,6),(21,7),(22,9),(19,10)],light)
-        a.polygon([(21,7),(24,10),(23,15),(21,13)],fold)
+        # Lower, broader stepped crown matches the corrected 3D model.
+        a.polygon([(9,15),(10,10),(14,8),(22,8),(25,11),(24,16)],black)
+        a.polygon([(10,14),(12,10),(16,9),(22,9),(24,12),(23,16)],purple)
+        a.polygon([(12,11),(15,9),(21,9),(22,10),(19,11)],light)
+        a.polygon([(21,9),(24,12),(23,15),(21,13)],fold)
         a.line(12,13,23,13,ochre,2)
         a.rect(17,12,19,15,orange)
 
