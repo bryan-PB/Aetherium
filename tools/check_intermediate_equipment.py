@@ -90,6 +90,13 @@ assert "256" in model_code and "128" in model_code
 assert "private void sorcererHat()" in model_code
 assert "private void hood()" not in model_code
 assert "15.40F, 0.45F, 13.30F" in model_code, "Hat brim must be noticeably wider than the skull"
+# Compact revision: crown was -15.65px and is now -13.90px.
+# The 15.4px brim and fitted scarf stay identical (no gameplay changes).
+assert "cube(head, LIGHT, ROW, -2.10F, -13.90F, -2.55F, 4.35F, 0.45F, 5.10F)" in model_code
+assert "cube(head, LIGHT, ROW, -2.10F, -15.65F" not in model_code
+assert "cube(head, FABRIC, ROW, -3.65F, -12.35F" in model_code
+assert "cube(head, FABRIC, ROW, -4.30F, -2.18F, -4.79F, 8.60F, 1.38F, 0.59F)" in model_code
+
 assert "face is deliberately open" in model_code.lower(), "Ensure upper face remains exposed"
 assert "new IntermediateArmorModel(true,true)" in model_code
 
@@ -109,4 +116,5 @@ for loc in ("en_us", "es_es", "es_cl", "es_mx", "es_ar"):
     assert ("Hat" if loc=="en_us" else "Sombrero") in lang["item.aetherium.umbracita_helmet"]
 icon_generator=Path("tools/generate_custom_armor_art.py").read_text(encoding="utf-8")
 assert "Miniature of the actual wide-brimmed" in icon_generator
+assert "[(9,15),(10,8),(14,5),(22,6),(25,9),(24,16)]" in icon_generator
 print("18 registered crafted items, 18 original sprite textures, four fitted 256x128 worn atlases, five languages and server-light set bonuses validated.")
