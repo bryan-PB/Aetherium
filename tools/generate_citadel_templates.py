@@ -217,6 +217,112 @@ def room_blocks(room):
                 put(x,2,z,"minecraft:crying_obsidian")
         # Arena is empty on purpose. No boss or spawner is installed yet.
 
+    elif kind == "courtyard":
+        # A large open plaza with broken balustrades, a central compass and
+        # raised lighting. The central 3-wide north/south path stays clear.
+        for x in range(3,w-3):
+            for z in range(3,d-3):
+                dx, dz = x-center, z-d//2
+                if 55 <= dx*dx+dz*dz <= 85:
+                    put(x,0,z,"minecraft:polished_blackstone_bricks")
+        for x in (4,w-5):
+            for z in (4,d-5):
+                for y in range(1,5):
+                    put(x,y,z,"minecraft:polished_blackstone_bricks")
+                put(x,5,z,"minecraft:soul_lantern",
+                    {"hanging":"false","waterlogged":"false"})
+        for x in (3,w-4):
+            for z in (7,d-8):
+                put(x,2,z,"minecraft:iron_bars")
+
+    elif kind == "tower":
+        # Three accessible storeys. A permanent ladder climbs a backed wall;
+        # a dedicated 1x1 opening in each floor connects the levels.
+        for floor in (8,15,21):
+            if floor >= h-1:
+                continue
+            for x in range(1,w-1):
+                for z in range(1,d-1):
+                    if not (x==3 and z==3):
+                        put(x,floor,z,"minecraft:polished_blackstone_bricks")
+        for y in range(1,h-1):
+            put(3,y,2,"minecraft:polished_blackstone_bricks")
+            put(3,y,3,"minecraft:ladder",{"facing":"north","waterlogged":"false"})
+        for y in (5,12,19):
+            if y<h-1:
+                for x in (0,w-1):
+                    put(x,y,d//2,"minecraft:iron_bars")
+        for x in range(1,w-1,2):
+            for z in (0,d-1):
+                put(x,h-1,z,"minecraft:polished_blackstone_bricks")
+
+    elif kind in ("prison","catacombs"):
+        # Visible hazard stripes: no unavoidable damage in the 3-wide center
+        # path. Cobwebs telegraph the danger rather than hidden instant traps.
+        for x in (4,w-5):
+            for z in range(5,d-5):
+                if z % 3:
+                    put(x,0,z,"minecraft:magma_block")
+                if z in (6,d-7):
+                    put(x,1,z,"minecraft:cobweb")
+        for x in (2,w-3):
+            for z in (4,d-5):
+                put(x,2,z,"minecraft:iron_bars")
+
+    elif kind == "gallery":
+        # Two side aisles with shelves and a cracked, illuminated altar.
+        for x in (3,w-4):
+            for z in range(4,d-4):
+                for y in range(1,4):
+                    put(x,y,z,"minecraft:bookshelf")
+        for x in (center-3,center+3):
+            put(x,1,d//2,"minecraft:chiseled_stone_bricks")
+            put(x,2,d//2,"minecraft:soul_lantern",
+                {"hanging":"false","waterlogged":"false"})
+
+    elif kind == "threshold":
+        # Later a seal/mini-boss encounter; currently a readable traversal
+        # challenge, with no fake boss entity or automatic redstone loops.
+        for x in range(4,w-4):
+            for z in range(5,d-5):
+                if x in (4,w-5) and z%4 in (0,1):
+                    put(x,0,z,"minecraft:magma_block")
+        for x in (4,w-5):
+            for z in (6,d-7):
+                for y in range(1,5):
+                    put(x,y,z,"minecraft:polished_blackstone_bricks")
+                put(x,5,z,"minecraft:crying_obsidian")
+
+    elif kind == "sanctum":
+        # Multi-aisle end chamber, open ceiling and a dark circular dais.
+        # Boss spawning remains disabled until the actual Custodian is built.
+        radius = 10
+        for x in range(3,w-3):
+            for z in range(3,d-3):
+                dx,dz=x-center,z-d//2
+                if (radius-1)**2 <= dx*dx+dz*dz <= (radius+1)**2:
+                    put(x,0,z,"minecraft:polished_blackstone_bricks")
+        for x in (5,w-6):
+            for z in (5,d-6):
+                for y in range(1,10):
+                    put(x,y,z,"minecraft:polished_blackstone_bricks")
+                put(x,10,z,"minecraft:crying_obsidian")
+                put(x,11,z,"minecraft:soul_lantern",
+                    {"hanging":"false","waterlogged":"false"})
+
+    elif kind == "vault":
+        # Compact underground reliquary, made accessible from the archive
+        # ladder. Loot remains mid-tier until the later boss gate exists.
+        for x in range(3,w-3):
+            for z in (3,d-4):
+                put(x,0,z,"minecraft:polished_blackstone_bricks")
+        for x in (3,w-4):
+            for z in range(4,d-4):
+                if z % 3 == 0:
+                    put(x,0,z,"minecraft:magma_block")
+        put(center,1,d//2,"minecraft:chiseled_stone_bricks")
+        put(center,2,d//2,"minecraft:crying_obsidian")
+
     # The connector metadata is preserved in the NBT for future real jigsaw
     # expansion, but the current Forge 1.16.5 structure uses a deterministic
     # prechecked layout rather than allowing jigsaw to overlap neighbor chunks.
