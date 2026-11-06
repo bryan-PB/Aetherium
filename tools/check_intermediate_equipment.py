@@ -135,6 +135,17 @@ for material in ("brumacero","umbracita"):
         assert digest not in all_tool_hashes, "Duplicate tool sprite: "+str(path)
         all_tool_hashes.add(digest)
 assert len(all_tool_hashes)==10
+# Freeze the two manually reviewed single-edge axes: no more accidental
+# fallback to butterfly/double-head art from a generated sprite source.
+axe_hashes={
+    "brumacero": "a26c9d5d18853351acfb2ee3153a8f2d45bda1e8463527c83d627c66369142ad",
+    "umbracita": "a95f64960904eed18562b756c61d7e08c929c0592fd8fa50f8c58ceb3891defe",
+}
+for material, expected in axe_hashes.items():
+    icon=(assets/"textures/item"/f"{material}_axe.png")
+    assert hashlib.sha256(icon.read_bytes()).hexdigest()==expected, (
+        "Approved single-blade axe sprite replaced: "+str(icon))
+
 
 
 # Do not change the items and resource identity of the approved endgame sets.
