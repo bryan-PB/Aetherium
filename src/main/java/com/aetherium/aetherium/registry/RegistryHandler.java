@@ -5,6 +5,7 @@ import com.aetherium.aetherium.content.armor.AetheriumArmorMaterial;
 import com.aetherium.aetherium.content.armor.AstralArmorMaterial;
 import com.aetherium.aetherium.content.armor.KryzoraeArmorItem;
 import com.aetherium.aetherium.content.armor.IntermediateArmorMaterial;
+import com.aetherium.aetherium.content.armor.IntermediateArmorItem;
 import com.aetherium.aetherium.content.item.IntermediateItemTier;
 import com.aetherium.aetherium.content.item.AetheriumAccessoryItem;
 import com.aetherium.aetherium.content.item.AetheriumItemTier;
@@ -233,16 +234,16 @@ public final class RegistryHandler {
             ITEMS.register("brumacero_hoe", () -> new HoeItem(IntermediateItemTier.BRUMACERO, -2, -1.0F,
                     new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
     public static final RegistryObject<Item> BRUMACERO_HELMET =
-            ITEMS.register("brumacero_helmet", () -> new ArmorItem(IntermediateArmorMaterial.BRUMACERO,
+            ITEMS.register("brumacero_helmet", () -> new IntermediateArmorItem(IntermediateArmorMaterial.BRUMACERO,
                     EquipmentSlotType.HEAD, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
     public static final RegistryObject<Item> BRUMACERO_CHESTPLATE =
-            ITEMS.register("brumacero_chestplate", () -> new ArmorItem(IntermediateArmorMaterial.BRUMACERO,
+            ITEMS.register("brumacero_chestplate", () -> new IntermediateArmorItem(IntermediateArmorMaterial.BRUMACERO,
                     EquipmentSlotType.CHEST, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
     public static final RegistryObject<Item> BRUMACERO_LEGGINGS =
-            ITEMS.register("brumacero_leggings", () -> new ArmorItem(IntermediateArmorMaterial.BRUMACERO,
+            ITEMS.register("brumacero_leggings", () -> new IntermediateArmorItem(IntermediateArmorMaterial.BRUMACERO,
                     EquipmentSlotType.LEGS, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
     public static final RegistryObject<Item> BRUMACERO_BOOTS =
-            ITEMS.register("brumacero_boots", () -> new ArmorItem(IntermediateArmorMaterial.BRUMACERO,
+            ITEMS.register("brumacero_boots", () -> new IntermediateArmorItem(IntermediateArmorMaterial.BRUMACERO,
                     EquipmentSlotType.FEET, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
 
     // UMBRACITA — first two distinct intermediate sets. Uses standard biped armor geometry.
@@ -262,16 +263,16 @@ public final class RegistryHandler {
             ITEMS.register("umbracita_hoe", () -> new HoeItem(IntermediateItemTier.UMBRACITA, -2, -1.0F,
                     new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
     public static final RegistryObject<Item> UMBRACITA_HELMET =
-            ITEMS.register("umbracita_helmet", () -> new ArmorItem(IntermediateArmorMaterial.UMBRACITA,
+            ITEMS.register("umbracita_helmet", () -> new IntermediateArmorItem(IntermediateArmorMaterial.UMBRACITA,
                     EquipmentSlotType.HEAD, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
     public static final RegistryObject<Item> UMBRACITA_CHESTPLATE =
-            ITEMS.register("umbracita_chestplate", () -> new ArmorItem(IntermediateArmorMaterial.UMBRACITA,
+            ITEMS.register("umbracita_chestplate", () -> new IntermediateArmorItem(IntermediateArmorMaterial.UMBRACITA,
                     EquipmentSlotType.CHEST, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
     public static final RegistryObject<Item> UMBRACITA_LEGGINGS =
-            ITEMS.register("umbracita_leggings", () -> new ArmorItem(IntermediateArmorMaterial.UMBRACITA,
+            ITEMS.register("umbracita_leggings", () -> new IntermediateArmorItem(IntermediateArmorMaterial.UMBRACITA,
                     EquipmentSlotType.LEGS, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
     public static final RegistryObject<Item> UMBRACITA_BOOTS =
-            ITEMS.register("umbracita_boots", () -> new ArmorItem(IntermediateArmorMaterial.UMBRACITA,
+            ITEMS.register("umbracita_boots", () -> new IntermediateArmorItem(IntermediateArmorMaterial.UMBRACITA,
                     EquipmentSlotType.FEET, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
 
     // Materials
