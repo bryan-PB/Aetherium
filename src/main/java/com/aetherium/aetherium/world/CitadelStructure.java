@@ -101,7 +101,7 @@ public final class CitadelStructure extends Structure<NoFeatureConfig> {
 
             // The central gateway determines the shared ground-floor Y.
             // Undercrypts are separate, strictly nonoverlapping Y ranges.
-            if (!canGenerateMegaSite(generator, cx, cz)) return;
+            if (!canGenerateMegaSite(generator, chunkX * 16 + 8, chunkZ * 16 + 8)) return;
             BlockPos origin = CitadelLayout.originForChunk(chunkX, chunkZ, y);
             try {
                 for (CitadelLayout.RoomSpec room : CitadelLayout.rooms()) {
