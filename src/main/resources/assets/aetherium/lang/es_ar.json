@@ -124,5 +124,15 @@
   "death.attack.kryzorae_bleeding": "%1$s se desangró",
   "death.attack.kryzorae_bleeding.player": "%1$s se desangró",
   "tooltip.aetherium.item.aetherium_sword.detail": "Inflige 5 PS (50 % del daño base). Espera: 0,45 s.",
-  "tooltip.aetherium.item.astral_sword.detail": "Dura 5 s tras el último golpe. Tres cargas: 6 PS/s."
+  "tooltip.aetherium.item.astral_sword.detail": "Dura 5 s tras el último golpe. Tres cargas: 6 PS/s.",
+  "item.aetherium.guide_book": "Códice de Kryzorae",
+  "tooltip.aetherium.guide_book": "Clic derecho: abre la guía de Kryzorae.",
+  "guide.aetherium.page.1": "§5CÓDICE DE KRYZORAE§r\n\nGuía de exploración, equipo y jefes.\n\nEsta edición describe el contenido disponible. Las futuras expansiones traerán nuevos capítulos.",
+  "guide.aetherium.page.2": "§5PRIMEROS PASOS§r\n\nBusca mineral de Kryzorae en las cuevas profundas. Extrae el material y fúndelo para obtener lingotes.\n\nPrepara equipo antes de explorar zonas peligrosas.",
+  "guide.aetherium.page.3": "§5ESPADA VIOLETA§r\n\nAl blandirla dispara un corte de energía que avanza unos 5 bloques.\n\nCada onda tiene una espera de 0,45 s. Se detiene en bloques sólidos.",
+  "guide.aetherium.page.4": "§4ESPADA CARMESÍ§r\n\nLos golpes aplican Sangrado. Hasta 3 cargas infligen 2, 4 o 6 puntos de salud por segundo.\n\nContra jefes, las cargas no pueden acumularse sin límite.",
+  "guide.aetherium.page.5": "§5GUARDIÁN DE LA GRIETA§r\n\nEl Sigilo del Guardián lo invoca al usarlo en un bloque sólido.\n\nEsquiva sus embestidas y ondas. Su Núcleo de Grieta permite crear el siguiente sello.",
+  "guide.aetherium.page.6": "§4VERDUGO ALADO§r\n\nEl Sello Astral requiere materiales del Guardián.\n\nEl Verdugo combate con embestidas, plumas y espejismos. Su botín permite crear equipo astral.",
+  "guide.aetherium.page.7": "§5ARTEFACTOS§r\n\nEl imán atrae objetos cuando está activado.\n\nLa bengala revela enemigos cercanos y da visión nocturna. Algunos accesorios admiten Curios opcionalmente.",
+  "guide.aetherium.page.8": "§5FUTURAS EXPANSIONES§r\n\nEste libro crecerá con nuevos minerales, forjas, armaduras y criaturas cuando existan en el juego.\n\nConsulta las recetas en Minecraft o JEI si lo tienes."
 }
