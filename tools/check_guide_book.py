@@ -38,6 +38,6 @@ for locale in ("en_us", "es_es", "es_cl", "es_mx", "es_ar"):
     for i in range(1, 9):
         text = d[f"guide.aetherium.page.{i}"]
         assert 50 <= len(text) <= 400, (locale, i)
-        assert len(text.split("\\n")) >= 2, (locale, i)
+        assert len(text.splitlines()) >= 2, (locale, i)
 
 print("Guide: item, first login delivery, respawn persistence, recipe, GUI and five languages validated.")
