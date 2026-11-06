@@ -102,6 +102,30 @@ def validate_room(room, read):
     assert palette and len(palette)<=32, room["id"]
     names=[entry["Name"] for entry in palette]
     assert set(names).issubset(VALID), (room["id"], set(names)-VALID)
+    # State-level checks: an NBT palette may list a valid block ID but an
+    # invalid property value; Minecraft then silently substitutes/ignores it.
+    for entry in palette:
+        block=entry["Name"]
+        props=entry.get("Properties", {})
+        if block=="minecraft:polished_blackstone_brick_stairs":
+            assert props.get("facing") in {"north","east","south","west"}
+            assert props.get("half") in {"top","bottom"}
+            assert props.get("shape")=="straight"
+            assert props.get("waterlogged")=="false"
+        elif block=="minecraft:polished_blackstone_brick_slab":
+            assert props.get("type") in {"top","bottom","double"}
+            assert props.get("waterlogged")=="false"
+        elif block in ("minecraft:soul_lantern","minecraft:ladder"):
+            assert props.get("waterlogged")=="false"
+            if block=="minecraft:ladder":
+                assert props.get("facing") in {"north","south","east","west"}
+            else:
+                assert props.get("hanging") in {"true","false"}
+        elif block in ("minecraft:sea_lantern","minecraft:polished_basalt",
+                       "minecraft:polished_blackstone","minecraft:iron_bars",
+                       "minecraft:polished_blackstone_bricks",
+                       "minecraft:stone_bricks"):
+            assert props=={}, ("Unexpected blockstate",block,props)
     blocks=root["blocks"]
     w,h,d=room["size"]
     assert len(blocks)==w*h*d, "Missing / duplicated volume: "+room["id"]
