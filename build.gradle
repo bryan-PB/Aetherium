@@ -70,12 +70,12 @@ minecraft {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
-// Generate the seven native 1.16.5 Citadel NBT rooms on every local build.
+// Generate the 17 native 1.16.5 Citadel NBT rooms on local and CI builds.
 // Previously only GitHub Actions generated them; a local gradlew build could
 // silently create a JAR without any Citadel templates.
 tasks.register('generateCitadelTemplates', Exec) {
     group = 'build'
-    description = 'Generate the seven Citadel NBT structure templates before packaging.'
+    description = 'Generate the 17 Citadel NBT structure templates before packaging.'
     workingDir projectDir
     def windows = System.getProperty('os.name').toLowerCase().contains('windows')
     def python = System.getenv('PYTHON') ?: (windows ? 'py' : 'python3')
@@ -86,6 +86,7 @@ tasks.register('generateCitadelTemplates', Exec) {
     }
     inputs.file('docs/citadel/rooms.json')
     inputs.file('tools/generate_citadel_templates.py')
+    inputs.file('tools/citadel_architecture.py') // rebuild when interior design changes
     outputs.dir('src/main/resources/data/aetherium/structures/citadel')
 }
 tasks.named('processResources') {
