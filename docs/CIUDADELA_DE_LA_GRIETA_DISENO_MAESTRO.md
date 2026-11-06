@@ -1,7 +1,7 @@
 # Kryzorae — Documento maestro: Ciudadela de la Grieta
-**Versión del diseño:** 1.0 · **Objetivo:** Minecraft Java 1.16.5 / Forge 36.2.42 / Java 8 · **ID heredado del mod:** \`aetherium\`
+**Versión del diseño:** 1.0 · **Objetivo:** Minecraft Java 1.16.5 / Forge 36.2.42 / Java 8 · **ID heredado del mod:** `aetherium`
 
-> **Estado:** especificación aprobada para desarrollo y primer lote de plantillas NBT en preparación. **Todavía no existe una ciudadela generándose naturalmente en los mundos de jugadores**, ni entidades nuevas o una batalla con el Custodio hasta que sus respectivas fases se implementen y prueben en Forge. Los valores de combate aquí son objetivos de balance, no estadísticas ya registradas.
+> **Estado:** especificación aprobada; **fase 0 implementada y compilada en CI #248**: cinco plantillas NBT de estructuras de Minecraft Java 1.16.5 y tres cofres con tablas de botín verificadas. **Todavía no existe una ciudadela generándose naturalmente en los mundos de jugadores**, ni entidades nuevas o una batalla con el Custodio hasta que sus respectivas fases se implementen y prueben en Forge. Los valores de combate aquí son objetivos de balance, no estadísticas ya registradas.
 
 ## 1. Identidad y papel en el mod
 
@@ -13,7 +13,7 @@ Una fortaleza en ruinas de origen desconocido, erigida para contener una fisura 
 
 ## 2. Plano narrativo y bucle jugable
 
-\`\`\`text
+```text
 RUTA PRINCIPAL
 PORTÓN RUINOSO (entrada) → PASILLO → PATIO → SEGUNDA ALA
                                        ├─ Cuartel / botín básico
@@ -28,7 +28,7 @@ SEGUNDA ALA → SALA DE VIGILANCIA → CENTINELA DEL UMBRAL
                                ARENA DEL CUSTODIO DE LA GRIETA
                                             ↓
                                 Cámara del tesoro y atajo de salida
-\`\`\`
+```
 
 **Flujo de una visita:** descubrir ruinas → inspeccionar para identificar el camino → enfrentar guardias y arqueros → investigar cuartos opcionales para materiales → luchar contra el Centinela → usar su sello en el santuario → enfrentar al Custodio → obtener reliquia y salida rápida.
 
@@ -40,18 +40,18 @@ El generador de prototipos tiene 5 piezas iniciales. Más adelante la ruta final
 
 | Identificador de plantilla | Dimensiones X×Y×Z | Función | Estado de implementación |
 |---|---:|---|---|
-| \`citadel/gateway\` | 19×11×15 | Portón, bienvenida y botín pequeño | Fase 0: plantilla |
-| \`citadel/corridor\` | 11×9×17 | Conector, bifurcaciones posteriores | Fase 0: plantilla |
-| \`citadel/guardhouse\` | 17×10×17 | Cuartel, botín de equipo | Fase 0: plantilla |
-| \`citadel/archive\` | 17×11×17 | Libros, prismalita y pistas | Fase 0: plantilla |
-| \`citadel/arena_shell\` | 27×15×27 | Espacio de prueba para miniboss/boss, inicialmente vacío | Fase 0: plantilla |
-| \`citadel/courtyard\` | 27×12×27 | Nodo de rutas, grupos pequeños | Fase 1 |
-| \`citadel/crypt\` | 17×11×17 | Cámara ritual opcional | Fase 1 |
-| \`citadel/watchtower\` | 11×24×11 | Visibilidad, arquero | Fase 1 |
-| \`citadel/forge\` | 17×10×17 | Forja y materiales | Fase 1 |
-| \`citadel/prison\` | 17×10×17 | Enemigo Eco, exploración | Fase 2 |
-| \`citadel/threshold\` | 23×15×23 | Minijefe Centinela | Fase 3 |
-| \`citadel/sanctum\` | 31×19×31 | Arena del Custodio | Fase 4 |
+| `citadel/gateway` | 19×11×15 | Portón, bienvenida y botín pequeño | Fase 0: plantilla |
+| `citadel/corridor` | 11×9×17 | Conector, bifurcaciones posteriores | Fase 0: plantilla |
+| `citadel/guardhouse` | 17×10×17 | Cuartel, botín de equipo | Fase 0: plantilla |
+| `citadel/archive` | 17×11×17 | Libros, prismalita y pistas | Fase 0: plantilla |
+| `citadel/arena_shell` | 27×15×27 | Espacio de prueba para miniboss/boss, inicialmente vacío | Fase 0: plantilla |
+| `citadel/courtyard` | 27×12×27 | Nodo de rutas, grupos pequeños | Fase 1 |
+| `citadel/crypt` | 17×11×17 | Cámara ritual opcional | Fase 1 |
+| `citadel/watchtower` | 11×24×11 | Visibilidad, arquero | Fase 1 |
+| `citadel/forge` | 17×10×17 | Forja y materiales | Fase 1 |
+| `citadel/prison` | 17×10×17 | Enemigo Eco, exploración | Fase 2 |
+| `citadel/threshold` | 23×15×23 | Minijefe Centinela | Fase 3 |
+| `citadel/sanctum` | 31×19×31 | Arena del Custodio | Fase 4 |
 
 **Regla de conexión:** cada acceso principal libre tiene **3 bloques de ancho × 4 de alto**; enlazar por anclajes registrados y orientación, **nunca ensamblar plantillas aleatoriamente sobre chunks vecinos sin un plan de bounding boxes**. Comprobar colisiones, suelo y que exista una ruta continua hasta la salida. La arena nunca se monta sobre lava/agua profunda ni se abandona flotando en el aire.
 
@@ -63,7 +63,7 @@ El generador de prototipos tiene 5 piezas iniciales. Más adelante la ruta final
 - Biomas candidatos: taiga, bosque, bosque oscuro, colinas templadas. Filtrado configurable, no invasivo.
 - Rareza de partida **orientativa**, pendiente de prueba: separación por estructura de **56 chunks** (no 56 bloques), distancia mínima dentro de región de **32 chunks**. Debe medirse en semillas repetibles, nunca presentarse como frecuencia ya operativa.
 - Altura: adaptar al terreno con soporte visible, sin destruir aldeas, portales ni estructuras de otros mods. Evitar cascadas al intentar colocar múltiples chunks fuera del área generada.
-- Implementar y registrar como **estructura auténtica** de Forge 1.16.5, no como mina \`Feature.ORE\` ni en \`PlayerTickEvent\`. Respetar los registros de \`WorldGenRegistries\`, \`Structure.STRUCTURES_REGISTRY\`, \`FlatGenerationSettings.STRUCTURES\` y la configuración de biomas/espaciado pertinentes a 1.16.5.
+- Implementar y registrar como **estructura auténtica** de Forge 1.16.5, no como mina `Feature.ORE` ni en `PlayerTickEvent`. Respetar los registros de `WorldGenRegistries`, `Structure.STRUCTURES_REGISTRY`, `FlatGenerationSettings.STRUCTURES` y la configuración de biomas/espaciado pertinentes a 1.16.5.
 - Mundo existente: solo terreno **nuevo**; ningún escaneo retroactivo, inserción forzada o migración de chunks. Opción para desactivar la ciudadela sin alterar minerales existentes.
 
 ## 5. Enemigos, telegráficos y dificultad objetivo
@@ -83,7 +83,7 @@ Son valores de diseño sujetos a ajustes después de pruebas reales con el daño
 - **Barrido:** anuncio visual 18 ticks → ataque frontal de arco acotado → recuperación 18 ticks.
 - **Mazazo:** anuncio 26 ticks → pulso de suelo corto → recuperación 24 ticks.
 - **Embestida:** desplazamiento corto con velocidad limitada, sin aceleración acumulativa; respetar paredes y agua.
-- **Recompensa garantizada:** \`aetherium:citadel_threshold_seal\` (ítem **planificado, no registrado todavía**).
+- **Recompensa garantizada:** `aetherium:citadel_threshold_seal` (ítem **planificado, no registrado todavía**).
 
 ### Custodio — fases propuestas
 1. **100–60 % HP:** cuerpo a cuerpo, cortes direccionales, una onda frontal anunciada.
@@ -95,16 +95,16 @@ El boss nunca dispara proyectiles invisibles: la malla/textura o entidad renderi
 ## 6. Loot y objetos
 
 **Tres cofres de prototipo integrados en las plantillas fase 0:**
-- \`aetherium:chests/citadel_entrance\`: comida, libros, hierro, pequeña posibilidad de Brumacero bruto.
-- \`aetherium:chests/citadel_guardhouse\`: lingotes Brumacero, Umbracita bruta y material vanilla utilitario.
-- \`aetherium:chests/citadel_archive\`: papel/libros, polvo etéreo, algunos fragmentos de Prismalita.
+- `aetherium:chests/citadel_entrance`: comida, libros, hierro, pequeña posibilidad de Brumacero bruto.
+- `aetherium:chests/citadel_guardhouse`: lingotes Brumacero, Umbracita bruta y material vanilla utilitario.
+- `aetherium:chests/citadel_archive`: papel/libros, polvo etéreo, algunos fragmentos de Prismalita.
 
-Prohibido introducir mediante cofres comunes \`rift_core\`, \`astral_heart\`, \`astral_ingot\` o sellos invocadores. Esa progresión ya corresponde a los jefes actuales.
+Prohibido introducir mediante cofres comunes `rift_core`, `astral_heart`, `astral_ingot` o sellos invocadores. Esa progresión ya corresponde a los jefes actuales.
 
 **Materiales futuros (sin duplicar recursos existentes):**
-- \`citadel_threshold_seal\`: una llave **persistente, no consumible**, obtenida del Centinela; no confundir con el \`rift_sigil\` ya existente.
-- \`citadel_shard\`: fragmento de runa propio de la Ciudadela, usado en mejoras, no como moneda sin utilidad.
-- \`warden_heart\`: núcleo de miniboss para receta auxiliar, no fuente de minerales infinitos.
+- `citadel_threshold_seal`: una llave **persistente, no consumible**, obtenida del Centinela; no confundir con el `rift_sigil` ya existente.
+- `citadel_shard`: fragmento de runa propio de la Ciudadela, usado en mejoras, no como moneda sin utilidad.
+- `warden_heart`: núcleo de miniboss para receta auxiliar, no fuente de minerales infinitos.
 
 **Arma especial proyectada — Hoja del Umbral:** en vez de aumentar daño bruto, defensa temporal de ciertos proyectiles mediante uso con enfriamiento. Duración máxima de ventana **6 ticks**, cooldown inicial propuesto **100 ticks**, lista explícita de proyectiles que sí pueden desviarse, sin reflejar fuego amigo o explosiones. Validación exclusivamente en servidor, con aviso audiovisual breve.
 
@@ -126,7 +126,7 @@ Prohibido introducir mediante cofres comunes \`rift_core\`, \`astral_heart\`, \`
 | Objetivo de benchmark | comparar MSPT, memoria y tiempos de generación con/sin mod en **misma semilla, misma distancia y mismo hardware**; sin prometer números de FPS antes de medir |
 
 **Riesgos identificados y mitigación:**
-1. Cascadas de generación: no colocar manualmente habitaciones en chunks aún no generados durante \`BiomeLoadingEvent\`.
+1. Cascadas de generación: no colocar manualmente habitaciones en chunks aún no generados durante `BiomeLoadingEvent`.
 2. Cofres sin LootTable o crashes de NBT: tests para carga, tamaño, links y paletas.
 3. Atascos de enemigos en agua: comportamiento de escape, no congelación de IA.
 4. Pérdida de sello y puerta cerrada: flags de progreso o sello retornable y posibilidad de reintentar el minijefe.
@@ -137,8 +137,8 @@ Prohibido introducir mediante cofres comunes \`rift_core\`, \`astral_heart\`, \`
 
 | Hito | Entregable mínimo | Cómo se prueba | Estado |
 |---|---|---|---|
-| **0. Documento y piezas NBT** | Documento, 5 plantillas reales en JAR y 3 loot tables; generación automática y checks CI | Compilar, leer NBT, revisar cofres; carga manual mediante bloque de estructura | En desarrollo |
-| **1. Generación natural** | Estructura registrable \`/locate\`, conectores, rareza configurable, 4+ salas | 15 semillas, 200+ chunks de exploración y compatibilidad | Pendiente |
+| **0. Documento y piezas NBT** | Documento, 5 plantillas reales en JAR y 3 loot tables; generación automática y checks CI | CI #248 pasó; lectura NBT, registros y cofres verificados; carga manual pendiente en Minecraft | **Implementado; falta test in-game** |
+| **1. Generación natural** | Estructura registrable `/locate`, conectores, rareza configurable, 4+ salas | 15 semillas, 200+ chunks de exploración y compatibilidad | Pendiente |
 | **2. Primeros enemigos** | Vigía, Arquero, Eco, iconos y render visible | Arena creativa, pruebas de agua, tiro y límite de proyectiles | Pendiente |
 | **3. Puerta y minijefe** | Centinela, sello garantizado, estado de apertura | Morir/reentrar, multijugador, reinicio del servidor | Pendiente |
 | **4. Custodio** | 2–3 fases, animaciones, sonido y drops | 20 enfrentamientos, balance con tres tiers y telegráficos | Pendiente |
@@ -150,5 +150,5 @@ Prohibido introducir mediante cofres comunes \`rift_core\`, \`astral_heart\`, \`
 ## 9. Referencias técnicas para Forge 1.16.5
 
 - [Primer técnico de NeoForged para 1.16.5](https://github.com/neoforged/.github/blob/main/primers/1.16.5/index.md) — precauciones de registro de estructuras.
-- Las plantillas reutilizables siguen el formato de NBT de bloques de estructura de Java Edition 1.16.5. **No** emplear el formato \`mcstructure\` de Bedrock ni registros de estructuras 1.19+.
-- La configuración de biomas del mod reside en \`src/main/java/com/aetherium/aetherium/world/AetheriumWorldGen.java\` y las opciones comunes en \`AetheriumConfig.java\`. No se extenderán con funciones de estructuras hasta que las piezas sean verificables y se planifique el registro apropiado.
+- Las plantillas reutilizables siguen el formato de NBT de bloques de estructura de Java Edition 1.16.5. **No** emplear el formato `mcstructure` de Bedrock ni registros de estructuras 1.19+.
+- La configuración de biomas del mod reside en `src/main/java/com/aetherium/aetherium/world/AetheriumWorldGen.java` y las opciones comunes en `AetheriumConfig.java`. No se extenderán con funciones de estructuras hasta que las piezas sean verificables y se planifique el registro apropiado.
