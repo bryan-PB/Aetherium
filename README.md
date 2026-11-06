@@ -27,4 +27,6 @@ Para probar la generación natural, crea un mundo nuevo en el Overworld y ejecut
 
 La Ciudadela usa **17 NBT independientes**, estructura nativa Forge 1.16.5, 19 cofres, tres spawners vanilla limitados, dos torres, dos cámaras bajo tierra y cinco tablas de botín. Los nuevos jefes aún no están desarrollados y falta revisar su aspecto/generación en Minecraft. [Guía técnica completa y árbol de fuentes](docs/citadel/MEGAESTRUCTURA_FORGE_1_16_5.md).
 
+**Revisión de terreno:** la Ciudadela ahora busca una parcela seca y relativamente plana a lo largo de toda su extensión, utiliza la altura mediana del terreno y añade cimientos continuos bajo los muros. `preview` comprueba el emplazamiento antes de construir y también coloca cimientos. Para verificarlo, usa un mundo nuevo o chunks sin generar; las ruinas que ya aparecieron no cambian retroactivamente.
+
 `/kryzorae citadel status` debe indicar `NBT=17/17`. **`preview` modifica hasta ~65×200 bloques y puede provocar una pausa puntual**, así que solo en un mundo creativo desechable.
