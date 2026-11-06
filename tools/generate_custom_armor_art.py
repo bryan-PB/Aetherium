@@ -98,10 +98,41 @@ def build_atlas(name):
         for x,y in ((9,12),(24,19),(35,32)):
             a.rect(u+x,v+y,u+x+3,v+y+2,p["accent"][3])
 
+    elif name == "brumacero":
+        # Polished forged steel: directional sheen, restrained engraving,
+        # subtle panel seams, hand-forged brass edging. No sparkle particles.
+        u,v=0,0
+        for x in (9,22,36):
+            a.line(u+x,v+8,u+x-2,v+35,p["plate"][2],1)
+            a.line(u+x+2,v+8,u+x,v+35,p["plate"][0],1)
+        for y in (13,27,39):
+            a.line(u+5,v+y,u+42,v+y,p["plate"][2],1)
+            a.line(u+6,v+y+1,u+40,v+y+1,p["plate"][0],1)
+        u,v=0,64
+        for x in (9,24,39):
+            a.line(u+x,v+7,u+x-2,v+39,p["light"][1],1)
+            a.line(u+x+2,v+7,u+x,v+39,p["light"][3],1)
+        # Gold edges on separate plates; tiny red heraldic inlays.
+        u,v=96,0
+        for y in (9,23,37):
+            a.line(u+7,v+y,u+40,v+y,p["gold"][2],1)
+            a.line(u+8,v+y+1,u+39,v+y+1,p["gold"][3],1)
+        u,v=144,0
+        for x,y in ((10,12),(26,15),(18,31)):
+            a.rect(u+x,v+y,u+x+3,v+y+4,p["accent"][1])
+            a.put(u+x+1,v+y,p["accent"][3])
+        # Soft textile weaving reserved for the short ivory tabard.
+        u,v=48,64
+        for x in (10,20,30,41):
+            a.line(u+x,v+8,u+x-1,v+37,p["fabric"][1],1)
+        for y in (9,23,38):
+            a.line(u+7,v+y,u+42,v+y,p["fabric"][0],1)
+
     for layer in (1,2):
         a.png(ASSETS/"models"/"armor"/f"{name}_layer_{layer}.png")
 
 def knight_icon(which):
+    """32px inventory silhouettes matching the redesigned articulated 3D kit."""
     p=THEMES["brumacero"]
     a=Art(32,32)
     steel=p["plate"][1]; bright=p["plate"][0]
@@ -109,51 +140,94 @@ def knight_icon(which):
     gold=p["gold"][0]; trim=p["gold"][2]
     red=p["accent"][0]; shine=p["light"][3]
     if which=="helmet":
-        a.polygon([(4,9),(8,4),(23,4),(28,9),(28,25),(24,29),(8,29),(4,25)],under)
-        a.polygon([(6,10),(9,6),(23,6),(26,10),(26,24),(23,27),(9,27),(6,24)],steel)
-        a.polygon([(8,9),(10,6),(22,6),(24,9),(20,12),(11,12)],bright)
-        a.rect(6,14,26,20,trim)
-        a.rect(8,16,24,20,under)
-        a.rect(8,16,12,18,shadow);a.rect(20,16,24,18,shadow)
+        # Closed noble helmet with curved shoulders, black horizontal eye slit,
+        # red longitudinal crest and sculpted cheek plates.
+        a.polygon([(5,8),(8,5),(13,4),(20,4),(24,6),(27,10),
+                   (27,23),(23,28),(9,28),(5,24)],under)
+        a.polygon([(7,9),(9,6),(22,6),(25,10),(25,22),
+                   (22,26),(10,26),(7,23)],steel)
+        a.polygon([(9,8),(12,6),(20,6),(23,9),(20,11),(12,11)],bright)
         a.rect(7,12,25,14,gold)
-        a.rect(15,5,18,21,gold)
-        a.rect(16,4,17,11,red); a.rect(16,14,17,18,red)
-        a.rect(7,22,25,25,bright); a.rect(8,25,24,27,trim)
-        a.line(10,6,22,6,shine)
+        a.rect(9,15,23,19,under)
+        a.line(10,16,22,16,shadow,1)
+        a.rect(10,19,22,24,bright)
+        a.line(10,22,22,22,steel)
+        a.line(9,25,23,25,trim)
+        a.rect(14,12,18,25,gold)
+        a.rect(15,14,17,20,red)
+        a.rect(6,17,9,23,bright)
+        a.rect(23,17,26,23,bright)
+        a.line(7,19,7,22,trim)
+        a.line(25,19,25,22,trim)
+        a.rect(14,2,18,5,trim)
+        a.rect(15,1,17,8,red)
+        a.line(9,6,22,6,shine)
     elif which=="chestplate":
-        a.polygon([(4,5),(12,6),(16,9),(20,6),(28,5),(30,13),(26,19),
-                  (25,29),(7,29),(6,19),(2,13)],under)
-        a.polygon([(6,7),(12,8),(16,11),(20,8),(26,7),(27,15),(23,17),
-                  (23,26),(9,26),(9,17),(5,15)],steel)
-        a.polygon([(4,10),(13,7),(14,13),(10,19),(5,17)],gold)
-        a.polygon([(28,10),(19,7),(18,13),(22,19),(27,17)],gold)
-        a.polygon([(11,13),(16,12),(21,13),(22,22),(16,26),(10,22)],bright)
-        a.line(10,23,16,27,trim,2);a.line(16,27,22,23,gold,2)
-        a.rect(9,25,23,28,gold);a.rect(11,27,21,29,trim)
-        a.polygon([(16,14),(19,17),(18,21),(16,23),(14,21),(13,17)],trim)
-        a.polygon([(16,15),(18,18),(17,21),(15,21),(14,18)],red)
+        # Layered symmetrical breast and slim abdomen; gold edges and an
+        # inset ruby, not a full golden stripe through the torso.
+        a.polygon([(4,5),(10,4),(16,7),(22,4),(28,5),
+                   (31,12),(27,18),(26,29),(6,29),(5,18),(1,12)],under)
+        a.polygon([(6,7),(11,6),(16,9),(21,6),(26,7),
+                   (28,13),(24,17),(23,26),(9,26),(8,17),(4,13)],steel)
+        a.polygon([(2,11),(10,6),(12,12),(9,18),(4,17)],bright)
+        a.polygon([(30,11),(22,6),(20,12),(23,18),(28,17)],bright)
+        a.line(4,12,11,8,trim,2)
+        a.line(21,8,28,12,trim,2)
+        a.polygon([(10,13),(16,11),(22,13),(22,21),
+                   (16,25),(10,21)],bright)
+        a.polygon([(11,14),(16,13),(21,14),(21,20),
+                   (16,23),(11,20)],steel)
+        a.line(12,14,12,19,shine)
+        a.line(20,14,20,19,shine)
+        a.rect(12,23,20,25,trim)
+        a.rect(10,25,22,27,steel)
+        a.line(10,26,22,26,gold)
+        a.diamond(16,17,4,trim)
+        a.diamond(16,17,3,red)
         a.put(15,16,shine)
-        a.line(9,9,13,10,shine,1)
+        a.rect(13,27,19,30,bright)
+        a.line(13,29,19,29,gold)
     elif which=="leggings":
-        a.polygon([(6,4),(26,4),(27,11),(26,29),(18,30),(16,19),
-                  (14,30),(6,29),(5,11)],under)
-        a.rect(8,6,24,12,steel);a.rect(8,7,24,9,bright)
-        a.rect(8,12,14,27,steel);a.rect(18,12,24,27,steel)
-        a.rect(7,12,10,27,gold);a.rect(22,12,25,27,trim)
-        a.rect(8,25,14,28,trim);a.rect(18,25,24,28,trim)
-        a.rect(10,12,22,14,gold)
-        a.rect(15,10,17,20,red)
-        a.rect(11,16,13,23,bright);a.rect(19,16,21,23,bright)
+        # Separate shaped upper plates, darker knees, bordered kneecaps.
+        a.polygon([(6,3),(26,3),(27,11),(25,28),(18,30),
+                   (16,18),(14,30),(7,28),(5,11)],under)
+        a.rect(8,5,24,10,steel)
+        a.line(8,6,24,6,shine)
+        a.rect(9,11,14,20,bright)
+        a.rect(18,11,23,20,bright)
+        a.rect(7,11,9,22,steel)
+        a.rect(23,11,25,22,steel)
+        a.rect(8,21,14,23,under)
+        a.rect(18,21,24,23,under)
+        a.rect(8,23,14,28,steel)
+        a.rect(18,23,24,28,steel)
+        a.rect(9,23,13,26,bright)
+        a.rect(19,23,23,26,bright)
+        a.line(8,27,14,27,gold)
+        a.line(18,27,24,27,gold)
+        a.rect(10,9,22,11,trim)
+        a.rect(15,8,17,14,red)
+        a.line(10,12,12,12,shine)
+        a.line(20,12,22,12,shine)
     else:
+        # Gilded greave cuffs and distinct toe/heel plates instead of
+        # two identical white cylinders from ankle to ground.
         for x in (2,17):
-            a.polygon([(x+4,7),(x+11,7),(x+13,12),(x+12,22),(x+13,28),
-                       (x+1,28),(x,22),(x+2,19)],under)
-            a.polygon([(x+4,9),(x+10,9),(x+11,18),(x+10,23),
-                       (x+12,26),(x+2,26),(x+2,22)],steel)
+            a.polygon([(x+4,7),(x+11,7),(x+13,12),(x+12,19),
+                       (x+14,24),(x+14,28),(x,28),(x,23),
+                       (x+2,20)],under)
+            a.polygon([(x+4,9),(x+10,9),(x+11,14),
+                       (x+10,20),(x+12,24),(x+2,25),
+                       (x+2,20)],steel)
             a.rect(x+4,9,x+11,11,bright)
-            a.rect(x+3,14,x+12,16,gold)
-            a.rect(x+2,23,x+12,26,trim)
-            a.line(x+3,25,x+11,25,shine)
+            a.rect(x+3,13,x+12,15,gold)
+            a.rect(x+4,16,x+10,19,bright)
+            a.rect(x+3,20,x+12,21,shadow)
+            a.polygon([(x+2,22),(x+10,22),(x+13,25),
+                       (x+12,27),(x+1,27)],bright)
+            a.line(x+2,26,x+12,26,gold)
+            a.rect(x+5,17,x+7,18,red)
+            a.line(x+1,28,x+13,28,under)
     return a
 
 def hood_icon(which):
