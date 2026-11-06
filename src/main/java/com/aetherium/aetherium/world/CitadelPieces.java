@@ -110,13 +110,29 @@ public final class CitadelPieces {
             if (!super.postProcess(world, structures, generator, random, chunkBox, chunk, pivot)) {
                 return false;
             }
+            placeFoundations(world, chunkBox);
+            return true;
+        }
 
+        /**
+         * Creative preview normally bypasses StructurePiece.postProcess.
+         * Explicitly create the same foundations after the NBT is placed, so
+         * the preview does not falsely depict unsupported floating rooms.
+         */
+        public void placePreviewFoundations(ISeedReader world) {
+            MutableBoundingBox bounds = this.getBoundingBox();
+            MutableBoundingBox allowed = new MutableBoundingBox(
+                    bounds.x0, 0, bounds.z0, bounds.x1, 255, bounds.z1);
+            placeFoundations(world, allowed);
+        }
+
+        private void placeFoundations(ISeedReader world, MutableBoundingBox chunkBox) {
             // Upper crypt/archive have a SAME-FOOTPRINT undercroft. Supports
             // here would invade and block the underground ladders and halls.
             String id = templateId.getPath();
             if (id.endsWith("/catacombs") || id.endsWith("/archive_vault")
                     || id.endsWith("/crypt") || id.endsWith("/archive")) {
-                return true;
+                return;
             }
 
             MutableBoundingBox bounds = this.getBoundingBox();
@@ -139,7 +155,6 @@ public final class CitadelPieces {
                     }
                 }
             }
-            return true;
         }
 
         private static void supportColumn(ISeedReader world, MutableBoundingBox chunkBox,
