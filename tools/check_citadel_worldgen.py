@@ -79,7 +79,7 @@ spec={r["id"]:r for r in blueprint["rooms"]}
 # preview. Parse the production Java coordinates rather than comparing them to
 # a second, manually copied Python dictionary that could hide discrepancies.
 layout=(root/"world/CitadelLayout.java").read_text()
-entries=re.findall(r'new RoomSpec\\("([a-z_]+)",\\s*(-?\\d+),\\s*(-?\\d+)\\)',layout)
+entries=re.findall(r'new RoomSpec[(]"([a-z_]+)",[ ]*(-?[0-9]+),[ ]*(-?[0-9]+)[)]',layout)
 assert len(entries)==7, ("Expected seven Java room specs",entries)
 positions={name:(int(x),int(z)) for name,x,z in entries}
 assert len(positions)==len(entries), "Duplicate Citadel room IDs in shared layout"
