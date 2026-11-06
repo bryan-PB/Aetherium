@@ -1,6 +1,6 @@
 @echo off
 setlocal
-set GRADLE_VERSION=6.8.3
+set GRADLE_VERSION=7.6.4
 if "%GRADLE_USER_HOME%"=="" set GRADLE_USER_HOME=%USERPROFILE%\.gradle
 set CACHE_ROOT=%GRADLE_USER_HOME%\wrapper\dists\aetherium-bootstrap
 set GRADLE_HOME=%CACHE_ROOT%\gradle-%GRADLE_VERSION%
