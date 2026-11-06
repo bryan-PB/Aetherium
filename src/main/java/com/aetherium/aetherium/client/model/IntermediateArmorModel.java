@@ -74,26 +74,47 @@ public final class IntermediateArmorModel extends BipedModel<LivingEntity> {
         pivot.addChild(item);
     }
 
+    /**
+     * Brumacero ceremonial great helm: not just an ivory cube with gold bars.
+     * Closed visor, inset eye slit, sculpted cheek guards, stepped brow and a
+     * prominent but restrained red crest. Only standard animated biped cubes.
+     */
     private void knightHelm() {
-        // Enclosed helmet: broad ivory metal crown, inset black T visor, warm-gold
-        // nasal and brow. Unlike Violeta, the shape is compact and not horned.
-        cube(head, PLATE,0, -4.5F,-8.3F,-4.45F, 9,8.7F,8.9F);
-        cube(head, LIGHT,ROW, -4.7F,-8.65F,-4.65F, 9.4F,2.3F,9.3F);
-        cube(head, SHADOW,0, -4.75F,-5.9F,-4.75F, 9.5F,5.8F,9.5F);
-        cube(head, PLATE,0, -4.6F,-5.7F,-4.8F, 9.2F,5.4F,9.1F);
-        cube(head, FACE,ROW, -3.45F,-5.65F,-5.16F, 6.9F,3.1F,0.65F);
-        cube(head, GOLD,0, -4.7F,-6.45F,-5.28F, 9.4F,0.95F,1.05F);
-        cube(head, GOLD,0, -0.85F,-7.9F,-5.47F, 1.7F,5.65F,0.83F);
-        cube(head, ACCENT,0, -0.8F,-10.6F,-1.55F, 1.6F,3.15F,3.0F);
-        // Crest runs over the crown; separate material so it reads as red.
-        cube(head, GOLD,0, -1.35F,-8.85F,-4.9F, 2.7F,0.7F,9.3F);
-        cube(head, ACCENT,0, -0.75F,-8.89F,-4.96F, 1.5F,0.8F,8.0F);
-        cube(head, GOLD,0, -4.9F,-3.35F,-5.02F, 9.8F,0.85F,1.05F);
-        cube(head, PLATE,0, -3.8F,-2.5F,-5.04F, 7.6F,2.65F,1.1F);
-        cube(head, GOLD,0, -4.9F,-5.1F,-3.85F, 1.2F,3.4F,7.7F);
-        cube(head, GOLD,0, 3.7F,-5.1F,-3.85F, 1.2F,3.4F,7.7F);
-        // Raised back nape covers skin while sprinting and leaning.
-        cube(head, SHADOW,0, -4.2F,-2.2F,4.25F, 8.4F,2.55F,0.75F);
+        // Fitted dark under-helmet, visible at the joints (not a giant solid shell).
+        cube(head, SHADOW, 0, -4.22F, -7.98F, -4.18F, 8.44F, 8.18F, 8.36F);
+        cube(head, PLATE, 0, -4.43F, -8.12F, -4.43F, 8.86F, 2.34F, 8.86F);
+        cube(head, LIGHT, ROW, -3.72F, -8.32F, -4.52F, 7.44F, 0.64F, 9.04F);
+        // Four crisp crown corners and a small rear nape extension.
+        cube(head, PLATE, 0, -4.55F, -6.37F, -4.39F, 1.32F, 5.82F, 8.78F);
+        cube(head, PLATE, 0, 3.23F, -6.37F, -4.39F, 1.32F, 5.82F, 8.78F);
+        cube(head, LIGHT, ROW, -4.16F, -6.2F, 3.75F, 8.32F, 5.25F, 0.88F);
+        cube(head, SHADOW, 0, -3.73F, -1.8F, 4.4F, 7.46F, 2.04F, 0.72F);
+
+        // Recessed black visor from brow to mouth — the eye slit is a thin
+        // horizontal line, not a giant black rectangle.
+        cube(head, VOID, 0, -3.58F, -5.92F, -5.04F, 7.16F, 2.65F, 0.80F);
+        cube(head, FACE, ROW, -3.1F, -5.55F, -5.25F, 6.2F, 0.71F, 0.31F);
+        cube(head, SHADOW, 0, -2.90F, -3.30F, -4.98F, 5.80F, 0.78F, 0.64F);
+        // Vertical nasal and pointed-looking chin protector.
+        cube(head, GOLD, 0, -0.49F, -5.82F, -5.53F, 0.98F, 4.55F, 0.72F);
+        cube(head, PLATE, 0, -3.34F, -2.56F, -5.15F, 6.68F, 2.56F, 1.00F);
+        cube(head, LIGHT, ROW, -2.55F, -2.45F, -5.31F, 5.10F, 0.36F, 0.48F);
+        cube(head, GOLD, 0, -3.60F, -1.07F, -5.26F, 7.2F, 0.47F, 0.66F);
+        // Side cheek plates slope visually in stepped layers; small gold rivets.
+        cube(head, PLATE, 0, -4.65F, -4.42F, -4.78F, 1.44F, 3.85F, 2.72F);
+        cube(head, PLATE, 0, 3.21F, -4.42F, -4.78F, 1.44F, 3.85F, 2.72F);
+        cube(head, GOLD, 0, -4.84F, -4.05F, -4.85F, 0.43F, 2.95F, 2.72F);
+        cube(head, GOLD, 0, 4.41F, -4.05F, -4.85F, 0.43F, 2.95F, 2.72F);
+        // Slim gilded brow with an inset red badge.
+        cube(head, GOLD, 0, -4.52F, -6.52F, -4.91F, 9.04F, 0.75F, 0.70F);
+        cube(head, LIGHT, ROW, -3.72F, -6.67F, -5.08F, 7.44F, 0.26F, 0.42F);
+        cube(head, ACCENT, 0, -0.77F, -6.74F, -5.28F, 1.54F, 0.53F, 0.51F);
+
+        // Raised red crest running longitudinally over the closed crown.
+        cube(head, GOLD, 0, -1.12F, -8.68F, -4.06F, 2.24F, 0.53F, 8.12F);
+        cube(head, ACCENT, 0, -0.60F, -10.28F, -2.94F, 1.20F, 1.74F, 5.88F);
+        cube(head, ACCENT, 0, -0.43F, -10.80F, -0.84F, 0.86F, 0.72F, 2.28F);
+        cube(head, GOLD, 0, -1.07F, -8.68F, -4.65F, 2.14F, 0.55F, 0.64F);
     }
 
     /**
@@ -148,35 +169,52 @@ public final class IntermediateArmorModel extends BipedModel<LivingEntity> {
         cube(head, FABRIC, ROW, -3.65F, -1.86F, 4.13F, 7.30F, 1.80F, 0.75F);
     }
 
+    /**
+     * Structured Brumacero harness: forged chest, darker flexible seams,
+     * separate abdominal plates, a heraldic red inset and segmented faulds.
+     */
     private void knightChest() {
-        // Continuous steel cuirass with layered breast plates and red center
-        // gemstone; no floating solid-colored player torso or gap at back.
-        cube(body, SHADOW,0, -4.5F,-0.25F,-2.65F, 9,12.1F,5.3F);
-        cube(body, PLATE,0, -4.62F,0.0F,-2.95F, 9.24F,10.8F,5.9F);
-        cube(body, GOLD,0, -4.75F,0.55F,-3.5F, 9.5F,1.1F,0.75F);
-        cube(body, GOLD,0, -4.3F,5.75F,-3.47F, 8.6F,0.85F,0.8F);
-        cube(body, LIGHT,ROW, -4.2F,2.0F,-3.53F, 3.7F,4.4F,0.9F);
-        cube(body, LIGHT,ROW, 0.5F,2.0F,-3.53F, 3.7F,4.4F,0.9F);
-        cube(body, GOLD,0, -1.0F,0.6F,-3.75F, 2.0F,6.6F,0.9F);
-        cube(body, GOLD,0, -3.9F,7.1F,-3.47F, 7.8F,1.1F,0.9F);
-        cube(body, ACCENT,0, -1.1F,3.35F,-4.16F, 2.2F,3.1F,0.85F);
-        cube(body, GOLD,0, -1.55F,3.0F,-4.0F, 3.1F,0.5F,0.8F);
-        cube(body, GOLD,0, -1.55F,6.5F,-4.0F, 3.1F,0.5F,0.8F);
-        cube(body, SHADOW,0, -4.35F,8.55F,-3.2F, 8.7F,2.8F,6.35F);
-        cube(body, GOLD,0, -4.45F,8.8F,-3.45F, 8.9F,1.1F,6.9F);
-        cube(body, GOLD,0, -4.35F,10.3F,-3.32F, 8.7F,0.75F,6.64F);
+        // Foundation includes a thinner waist, to avoid a brick-shaped torso.
+        cube(body, SHADOW, 0, -4.28F, -0.12F, -2.55F, 8.56F, 11.95F, 5.1F);
+        cube(body, PLATE, 0, -4.40F, 0.20F, -2.74F, 8.80F, 7.02F, 5.48F);
+        cube(body, LIGHT, ROW, -4.12F, 0.29F, -3.03F, 8.24F, 1.11F, 0.70F);
+        // Angled stepped breast plates separated by a dark central channel.
+        cube(body, LIGHT, ROW, -4.27F, 1.53F, -3.32F, 3.66F, 3.92F, 0.91F);
+        cube(body, LIGHT, ROW, 0.61F, 1.53F, -3.32F, 3.66F, 3.92F, 0.91F);
+        cube(body, PLATE, 0, -3.78F, 4.91F, -3.47F, 3.00F, 1.16F, 0.72F);
+        cube(body, PLATE, 0, 0.78F, 4.91F, -3.47F, 3.00F, 1.16F, 0.72F);
+        cube(body, GOLD, 0, -4.45F, 1.24F, -3.19F, 8.90F, 0.58F, 0.54F);
+        cube(body, GOLD, 0, -4.19F, 5.80F, -3.48F, 8.38F, 0.50F, 0.69F);
+        cube(body, SHADOW, 0, -0.38F, 1.77F, -3.64F, 0.76F, 4.48F, 0.46F);
 
-        // Short ceremonial front-and-rear tabard is attached to torso rather
-        // than legs, plus clean ivory panel / gold hem.
-        cube(body, FABRIC,ROW, -1.75F,11.3F,-3.0F, 3.5F,4.1F,0.64F);
-        cube(body, GOLD,0, -2.0F,11.65F,-3.21F, 0.6F,3.7F,0.77F);
-        cube(body, GOLD,0, 1.4F,11.65F,-3.21F, 0.6F,3.7F,0.77F);
-        cube(body, GOLD,0, -1.9F,14.8F,-3.22F, 3.8F,0.7F,0.78F);
-        cube(body, FABRIC,ROW, -1.7F,11.35F,2.45F, 3.4F,3.5F,0.62F);
-        cube(body, GOLD,0, -1.75F,14.5F,2.6F, 3.5F,0.65F,0.65F);
-        // Back plates stay fitted and have a separate waist band.
-        cube(body, LIGHT,ROW, -3.7F,1.45F,2.93F, 7.4F,4.8F,0.85F);
-        cube(body, GOLD,0, -4.1F,7.35F,2.9F, 8.2F,0.95F,0.9F);
+        // Raised heraldic red crest with ivory and gold framing.
+        cube(body, GOLD, 0, -1.15F, 2.22F, -3.92F, 2.30F, 3.08F, 0.52F);
+        cube(body, ACCENT, 0, -0.79F, 2.64F, -4.11F, 1.58F, 2.25F, 0.50F);
+        cube(body, LIGHT, ROW, -0.42F, 2.86F, -4.25F, 0.84F, 0.46F, 0.27F);
+
+        // Abdominal lames separated by actual dark seams instead of stripes.
+        cube(body, SHADOW, 0, -3.98F, 6.39F, -2.94F, 7.96F, 4.27F, 5.88F);
+        cube(body, PLATE, 0, -3.75F, 6.57F, -3.15F, 7.50F, 1.37F, 0.58F);
+        cube(body, PLATE, 0, -3.63F, 8.28F, -3.03F, 7.26F, 1.27F, 0.57F);
+        cube(body, GOLD, 0, -3.89F, 7.83F, -3.35F, 7.78F, 0.39F, 0.52F);
+        cube(body, GOLD, 0, -3.72F, 9.52F, -3.25F, 7.44F, 0.38F, 0.50F);
+        // Narrow waist belt with buckle at the bottom of the cuirass.
+        cube(body, DETAIL, ROW, -4.12F, 10.03F, -2.83F, 8.24F, 0.87F, 5.66F);
+        cube(body, GOLD, 0, -0.97F, 9.91F, -3.31F, 1.94F, 1.02F, 0.62F);
+        cube(body, VOID, 0, -0.43F, 10.16F, -3.43F, 0.86F, 0.52F, 0.27F);
+
+        // Three front fauld pieces, 2 rear plates and a small ivory banner.
+        cube(body, PLATE, 0, -4.16F, 10.95F, -2.92F, 2.51F, 3.03F, 0.63F);
+        cube(body, PLATE, 0, 1.65F, 10.95F, -2.92F, 2.51F, 3.03F, 0.63F);
+        cube(body, GOLD, 0, -4.19F, 13.68F, -3.00F, 2.57F, 0.38F, 0.76F);
+        cube(body, GOLD, 0, 1.62F, 13.68F, -3.00F, 2.57F, 0.38F, 0.76F);
+        cube(body, FABRIC, ROW, -1.39F, 11.01F, -2.97F, 2.78F, 4.05F, 0.54F);
+        cube(body, GOLD, 0, -1.43F, 14.77F, -3.08F, 2.86F, 0.40F, 0.72F);
+        cube(body, LIGHT, ROW, -3.93F, 1.75F, 2.78F, 7.86F, 3.77F, 0.66F);
+        cube(body, PLATE, 0, -3.79F, 6.60F, 2.80F, 7.58F, 3.11F, 0.58F);
+        cube(body, GOLD, 0, -3.88F, 9.51F, 2.90F, 7.76F, 0.42F, 0.70F);
+        cube(body, PLATE, 0, -3.59F, 10.98F, 2.42F, 7.18F, 2.78F, 0.72F);
+        cube(body, GOLD, 0, -3.65F, 13.41F, 2.68F, 7.30F, 0.43F, 0.76F);
     }
 
     /**
@@ -265,19 +303,27 @@ public final class IntermediateArmorModel extends BipedModel<LivingEntity> {
             cube(arm, LIGHT, ROW, -2.88F, 10.42F, -3.13F, 5.76F, 0.48F, 6.26F);
             cube(arm, GOLD, 0, -0.62F, 8.31F, -3.35F, 1.24F, 0.84F, 0.38F);
         } else {
-            // Articulated knight shoulders: TWO overlapping bronze-gold plates,
-            // a raised outer flap and clean elbow / gauntlet separation.
-            cube(arm, SHADOW,0, -4.4F,-3.7F,-3.65F, 8.8F,5.4F,7.3F);
-            cube(arm, PLATE,0, -4.2F,-3.85F,-3.75F, 8.4F,3.3F,7.5F);
-            cube(arm, GOLD,0, -4.48F,-0.65F,-3.78F, 8.96F,0.9F,7.56F);
-            cube(arm, GOLD,0, -4.25F,-3.92F,-3.85F, 8.5F,0.65F,7.7F);
-            cube(arm, PLATE,0, -3.25F,1.65F,-3.21F, 6.5F,3.65F,6.42F);
-            cube(arm, SHADOW,0, -2.85F,5.15F,-3.12F, 5.7F,1.7F,6.24F);
-            cube(arm, GOLD,0, -3.0F,5.3F,-3.43F, 6.0F,0.85F,6.86F);
-            cube(arm, PLATE,0, -3.22F,7.0F,-3.26F, 6.44F,4.6F,6.52F);
-            cube(arm, GOLD,0, -3.32F,7.15F,-3.42F, 6.64F,0.75F,6.84F);
-            cube(arm, GOLD,0, -3.35F,10.8F,-3.48F, 6.7F,0.85F,6.96F);
-            cube(arm, LIGHT,ROW, -1.5F,8.35F,-3.59F, 3.0F,1.55F,0.48F);
+            // Three articulated forged shoulder layers (ivory over dark
+            // underplate) with gold along *edges*, not giant gold stripes.
+            cube(arm, SHADOW, 0, -4.12F, -3.47F, -3.43F, 8.24F, 4.62F, 6.86F);
+            cube(arm, PLATE, 0, -3.88F, -3.62F, -3.54F, 7.76F, 2.03F, 7.08F);
+            cube(arm, LIGHT, ROW, -3.59F, -3.77F, -3.66F, 7.18F, 0.46F, 7.32F);
+            cube(arm, PLATE, 0, -3.65F, -1.26F, -3.64F, 7.30F, 1.85F, 7.28F);
+            cube(arm, GOLD, 0, -3.79F, 0.35F, -3.70F, 7.58F, 0.53F, 7.40F);
+            cube(arm, GOLD, 0, -3.78F, -3.48F, -3.84F, 7.56F, 0.41F, 7.68F);
+
+            // Narrowed bicep, black elbow joint, and fitted white gauntlet.
+            cube(arm, PLATE, 0, -2.84F, 1.11F, -2.91F, 5.68F, 3.37F, 5.82F);
+            cube(arm, LIGHT, ROW, -2.75F, 1.38F, -3.10F, 5.50F, 0.43F, 0.36F);
+            cube(arm, SHADOW, 0, -2.82F, 4.66F, -3.03F, 5.64F, 1.58F, 6.06F);
+            cube(arm, GOLD, 0, -2.94F, 5.12F, -3.23F, 5.88F, 0.54F, 6.46F);
+            cube(arm, PLATE, 0, -3.04F, 6.49F, -3.14F, 6.08F, 4.78F, 6.28F);
+            cube(arm, LIGHT, ROW, -2.66F, 7.08F, -3.32F, 5.32F, 2.39F, 0.43F);
+            cube(arm, GOLD, 0, -3.11F, 6.50F, -3.32F, 6.22F, 0.51F, 6.64F);
+            cube(arm, GOLD, 0, -3.11F, 10.76F, -3.33F, 6.22F, 0.52F, 6.66F);
+            cube(arm, PLATE, 0, -2.65F, 10.99F, -3.33F, 5.30F, 0.92F, 6.66F);
+            // Small red heraldic rivet placed on the front gauntlet.
+            cube(arm, ACCENT, 0, -0.52F, 8.37F, -3.56F, 1.04F, 0.97F, 0.47F);
         }
     }
 
@@ -301,11 +347,16 @@ public final class IntermediateArmorModel extends BipedModel<LivingEntity> {
                     cube(root, VOID, 0, -0.55F, 3.21F, -3.05F, 0.82F, 0.43F, 0.24F);
                 }
             } else {
-                cube(root, SHADOW, 0, -2.4F, -0.15F, -2.37F, 4.8F, 8.8F, 4.74F);
-                cube(root, PLATE, 0, -2.53F, 0F, -2.52F, 5.06F, 7.85F, 5.04F);
-                cube(root, GOLD, 0, -2.62F, 0.25F, -2.8F, 5.24F, 1.2F, 5.6F);
-                cube(root, PLATE, 0, -2.63F, 3.0F, -2.77F, 5.26F, 3.4F, 5.54F);
-                cube(root, GOLD, 0, -2.67F, 6.8F, -2.96F, 5.34F, 0.95F, 5.92F);
+                // Articulated thigh armor and independently framed knee cap.
+                cube(root, SHADOW, 0, -2.35F, -0.10F, -2.38F, 4.70F, 8.40F, 4.76F);
+                cube(root, PLATE, 0, -2.47F, 0.10F, -2.50F, 4.94F, 5.45F, 5.0F);
+                cube(root, LIGHT, ROW, -2.12F, 0.42F, -2.80F, 4.24F, 3.76F, 0.60F);
+                cube(root, GOLD, 0, -2.57F, 0.32F, -2.66F, 5.14F, 0.57F, 5.32F);
+                cube(root, SHADOW, 0, -2.52F, 5.43F, -2.64F, 5.04F, 1.38F, 5.28F);
+                cube(root, PLATE, 0, -2.65F, 6.40F, -2.85F, 5.30F, 1.82F, 5.70F);
+                cube(root, LIGHT, ROW, -1.75F, 6.65F, -3.09F, 3.50F, 1.05F, 0.47F);
+                cube(root, GOLD, 0, -2.62F, 7.75F, -2.99F, 5.24F, 0.47F, 5.98F);
+                cube(root, ACCENT, 0, -0.37F, 6.58F, -3.27F, 0.74F, 0.72F, 0.29F);
             }
         } else {
             if (shade) {
@@ -320,11 +371,17 @@ public final class IntermediateArmorModel extends BipedModel<LivingEntity> {
                 cube(root, LIGHT, ROW, -1.36F, 11.05F, -3.27F, 2.72F, 0.52F, 0.36F);
                 cube(root, SHADOW, 0, -2.54F, 11.74F, -3.18F, 5.08F, 0.28F, 5.75F);
             } else {
-                cube(root, SHADOW, 0, -2.48F, 7.9F, -2.5F, 4.96F, 4.15F, 5F);
-                cube(root, PLATE, 0, -2.75F, 8.05F, -2.62F, 5.5F, 3.95F, 5.24F);
-                cube(root, GOLD, 0, -2.85F, 8.12F, -2.8F, 5.7F, 0.9F, 5.6F);
-                cube(root, PLATE, 0, -2.68F, 9.45F, -3.18F, 5.36F, 2.55F, 5.95F);
-                cube(root, GOLD, 0, -2.83F, 11.13F, -3.25F, 5.66F, 0.85F, 6.4F);
+                // Distinct calf greave, flexible ankle, heel block and raised
+                // armored toe. The boot remains inside normal player hitboxes.
+                cube(root, SHADOW, 0, -2.36F, 7.90F, -2.42F, 4.72F, 4.04F, 4.84F);
+                cube(root, PLATE, 0, -2.57F, 8.12F, -2.58F, 5.14F, 2.62F, 5.16F);
+                cube(root, LIGHT, ROW, -2.12F, 8.44F, -2.96F, 4.24F, 1.48F, 0.55F);
+                cube(root, GOLD, 0, -2.69F, 8.08F, -2.73F, 5.38F, 0.55F, 5.46F);
+                cube(root, SHADOW, 0, -2.51F, 10.48F, -2.66F, 5.02F, 0.74F, 5.32F);
+                cube(root, PLATE, 0, -2.48F, 11.01F, -3.20F, 4.96F, 0.87F, 5.89F);
+                cube(root, LIGHT, ROW, -1.95F, 11.03F, -3.43F, 3.90F, 0.49F, 0.44F);
+                cube(root, GOLD, 0, -2.62F, 11.54F, -3.25F, 5.24F, 0.40F, 5.98F);
+                cube(root, SHADOW, 0, -2.30F, 11.79F, 1.38F, 4.60F, 0.23F, 1.41F);
             }
         }
     }
