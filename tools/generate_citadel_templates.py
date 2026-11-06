@@ -332,7 +332,9 @@ def room_blocks(room):
             "id": "minecraft:jigsaw",
             "name": "aetherium:citadel/" + ("exit" if outgoing else "entry"),
             "target": "aetherium:citadel/" + ("entry" if outgoing else "exit"),
-            "pool": "aetherium:citadel/" + target if outgoing else "minecraft:empty",
+            "pool": "aetherium:citadel/" + {
+                "gateway":"start", "arena_shell":"arena"
+            }.get(target, target) if outgoing else "minecraft:empty",
             "final_state": "minecraft:air",
             "joint": "aligned",
         }
