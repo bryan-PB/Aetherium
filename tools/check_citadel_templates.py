@@ -139,6 +139,30 @@ def validate_room(room, read):
     if room["id"] not in ("arena_shell","crypt","forge"):
         assert any(p==(mid,2,d-1) and data["name"]=="aetherium:citadel/exit"
                    for p,data in connectors), "Missing exit connector"
+    expected_links = {
+        "gateway": {"aetherium:citadel/corridor"},
+        "corridor": {"aetherium:citadel/guardhouse", "aetherium:citadel/crypt", "minecraft:empty"},
+        "guardhouse": {"aetherium:citadel/archive", "aetherium:citadel/forge", "minecraft:empty"},
+        "archive": {"aetherium:citadel/arena", "minecraft:empty"},
+        "arena_shell": {"minecraft:empty"},
+        "crypt": {"minecraft:empty"},
+        "forge": {"minecraft:empty"},
+    }
+    assert {data["pool"] for pos,data in connectors}==expected_links[room["id"]], room["id"]
+    for pos,data in connectors:
+        state = palette[next(it["state"] for it in blocks if tuple(it["pos"])==pos)]
+        orientation = state["Properties"]["orientation"]
+        x,y,z = pos
+        if z==0: assert orientation=="north_up"
+        elif z==d-1: assert orientation=="south_up"
+        elif x==0: assert orientation=="west_up"
+        elif x==w-1: assert orientation=="east_up"
+        else: raise AssertionError("Jigsaw in room interior "+room["id"])
+        assert y==2
+        assert data["joint"]=="aligned"
+        assert data["target"]==("aetherium:citadel/entry"
+                                if data["pool"]!="minecraft:empty"
+                                else "aetherium:citadel/exit")
     for side in (0,d-1):
         for x in range(mid-1,mid+2):
             for y in range(1,5):
