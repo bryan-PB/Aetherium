@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "format": "minecraft-java-1.16.5",
+  "namespace": "aetherium",
+  "generator": "tools/generate_citadel_templates.py",
+  "status": "templates-only-no-natural-worldgen",
+  "roomCapFuture": 9,
+  "rooms": [
+    {
+      "id": "gateway",
+      "size": [
+        19,
+        11,
+        15
+      ],
+      "kind": "entrance",
+      "chest": [
+        4,
+        1,
+        8
+      ],
+      "loot": "aetherium:chests/citadel_entrance",
+      "roof": "solid"
+    },
+    {
+      "id": "corridor",
+      "size": [
+        11,
+        9,
+        17
+      ],
+      "kind": "connector",
+      "chest": null,
+      "loot": null,
+      "roof": "solid"
+    },
+    {
+      "id": "guardhouse",
+      "size": [
+        17,
+        10,
+        17
+      ],
+      "kind": "combat",
+      "chest": [
+        4,
+        1,
+        12
+      ],
+      "loot": "aetherium:chests/citadel_guardhouse",
+      "roof": "solid"
+    },
+    {
+      "id": "archive",
+      "size": [
+        17,
+        11,
+        17
+      ],
+      "kind": "puzzle",
+      "chest": [
+        4,
+        1,
+        12
+      ],
+      "loot": "aetherium:chests/citadel_archive",
+      "roof": "solid"
+    },
+    {
+      "id": "arena_shell",
+      "size": [
+        27,
+        15,
+        27
+      ],
+      "kind": "arena",
+      "chest": null,
+      "loot": null,
+      "roof": "open"
+    }
+  ]
+}
