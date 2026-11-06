@@ -134,5 +134,16 @@
   "guide.aetherium.page.5": "§5GUARDIÁN DE LA GRIETA§r\n\nEl Sigilo del Guardián lo invoca al usarlo en un bloque sólido.\n\nEsquiva sus embestidas y ondas. Su Núcleo de Grieta permite crear el siguiente sello.",
   "guide.aetherium.page.6": "§4VERDUGO ALADO§r\n\nEl Sello Astral requiere materiales del Guardián.\n\nEl Verdugo combate con embestidas, plumas y espejismos. Su botín permite crear equipo astral.",
   "guide.aetherium.page.7": "§5ARTEFACTOS§r\n\nEl imán atrae objetos cuando está activado.\n\nLa bengala revela enemigos cercanos y da visión nocturna. Algunos accesorios admiten Curios opcionalmente.",
-  "guide.aetherium.page.8": "§5FUTURAS EXPANSIONES§r\n\nEste libro crecerá con nuevos minerales, forjas, armaduras y criaturas cuando existan en el juego.\n\nConsulta las recetas en Minecraft o JEI si lo tienes."
+  "guide.aetherium.page.8": "§5FUTURAS EXPANSIONES§r\n\nEste libro crecerá con nuevos minerales, forjas, armaduras y criaturas cuando existan en el juego.\n\nConsulta las recetas en Minecraft o JEI si lo tienes.",
+  "guide.aetherium.ui.codex": "ARCHIVOS DE LA GRIETA",
+  "guide.aetherium.ui.chapter": "CAPÍTULO",
+  "guide.aetherium.ui.hint": "FLECHAS: NAVEGAR",
+  "guide.aetherium.chapter.1": "Bienvenida",
+  "guide.aetherium.chapter.2": "Primeros pasos",
+  "guide.aetherium.chapter.3": "Espada violeta",
+  "guide.aetherium.chapter.4": "Espada carmesí",
+  "guide.aetherium.chapter.5": "Guardián de Grieta",
+  "guide.aetherium.chapter.6": "Verdugo Alado",
+  "guide.aetherium.chapter.7": "Artefactos",
+  "guide.aetherium.chapter.8": "Futuro de Kryzorae"
 }
