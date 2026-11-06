@@ -52,7 +52,8 @@ for name in ["brumacero_ore","umbracita_ore","prismalita_ore","raw_brumacero","r
     tex=r/"assets/aetherium/textures"/folder/(name+".png")
     raw=tex.read_bytes()
     assert raw[:8]==bytes([137,80,78,71,13,10,26,10])
-    assert unpack(">II",raw[16:24])==((32,32) if name.endswith("_ore") else (16,16)), name
+    # Approved materials are richer static 48px sprites; the block remains 32px.
+    assert unpack(">II",raw[16:24])==((32,32) if name.endswith("_ore") else (48,48)), name
 # Asset regression: Minecraft's magenta/black blocks mean an ore model
 # references a PNG that was omitted from the packaged resources.
 # Check BOTH the four side textures AND their separate upper faces.
@@ -67,6 +68,24 @@ for ore in ("aetherium_ore", "brumacero_ore", "umbracita_ore", "prismalita_ore")
         data=png.read_bytes()
         assert data[:8]==bytes([137,80,78,71,13,10,26,10])
         assert unpack(">II",data[16:24])==(32,32), str(png)
+
+# Lock seven approved resource sprites into the source repository, so CI
+# reproduces the user-approved materials without manual post-build overlays.
+import hashlib
+approved_materials = {
+    "brumacero_ingot": "4eba8741fcfc14a4349d30fadc0ab7d55cd90e893879a6bfc5c6a78b06fe5afb",
+    "raw_brumacero": "7533112262ebdff20a64cb3e1e2557a5e4f238764478e97f0e68b0c313df8ccd",
+    "umbracita_ingot": "44e5ed3de59ca051267bb0484b5d5a21777c13210786ecef0d25a39a4452d4d8",
+    "raw_umbracita": "6e9255d141c13e5a9560ed7e03f3e0881e7214410e5b59249015b605b896a6ec",
+    "prismalita_shard": "f964fc2725ddbfad7cf787f6aacd1a46c5d9e5eb95490e4363edfc23311bcea4",
+    "aetherium_ingot": "49e7a292459aa559189db27465097180f3270005b27712e9c725c53874998df5",
+    "raw_aetherium": "73c7b5461b676e9748b3ee6e0b355f321516d111cfab0421f8f73cee7be8a4cb",
+}
+for item, expected in approved_materials.items():
+    p = r / "assets/aetherium/textures/item" / (item + ".png")
+    data = p.read_bytes()
+    assert unpack(">II", data[16:24]) == (48,48), item
+    assert hashlib.sha256(data).hexdigest() == expected, "Approved material replaced: " + item
 
 for loc in ("en_us","es_es","es_cl","es_mx","es_ar"):
     d=json.loads((r/"assets/aetherium/lang"/(loc+".json")).read_text(encoding="utf-8"))
