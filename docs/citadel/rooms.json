@@ -33,7 +33,10 @@
       },
       "exterior": [
         "north"
-      ]
+      ],
+      "doorRoles": {
+        "south": "exit"
+      }
     },
     {
       "id": "corridor",
@@ -61,6 +64,11 @@
         "north": "gateway",
         "south": "guardhouse",
         "east": "crypt"
+      },
+      "doorRoles": {
+        "north": "entry",
+        "south": "exit",
+        "east": "exit"
       }
     },
     {
@@ -97,6 +105,11 @@
           8
         ],
         "mob": "minecraft:skeleton"
+      },
+      "doorRoles": {
+        "north": "entry",
+        "south": "exit",
+        "west": "exit"
       }
     },
     {
@@ -136,6 +149,12 @@
         "south": "archive",
         "east": "watchtower",
         "west": "barracks"
+      },
+      "doorRoles": {
+        "north": "entry",
+        "south": "exit",
+        "east": "exit",
+        "west": "exit"
       }
     },
     {
@@ -164,6 +183,11 @@
         "north": "courtyard",
         "south": "arena_shell",
         "east": "prison"
+      },
+      "doorRoles": {
+        "north": "entry",
+        "south": "exit",
+        "east": "exit"
       }
     },
     {
@@ -189,6 +213,12 @@
         "south": "threshold",
         "east": "east_bastion",
         "west": "west_gallery"
+      },
+      "doorRoles": {
+        "north": "entry",
+        "south": "exit",
+        "east": "exit",
+        "west": "exit"
       }
     },
     {
@@ -216,6 +246,10 @@
       "doors": {
         "north": "arena_shell",
         "south": "sanctum"
+      },
+      "doorRoles": {
+        "north": "entry",
+        "south": "exit"
       }
     },
     {
@@ -242,6 +276,9 @@
       "mirror": "NONE",
       "doors": {
         "north": "threshold"
+      },
+      "doorRoles": {
+        "north": "entry"
       }
     },
     {
@@ -268,6 +305,9 @@
       "mirror": "NONE",
       "doors": {
         "west": "corridor"
+      },
+      "doorRoles": {
+        "west": "entry"
       }
     },
     {
@@ -294,6 +334,9 @@
       "mirror": "NONE",
       "doors": {
         "east": "guardhouse"
+      },
+      "doorRoles": {
+        "east": "entry"
       }
     },
     {
@@ -320,6 +363,9 @@
       "mirror": "NONE",
       "doors": {
         "west": "courtyard"
+      },
+      "doorRoles": {
+        "west": "entry"
       }
     },
     {
@@ -356,6 +402,9 @@
       "mirror": "NONE",
       "doors": {
         "west": "courtyard"
+      },
+      "doorRoles": {
+        "west": "entry"
       }
     },
     {
@@ -390,6 +439,9 @@
       "mirror": "NONE",
       "doors": {
         "west": "archive"
+      },
+      "doorRoles": {
+        "west": "entry"
       }
     },
     {
@@ -416,6 +468,9 @@
       "mirror": "NONE",
       "doors": {
         "east": "arena_shell"
+      },
+      "doorRoles": {
+        "east": "entry"
       }
     },
     {
@@ -452,6 +507,9 @@
       "mirror": "NONE",
       "doors": {
         "west": "arena_shell"
+      },
+      "doorRoles": {
+        "west": "entry"
       }
     },
     {
@@ -485,7 +543,8 @@
       ],
       "rotation": "NONE",
       "mirror": "NONE",
-      "doors": {}
+      "doors": {},
+      "doorRoles": {}
     },
     {
       "id": "archive_vault",
@@ -510,7 +569,8 @@
       ],
       "rotation": "NONE",
       "mirror": "NONE",
-      "doors": {}
+      "doors": {},
+      "doorRoles": {}
     }
   ],
   "naturalGeneration": true,
