@@ -1,6 +1,6 @@
 # Kryzorae — Plan de progresión de minerales, equipo y fabricación (v1)
 
-**Estado:** propuesta de diseño del paso 2. **NO implementada**.  
+**Estado:** paso 2 diseñado. **Primera parte de fase A implementada en código:** Brumacero, Umbracita y Prismalita (bloques, generación, botines, productos, fundición, locales). **Pendiente:** validación en juego y todo el equipamiento/forjas del resto de la hoja.  
 **Objetivo:** referencia para elaborar la expansión por fases, conservando Minecraft 1.16.5, Forge 36.2.42, Java 8, mod ID `aetherium`, compatibilidad de partidas y rendimiento.
 
 ## Reglas de diseño
@@ -30,9 +30,9 @@ Los rangos son para **1.16.5** (Overworld 0–256), no alturas 1.18+. La configu
 
 | Mineral | Dimensión y altura Y | Generación objetivo | Herramienta mínima inicial | Qué desbloquea |
 |---|---|---|---|---|
-| Brumacero | Overworld Y20–64 | 2 intentos/chunk, vetas de 4–6 | hierro (nivel 2) | equipo de entrada |
-| Umbracita | Overworld Y8–36 | 1 intento/chunk, vetas de 3–5 | hierro (nivel 2) | equipo de exploración |
-| Prismalita | Overworld Y12–42 | 1 intento/chunk, vetas de 2–4 | hierro (nivel 2) | catalizador, runas, accesorios |
+| Brumacero | Overworld Y20–64 | 2 intentos/chunk, vetas de 5 | piedra (nivel 1) | equipo de entrada |
+| Umbracita | Overworld Y8–36 | 1 intento/chunk, vetas de 4 | hierro (nivel 2) | equipo de exploración |
+| Prismalita | Overworld Y12–42 | 1 intento/chunk, vetas de 3 | hierro (nivel 2) | catalizador, runas, accesorios |
 | Ferronita Abisal | Nether Y20–110 | 2 intentos/chunk, vetas de 3–5 | diamante (nivel 3) | equipamiento pesado y forja |
 | Ignarita | Nether Y16–80 | 1 intento/chunk, vetas de 2–4 | diamante (nivel 3) | aleaciones y componentes térmicos |
 | Resonita | Overworld Y5–24 | 50% de chunks con 1 intento, vetas de 3–4 | Ferronita/Netherita (nivel 4) | equipo avanzado, base Violeta |

@@ -128,7 +128,7 @@
   "item.aetherium.guide_book": "Kryzorae Codex",
   "tooltip.aetherium.guide_book": "Right-click to open the Kryzorae guide.",
   "guide.aetherium.page.1": "§5KRYZORAE CODEX§r\n\nA guide to exploration, equipment and bosses.\n\nThis edition describes content already available. Future expansions will add more chapters.",
-  "guide.aetherium.page.2": "§5FIRST STEPS§r\n\nFind Kryzorae ore in deep caves. Mine it and smelt the raw material into ingots.\n\nPrepare your equipment before entering dangerous areas.",
+  "guide.aetherium.page.2": "§5FIRST ORES§r\n\nBrumacero: Y20–64, stone pickaxe.\nUmbracita: Y8–36, iron pickaxe.\nPrismalita: Y12–42, iron pickaxe.\n\nSmelt raw metals. Prismalita drops shards.\nNew armor will arrive in a later phase.",
   "guide.aetherium.page.3": "§5VIOLET SWORD§r\n\nSwing to release an energy slash travelling about 5 blocks.\n\nSlashes have a 0.45 s cooldown and stop when they reach solid blocks.",
   "guide.aetherium.page.4": "§4CRIMSON SWORD§r\n\nSuccessful hits apply Bleeding. Up to 3 stacks deal 2, 4 or 6 health points per second.\n\nBleeding stacks are rate-limited against bosses.",
   "guide.aetherium.page.5": "§5RIFT GUARDIAN§r\n\nUse the Guardian Sigil on a solid block to summon the boss.\n\nDodge its charges and shockwaves. Its Rift Core helps craft the next summon.",

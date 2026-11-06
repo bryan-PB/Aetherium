@@ -128,7 +128,7 @@
   "item.aetherium.guide_book": "Códice de Kryzorae",
   "tooltip.aetherium.guide_book": "Clic derecho: abre la guía de Kryzorae.",
   "guide.aetherium.page.1": "§5CÓDICE DE KRYZORAE§r\n\nGuía de exploración, equipo y jefes.\n\nEsta edición describe el contenido disponible. Las futuras expansiones traerán nuevos capítulos.",
-  "guide.aetherium.page.2": "§5PRIMEROS PASOS§r\n\nBusca mineral de Kryzorae en las cuevas profundas. Extrae el material y fúndelo para obtener lingotes.\n\nPrepara equipo antes de explorar zonas peligrosas.",
+  "guide.aetherium.page.2": "§5PRIMEROS MINERALES§r\n\nBrumacero: Y20–64, pico de piedra.\nUmbracita: Y8–36, pico de hierro.\nPrismalita: Y12–42, pico de hierro.\n\nFunde el metal bruto. Prismalita deja fragmentos.\nLas nuevas armaduras llegarán en otra fase.",
   "guide.aetherium.page.3": "§5ESPADA VIOLETA§r\n\nAl blandirla dispara un corte de energía que avanza unos 5 bloques.\n\nCada onda tiene una espera de 0,45 s. Se detiene en bloques sólidos.",
   "guide.aetherium.page.4": "§4ESPADA CARMESÍ§r\n\nLos golpes aplican Sangrado. Hasta 3 cargas infligen 2, 4 o 6 puntos de salud por segundo.\n\nContra jefes, las cargas no pueden acumularse sin límite.",
   "guide.aetherium.page.5": "§5GUARDIÁN DE LA GRIETA§r\n\nEl Sigilo del Guardián lo invoca al usarlo en un bloque sólido.\n\nEsquiva sus embestidas y ondas. Su Núcleo de Grieta permite crear el siguiente sello.",
