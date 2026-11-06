@@ -73,6 +73,31 @@ def build_atlas(name):
                      (64,("light","fabric","detail","face","glow"))):
         for index,key in enumerate(keys):
             textured_patch(a,index*48,row,p[key],index+row+len(name))
+
+    if name == "umbracita":
+        # Woven folds, stitched borders and a warm brown strap. This is
+        # painted into the prebuilt atlas, not a runtime effect or shader.
+        u,v=48,64
+        for x in (8,18,29,40):
+            a.line(u+x,v+5,u+x-2,v+40,p["fabric"][2])
+            a.line(u+x+2,v+6,u+x,v+40,p["fabric"][0])
+        for y in (9,24,37):
+            for x in range(8,43,4):
+                a.put(u+x,v+y,p["fabric"][3])
+        # Dark violet cloth at the chest, with broad seams rather than ore noise.
+        for x in (8,26,41):
+            a.line(x,68,x-2,101,p["light"][1])
+            a.line(x+2,69,x,99,p["light"][0])
+        # Diagonal leather stitch detail inside the brown strap patch.
+        u,v=96,64
+        for y in range(7,44,6):
+            for x in (12,26,39):
+                a.line(u+x,v+y,u+x+2,v+y+2,p["detail"][3])
+        # A few polished warm studs for the medallions, nothing emissive.
+        u,v=144,0
+        for x,y in ((9,12),(24,19),(35,32)):
+            a.rect(u+x,v+y,u+x+3,v+y+2,p["accent"][3])
+
     for layer in (1,2):
         a.png(ASSETS/"models"/"armor"/f"{name}_layer_{layer}.png")
 
@@ -165,37 +190,79 @@ def hood_icon(which):
         a.line(7,20,25,20,fold,1)
         a.put(16,14,orange)
     elif which=="chestplate":
-        a.polygon([(3,7),(12,6),(16,9),(20,6),(29,7),(30,16),
-                   (26,19),(26,29),(6,29),(6,19),(2,16)],black)
-        a.polygon([(5,9),(12,8),(16,12),(20,8),(27,9),(27,16),
-                   (22,19),(22,27),(10,27),(10,19),(5,16)],fold)
-        a.polygon([(4,9),(13,7),(13,15),(8,19),(4,16)],purple)
-        a.polygon([(28,9),(19,7),(19,15),(24,19),(28,16)],purple)
-        a.rect(10,11,22,14,light)
-        a.rect(11,15,21,25,dark)
-        a.rect(7,24,25,28,purple)
-        a.polygon([(16,14),(18,17),(18,20),(16,23),(14,20),(14,17)],ochre)
-        a.rect(15,17,17,21,orange)
-        a.line(11,11,21,11,light)
-        a.rect(8,27,24,28,ochre)
+        # Long OPEN COAT with a dark undershirt, violet lapels, small shoulder
+        # pads, diagonal warm leather band and split layered tails.
+        a.polygon([(4,6),(12,5),(16,8),(20,5),(28,6),(31,13),
+                   (28,18),(27,30),(20,30),(16,25),(12,30),(5,30),
+                   (4,19),(1,14)],black)
+        a.polygon([(6,8),(12,7),(16,10),(20,7),(26,8),(28,13),
+                   (25,17),(24,29),(18,29),(16,24),(14,29),
+                   (8,29),(7,17),(4,14)],purple)
+        # Contoured shoulders + two long, open fabric fronts.
+        a.polygon([(3,9),(11,7),(12,12),(9,17),(4,16)],fold)
+        a.polygon([(29,9),(21,7),(20,12),(23,17),(28,16)],fold)
+        a.line(4,10,10,9,light)
+        a.line(22,9,28,10,light)
+        a.polygon([(11,13),(16,11),(21,13),(21,25),(17,27),
+                   (15,27),(11,25)],dark)
+        a.polygon([(9,15),(13,14),(13,29),(8,29)],purple)
+        a.polygon([(23,15),(19,14),(19,29),(24,29)],purple)
+        a.line(12,15,12,29,light)
+        a.line(20,15,20,29,light)
+        a.line(8,28,13,28,light)
+        a.line(19,28,24,28,light)
+        # V-shaped scarf collar and brown cross-body band.
+        a.polygon([(11,9),(16,12),(21,9),(20,13),(16,15),(12,13)],light)
+        a.line(23,10,11,24,ochre,3)
+        a.line(22,10,10,24,orange)
+        a.rect(11,21,23,23,ochre)
+        a.rect(15,20,18,24,orange)
+        a.rect(16,21,18,23,black)
+        # Utility buckle and knife sheath, integrated into waist.
+        a.rect(22,20,25,28,ochre)
+        a.rect(22,24,24,28,light)
+        a.rect(20,14,22,17,orange)
+        a.rect(11,17,13,19,orange)
     elif which=="leggings":
-        a.polygon([(6,4),(26,4),(27,12),(26,28),(19,30),
-                   (17,19),(14,30),(6,28),(5,12)],black)
-        a.rect(8,6,24,12,purple);a.rect(8,8,24,10,light)
-        a.rect(8,12,14,27,fold);a.rect(18,12,24,27,fold)
-        a.rect(7,13,10,27,purple);a.rect(22,13,25,27,purple)
-        a.rect(9,25,14,28,light);a.rect(18,25,24,28,light)
-        a.rect(14,10,18,17,ochre);a.rect(15,12,17,16,orange)
+        # Fitted dark trousers with slim piping and one utility thigh strap.
+        a.polygon([(7,3),(25,3),(26,10),(25,30),(18,30),
+                   (16,16),(14,30),(7,30),(6,10)],black)
+        a.rect(8,5,24,11,purple)
+        a.rect(9,6,23,8,light)
+        a.rect(8,11,14,28,fold)
+        a.rect(18,11,24,28,fold)
+        a.line(9,12,9,28,purple)
+        a.line(22,12,22,28,purple)
+        a.line(12,13,12,26,light)
+        a.line(20,13,20,26,light)
+        a.rect(7,19,14,21,dark)
+        a.rect(18,19,25,21,dark)
+        a.line(8,21,14,21,light)
+        a.line(18,21,24,21,light)
+        # One brown leather strap and small golden square buckle.
+        a.rect(18,13,25,16,ochre)
+        a.rect(20,12,23,17,orange)
+        a.rect(21,13,22,15,black)
+        a.rect(8,27,14,29,purple)
+        a.rect(18,27,24,29,purple)
     else:
+        # Fashionable ankle boots, not solid purple greaves. Dark fabric
+        # shank, violet cuffs, small buckle, gray reinforced pointed toe.
         for x in (2,17):
-            a.polygon([(x+3,7),(x+11,7),(x+13,12),(x+12,23),
-                       (x+13,28),(x+1,28),(x,22)],black)
-            a.polygon([(x+4,9),(x+10,9),(x+11,16),
-                       (x+11,26),(x+2,26),(x+2,21)],purple)
-            a.rect(x+4,9,x+11,11,light)
-            a.rect(x+3,16,x+12,18,fold)
-            a.rect(x+2,23,x+12,26,light)
-            a.rect(x+5,17,x+8,18,orange)
+            a.polygon([(x+4,7),(x+11,7),(x+13,12),(x+12,20),
+                       (x+14,25),(x+13,29),(x,29),(x,24),
+                       (x+2,20)],black)
+            a.polygon([(x+4,9),(x+10,9),(x+11,15),(x+10,23),
+                       (x+12,26),(x+2,26),(x+2,22)],fold)
+            a.rect(x+3,8,x+12,11,purple)
+            a.line(x+3,8,x+11,8,light)
+            a.rect(x+3,16,x+12,18,ochre)
+            a.rect(x+6,16,x+9,19,orange)
+            a.rect(x+7,17,x+8,18,black)
+            a.polygon([(x+2,22),(x+10,22),(x+13,26),(x+12,28),
+                       (x+1,28)],purple)
+            a.rect(x+1,25,x+7,27,light)
+            a.line(x+1,28,x+13,28,black)
     return a
 
 def main():
