@@ -20,7 +20,8 @@ VALID = {
     "minecraft:purple_stained_glass", "minecraft:crying_obsidian",
     "minecraft:soul_lantern", "minecraft:air", "minecraft:chest",
     "minecraft:bookshelf", "minecraft:dark_oak_planks", "minecraft:jigsaw",
-    "minecraft:iron_block", "minecraft:iron_bars",
+    "minecraft:iron_block", "minecraft:iron_bars", "minecraft:spawner",
+    "minecraft:magma_block", "minecraft:cobweb", "minecraft:ladder",
 }
 
 
@@ -93,7 +94,7 @@ def validate_room(room, read):
     assert root["author"]=="Kryzorae"
     assert root["entities"]==[], "Templates must not spawn active entities"
     palette=root["palette"]
-    assert palette and len(palette)<=20, room["id"]
+    assert palette and len(palette)<=32, room["id"]
     names=[entry["Name"] for entry in palette]
     assert set(names).issubset(VALID), (room["id"], set(names)-VALID)
     blocks=root["blocks"]
@@ -101,6 +102,7 @@ def validate_room(room, read):
     assert len(blocks)==w*h*d, "Missing / duplicated volume: "+room["id"]
     coords={}
     chests=[]
+    spawners=[]
     for item in blocks:
         pos=tuple(item["pos"])
         assert len(pos)==3
@@ -115,62 +117,87 @@ def validate_room(room, read):
             assert "nbt" in item
             assert item["nbt"]["id"]=="minecraft:chest"
             chests.append((list(pos),item["nbt"]["LootTable"]))
-        elif name == "minecraft:jigsaw":
-            assert item["nbt"]["id"] == "minecraft:jigsaw"
-            assert item["nbt"]["final_state"] == "minecraft:air"
+        elif name=="minecraft:spawner":
+            assert "nbt" in item
+            entity=item["nbt"]
+            assert entity["id"]=="minecraft:mob_spawner"
+            assert entity["SpawnData"]["id"] in {
+                "minecraft:zombie","minecraft:skeleton","minecraft:spider"}
+            assert entity["SpawnCount"]<=2
+            assert entity["MaxNearbyEntities"]<=3
+            assert entity["RequiredPlayerRange"]<=16
+            assert entity["MinSpawnDelay"]>=600
+            spawners.append((list(pos),entity["SpawnData"]["id"]))
+        elif name=="minecraft:jigsaw":
+            assert "nbt" in item
+            assert item["nbt"]["id"]=="minecraft:jigsaw"
+            assert item["nbt"]["final_state"]=="minecraft:air"
             assert item["nbt"]["name"].startswith("aetherium:citadel/")
             assert item["nbt"]["target"].startswith("aetherium:citadel/")
-            assert item["nbt"]["pool"] == "minecraft:empty" or item["nbt"]["pool"].startswith("aetherium:citadel/")
+            assert item["nbt"]["pool"]=="minecraft:empty" or (
+                item["nbt"]["pool"].startswith("aetherium:citadel/"))
         else:
-            assert "nbt" not in item, "Unwanted ticking block entity: "+name
-    expected=[(room["chest"],room["loot"])] if room["chest"] else []
-    assert chests==expected,(room["id"],chests,expected)
-    mid=w//2
+            assert "nbt" not in item, "Unexpected block entity: "+name
+    expected=[]
+    if room["chest"]:
+        expected.append((room["chest"],room["loot"]))
+    expected.extend((entry["pos"],entry["loot"])
+                    for entry in room.get("extraChests",[]))
+    assert sorted(chests)==sorted(expected),(room["id"],chests,expected)
+    expect_spawners=[]
+    if room.get("spawner"):
+        info=room["spawner"]
+        expect_spawners.append((info["pos"],info["mob"]))
+    assert spawners==expect_spawners,(room["id"],spawners,expect_spawners)
+    # Every declared door is exactly 3 wide x 4 high; the center is a
+    # processed Jigsaw block. No undeclared exit can expose a cliff.
+    doors=room.get("doors",{})
     connectors=[(tuple(it["pos"]),it["nbt"]) for it in blocks
                 if names[it["state"]]=="minecraft:jigsaw"]
-    expected_connectors= {
-        "gateway":1, "corridor":3, "guardhouse":3,
-        "archive":2, "arena_shell":1, "crypt":1, "forge":1,
-    }[room["id"]]
-    assert len(connectors)==expected_connectors,(room["id"],connectors)
-    if room["id"] not in ("gateway","crypt","forge"):
-        assert any(p==(mid,2,0) and data["name"]=="aetherium:citadel/entry"
-                   for p,data in connectors), "Missing entry connector"
-    if room["id"] not in ("arena_shell","crypt","forge"):
-        assert any(p==(mid,2,d-1) and data["name"]=="aetherium:citadel/exit"
-                   for p,data in connectors), "Missing exit connector"
-    expected_links = {
-        "gateway": {"aetherium:citadel/corridor"},
-        "corridor": {"aetherium:citadel/guardhouse", "aetherium:citadel/crypt", "minecraft:empty"},
-        "guardhouse": {"aetherium:citadel/archive", "aetherium:citadel/forge", "minecraft:empty"},
-        "archive": {"aetherium:citadel/arena", "minecraft:empty"},
-        "arena_shell": {"minecraft:empty"},
-        "crypt": {"minecraft:empty"},
-        "forge": {"minecraft:empty"},
-    }
-    assert {data["pool"] for pos,data in connectors}==expected_links[room["id"]], room["id"]
-    for pos,data in connectors:
-        state = palette[next(it["state"] for it in blocks if tuple(it["pos"])==pos)]
-        orientation = state["Properties"]["orientation"]
-        x,y,z = pos
-        if z==0: assert orientation=="north_up"
-        elif z==d-1: assert orientation=="south_up"
-        elif x==0: assert orientation=="west_up"
-        elif x==w-1: assert orientation=="east_up"
-        else: raise AssertionError("Jigsaw in room interior "+room["id"])
-        assert y==2
-        assert data["joint"]=="aligned"
-        assert data["target"]==("aetherium:citadel/entry"
-                                if data["pool"]!="minecraft:empty"
-                                else "aetherium:citadel/exit")
-    for side in (0,d-1):
-        for x in range(mid-1,mid+2):
-            for y in range(1,5):
-                if room["id"] in ("crypt","forge") or (room["id"]=="arena_shell" and side==d-1):
-                    assert coords[(x,y,side)] not in ("minecraft:air","minecraft:jigsaw")
-                else:
-                    assert coords[(x,y,side)] in ("minecraft:air","minecraft:jigsaw"), (
-                    room["id"],"door clearance",x,y,side)
+    assert len(connectors)==len(doors), (room["id"],connectors,doors)
+    for side in ("north","south","east","west"):
+        connected=side in doors
+        if side=="north":
+            border=[(x,y,0) for x in range(w//2-1,w//2+2) for y in range(1,5)]
+            center=(w//2,2,0)
+        elif side=="south":
+            border=[(x,y,d-1) for x in range(w//2-1,w//2+2) for y in range(1,5)]
+            center=(w//2,2,d-1)
+        elif side=="west":
+            border=[(0,y,z) for z in range(d//2-1,d//2+2) for y in range(1,5)]
+            center=(0,2,d//2)
+        else:
+            border=[(w-1,y,z) for z in range(d//2-1,d//2+2) for y in range(1,5)]
+            center=(w-1,2,d//2)
+        matches=[data for pos,data in connectors if pos==center]
+        assert len(matches)==int(connected), (room["id"],side,matches)
+        if connected:
+            assert all(coords[p] in ("minecraft:air","minecraft:jigsaw")
+                       for p in border), (room["id"],side,"door blocked")
+            data=matches[0]
+            assert data["joint"]=="aligned"
+            assert data["name"]==("aetherium:citadel/exit"
+                                  if side in ("south","east")
+                                  else "aetherium:citadel/entry")
+            assert data["target"]==("aetherium:citadel/entry"
+                                    if side in ("south","east")
+                                    else "aetherium:citadel/exit")
+            if side in ("south","east"):
+                target=doors[side]
+                target_pool={"gateway":"start","arena_shell":"arena"}.get(target,target)
+                assert data["pool"]=="aetherium:citadel/"+target_pool
+            else:
+                assert data["pool"]=="minecraft:empty"
+            state=palette[next(it["state"] for it in blocks
+                               if tuple(it["pos"])==center)]
+            assert state["Properties"]["orientation"]==side+"_up"
+        else:
+            assert all(coords[p] not in ("minecraft:air","minecraft:jigsaw")
+                       for p in border), (room["id"],side,"dangling door")
+    if room["id"] in ("crypt","archive"):
+        assert coords[(4,0,4)]=="minecraft:air", "Upper ladder has no entry"
+    if room["id"] in ("catacombs","archive_vault"):
+        assert coords[(4,h-1,4)]=="minecraft:ladder", "Underground shaft sealed"
     if room["roof"]=="open":
         assert coords[(mid,h-2,d//2)]=="minecraft:air"
     else:
@@ -179,7 +206,7 @@ def validate_room(room, read):
 
 
 def validate_loot(read):
-    for which in ("entrance","guardhouse","archive"):
+    for which in ("entrance","guardhouse","archive","supplies","reliquary"):
         name="data/aetherium/loot_tables/chests/citadel_"+which+".json"
         data=json.loads(read(name).decode("utf-8"))
         assert data["type"]=="minecraft:chest"
@@ -188,9 +215,9 @@ def validate_loot(read):
         for pool in data["pools"]:
             rolls=pool["rolls"]
             if isinstance(rolls,dict):
-                assert 0<=rolls["min"]<=rolls["max"]<=3
+                assert 0<=rolls["min"]<=rolls["max"]<=5
             else:
-                assert 0<=rolls<=3
+                assert 0<=rolls<=5
             for entry in pool["entries"]:
                 assert entry["type"]=="minecraft:item"
                 name=entry["name"]
@@ -214,47 +241,62 @@ def validate_loot(read):
 
 def validate(lookup):
     total=0
-    pool_names=["start","corridor","guardhouse","archive","arena","crypt","forge"]
-    expected_rooms=["gateway","corridor","guardhouse","archive","arena_shell","crypt","forge"]
-    for name,room_id in zip(pool_names,expected_rooms):
-        path="data/aetherium/worldgen/template_pool/citadel/"+name+".json"
+    assert SPEC["namespace"]=="aetherium"
+    assert SPEC["status"]=="registered-overworld-jigsaw-worldgen"
+    assert SPEC["naturalGeneration"] is True
+    assert SPEC["maxConnectedModules"]==17
+    rooms=SPEC["rooms"]
+    assert len(rooms)==17
+    room_ids={r["id"] for r in rooms}
+    assert len(room_ids)==len(rooms)
+    pool_names=SPEC["pools"]
+    assert len(pool_names)==len(rooms)
+    assert len(set(pool_names))==len(pool_names)
+    for pool_id in pool_names:
+        path="data/aetherium/worldgen/template_pool/citadel/"+pool_id+".json"
         pool=json.loads(lookup(path).decode("utf-8"))
-        assert pool["name"]=="aetherium:citadel/"+name
+        assert pool["name"]=="aetherium:citadel/"+pool_id
         assert pool["fallback"]=="minecraft:empty"
         assert len(pool["elements"])==1
         entry=pool["elements"][0]
         assert entry["weight"]==1
         element=entry["element"]
         assert element["element_type"]=="minecraft:single_pool_element"
-        assert element["location"]=="aetherium:citadel/"+room_id
+        mapped={"start":"gateway","arena":"arena_shell"}.get(pool_id,pool_id)
+        assert element["location"]=="aetherium:citadel/"+mapped
         assert element["projection"]=="rigid"
         assert element["processors"]=="minecraft:empty"
-    assert SPEC["namespace"]=="aetherium"
-    assert SPEC["status"]=="registered-overworld-jigsaw-worldgen"
-    assert SPEC["naturalGeneration"] is True
-    assert SPEC["maxConnectedModules"]==7
-    assert SPEC["roomCapFuture"]<=9
-    rooms=SPEC["rooms"]
-    assert len(rooms)==7
-    assert len({r["id"] for r in rooms})==len(rooms)
+    count_spawners=0
+    count_chests=0
     for room in rooms:
         assert 5<=room["size"][0]<=31
         assert 8<=room["size"][1]<=24
         assert 5<=room["size"][2]<=31
+        assert room["rotation"] in (
+            "NONE","CLOCKWISE_90","CLOCKWISE_180","COUNTERCLOCKWISE_90")
+        assert room["mirror"] in ("NONE","FRONT_BACK","LEFT_RIGHT")
+        assert len(room["offset"])==3
+        assert all(id_ in room_ids for id_ in room["doors"].values())
         total+=validate_room(room,lookup)
+        count_chests+=int(bool(room["chest"]))+len(room.get("extraChests",[]))
+        count_spawners+=int(bool(room.get("spawner")))
+    assert count_chests>=17, "Mega Citadel needs distributed room loot"
+    assert 2<=count_spawners<=4, "Only a few bounded vanilla spawners"
+    assert sum(r["offset"][1]<0 for r in rooms)>=2, "Missing underground chambers"
+    assert sum(r["kind"]=="tower" for r in rooms)>=2, "Missing towers"
     validate_loot(lookup)
-    return total
+    return total,count_chests,count_spawners
 
-
-source_count=validate(lambda path:(RES/path).read_bytes())
+source_count,source_chests,source_spawners=validate(lambda path:(RES/path).read_bytes())
 jars=[x for x in (ROOT/"build/libs").glob("*.jar")
       if not x.name.endswith("-sources.jar")]
 assert jars,"No Forge build JAR"
 for jar in jars:
     with ZipFile(jar) as z:
         assert z.testzip() is None
-        jar_count=validate(lambda path:z.read(path))
-        assert jar_count==source_count
+        jar_count,jar_chests,jar_spawners=validate(lambda path:z.read(path))
+        assert (jar_count,jar_chests,jar_spawners)==(
+            source_count,source_chests,source_spawners)
         for room in SPEC["rooms"]:
             path=room_path(room)
             assert z.read(path)==(RES/path).read_bytes(), "NBT changed in build"
@@ -262,4 +304,5 @@ for jar in jars:
             path="data/aetherium/worldgen/template_pool/citadel/"+name+".json"
             assert z.read(path)==(RES/path).read_bytes()
 print("Citadel OK:",len(SPEC["rooms"]),"rooms,",source_count,
-      "NBT cells, 3 safe loot tables, connected jigsaw rooms source/JAR verified")
+      "NBT cells,",source_chests,"chests,",source_spawners,
+      "bounded spawners, 5 safe loot tables, all Jigsaw ports source/JAR verified")
