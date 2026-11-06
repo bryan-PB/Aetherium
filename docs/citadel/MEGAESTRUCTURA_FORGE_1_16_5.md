@@ -134,3 +134,22 @@ Recorrer cada conexión con F3, revisar 19 cofres, usar los dos accesos a subniv
 La arquitectura interna está separada del código de generación y puede rediseñarse por módulos. Cuando se apruebe un nuevo plano visual, el contenido de `rooms.json` y los sprites/NBT deberán actualizarse en conjunto, sin cambiar el ID `aetherium:citadel`. Los enemigos de la Ciudadela, el Centinela del Umbral, el sello y el Custodio siguen siendo fases posteriores y no se han introducido de forma engañosa como mobs vanilla.
 
 **Código fuente completo** (ver la rama `fix/boss-attack-visibility`): `CitadelWorldGen.java`, `CitadelStructure.java`, `CitadelLayout.java`, `CitadelPieces.java`, `CitadelCommands.java`, `tools/generate_citadel_templates.py`. Los JSON completos están en las carpetas descritas; no son pseudocódigo.
+
+## 9. Revisión de interiores — arquitectura V3
+
+Después de probar la versión modular en Minecraft se detectaron grandes salas prácticamente vacías, pisos grises uniformes, paredes monótonas, barras aisladas y tramos oscuros. Estos son defectos reales de diseño de las piezas, no de la cantidad total de módulos.
+
+La fase V3 mantiene las **17 NBT, 19 cofres, 3 spawners y las conexiones originales**. Reemplaza el viejo mobiliario disperso por `tools/citadel_architecture.py`, un módulo Python puro usado por `generate_citadel_templates.py`. Las piezas son deterministas, no ejecutan nada cada tick y no requieren nuevos bloques o entidades.
+
+Cada sala tiene ahora patrones de suelo y bordes coherentes, columnas parejas, arcos altos (sin obstaculizar el paso), iluminación de linternas empotradas y detalles especializados: vestíbulo de columnas, corredor con bóvedas, cuartel con bancos, archivo con estanterías, cripta con sarcófagos, forja con estaciones de trabajo, patio abierto con santuarios, arena con gradas, santuario circular, prisión con celdas, torres con pisos y escaleras accesibles y bóveda subterránea con pedestal.
+
+La función `center_clear` reserva una galería central de **3 bloques de ancho con 5 de altura libre**, además de los recorridos laterales en las salas con puertas este/oeste. Los conectores reales se colocan **después** de la decoración; también los cofres, spawners y escaleras subterráneas. Los spawners del cuartel y la prisión se han movido fuera de las conexiones perpendiculares.
+
+`tools/check_citadel_templates.py` verifica ahora que en cada NBT existan:
+- al menos tres materiales diferentes en el pavimento;
+- iluminación en la sala, detalles arquitectónicos en vez de un volumen vacío;
+- pasillos centrales y laterales despejados y puertas de 3×4 libres;
+- escaleras continuas, cofres accesibles y spawners que no tapen puertas;
+- identificadores de bloques y propiedades de estado válidos para la versión.
+
+**Para probar la revisión, utiliza el nuevo JAR y genera una Ciudadela en chunks nuevos**. Una ruina ya colocada se guarda en el mundo y no se reconstruye al cambiar el mod. La compilación valida NBT y registro, pero la calidad final de los interiores requiere otra inspección dentro de Minecraft.
