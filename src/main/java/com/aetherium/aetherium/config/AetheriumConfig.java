@@ -10,6 +10,12 @@ public final class AetheriumConfig {
     public static final ForgeConfigSpec.IntValue ORE_VEINS_PER_CHUNK;
     public static final ForgeConfigSpec.IntValue ORE_MIN_Y;
     public static final ForgeConfigSpec.IntValue ORE_MAX_Y;
+    /**
+     * New setting intentionally applied on top of the legacy per-ore counts:
+     * existing 1.16.5 installations keep their preferences yet automatically
+     * receive the more useful ore distribution without deleting config files.
+     */
+    public static final ForgeConfigSpec.IntValue NEW_ORE_DENSITY_MULTIPLIER;
     public static final ForgeConfigSpec.IntValue BRUMACERO_VEIN_SIZE;
     public static final ForgeConfigSpec.IntValue BRUMACERO_VEINS_PER_CHUNK;
     public static final ForgeConfigSpec.IntValue BRUMACERO_MIN_Y;
@@ -44,6 +50,15 @@ public final class AetheriumConfig {
                 .comment("Highest Y level used by the Aetherium ore placement range.")
                 .defineInRange("oreMaxY", 16, 4, 32);
 
+
+        NEW_ORE_DENSITY_MULTIPLIER = builder
+                .comment("Global multiplier for Brumacero, Umbracita and Prismalita "
+                        + "placement attempts in NEW chunks only. "
+                        + "Default 6 raises legacy counts 2/1/1 to 12/6/6. "
+                        + "Aetherium is unaffected. Set to 1 for old abundance. "
+                        + "Each ore can still be disabled with its own veinsPerChunk=0; "
+                        + "effective attempts are capped at 24 for performance.")
+                .defineInRange("newOreDensityMultiplier", 6, 1, 8);
 
         BRUMACERO_VEIN_SIZE = builder
                 .comment("BRUMACERO vein size in blocks; processed only during terrain generation.")
