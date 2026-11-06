@@ -50,6 +50,10 @@ minecraft {
 
         data {
             workingDirectory project.file('run')
+            // ForgeGradle 5 run tasks force-exit the Gradle process by default.
+            // A completed runData then looks like a crashed daemon in CI.
+            // Do not force the process exit: let Gradle collect the real status.
+            setForceExit false
             // Headless CI runners have finite memory: cap Forge's separate
             // data-generator JVM instead of allowing a second unbounded heap.
             // This is only a development run configuration; not a gameplay cap.
