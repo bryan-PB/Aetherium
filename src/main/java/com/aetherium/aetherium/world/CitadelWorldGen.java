@@ -21,6 +21,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -94,6 +95,7 @@ public final class CitadelWorldGen {
      * terrain surface and rejects steep candidate starts. Dimension spacing
      * is deliberately registered in the Overworld only.
      */
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onBiomeLoading(BiomeLoadingEvent event) {
         if (!AetheriumConfig.CITADEL_ENABLED.get() || configuredCitadel == null) return;
         Biome.Category category = event.getCategory();
@@ -110,6 +112,7 @@ public final class CitadelWorldGen {
      * Without this step, a successfully registered 1.16.5 structure never
      * generates. Do it once at world load, not when chunks are ticking.
      */
+    @SubscribeEvent
     public static void onWorldLoad(WorldEvent.Load event) {
         if (!(event.getWorld() instanceof ServerWorld)
                 || !AetheriumConfig.CITADEL_ENABLED.get() || separation == null) return;
