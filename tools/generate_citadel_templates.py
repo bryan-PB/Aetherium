@@ -110,7 +110,8 @@ def room_blocks(room):
     # Open only declared 3x4 exits; no doorway leading into a hillside.
     center = w//2
     for z in [side for direction,side in (("north",0),("south",d-1))
-              if direction in room.get("doors", {})]:
+              if direction in room.get("doors", {})
+              or direction in room.get("exterior", [])]:
         for x in range(center-1,center+2):
             for y in range(1,5):
                 put(x,y,z,"minecraft:air")
