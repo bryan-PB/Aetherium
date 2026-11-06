@@ -4,6 +4,9 @@ import com.aetherium.aetherium.AetheriumMod;
 import com.aetherium.aetherium.config.AetheriumConfig;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
+import net.minecraft.block.BlockState;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.gen.ChunkGenerator;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.Mirror;
@@ -37,6 +40,8 @@ public final class CitadelCommands {
                 .then(Commands.literal("citadel")
                         .then(Commands.literal("status")
                                 .executes(context -> status(context.getSource())))
+                        .then(Commands.literal("probe")
+                                .executes(context -> probe(context.getSource())))
                         .then(Commands.literal("preview")
                                 .executes(context -> preview(context.getSource())))));
     }
@@ -74,6 +79,53 @@ public final class CitadelCommands {
         source.sendSuccess(new StringTextComponent(
                 "[Kryzorae] Registro listo. /locate aetherium:citadel busca terreno NUEVO. "
                 + "Para inspeccion inmediata en un mundo de prueba usa /kryzorae citadel preview."), false);
+        return 1;
+    }
+
+    /**
+     * Operator-only, read-only check of the CURRENT player column.
+     * An eligible local biome/height is not proof that this random chunk is a
+     * structure candidate or that previously generated chunks will change.
+     * It is, however, direct evidence of whether biome loading injected the
+     * configured structure at runtime (a failure /locate cannot explain).
+     */
+    private static int probe(CommandSource source) {
+        ServerWorld world = source.getLevel();
+        BlockPos player = new BlockPos(
+                source.getPosition().x, source.getPosition().y, source.getPosition().z);
+        ChunkGenerator generator = world.getChunkSource().getGenerator();
+        Biome biome = world.getBiome(player);
+        boolean enabled = AetheriumConfig.CITADEL_ENABLED.get();
+        boolean overworld = World.OVERWORLD.equals(world.dimension());
+        boolean biomeHasCitadel = biome.getGenerationSettings()
+                .isValidStart(CitadelWorldGen.CITADEL.get());
+        boolean spacing = generator.getSettings().structureConfig()
+                .containsKey(CitadelWorldGen.CITADEL.get());
+        int height = generator.getFirstOccupiedHeight(
+                player.getX(), player.getZ(), Heightmap.Type.WORLD_SURFACE_WG);
+        BlockState ground = generator.getBaseColumn(player.getX(), player.getZ())
+                .getBlockState(new BlockPos(player.getX(), Math.max(0, height - 1), player.getZ()));
+        boolean terrain = CitadelStructure.canGenerateOnColumn(
+                generator, player.getX(), player.getZ());
+        source.sendSuccess(new StringTextComponent(
+                "[Kryzorae] Probe X=" + player.getX() + " Z=" + player.getZ()
+                + " | Y superficie=" + height + " | suelo=" + ground.getBlock()
+                + " | bioma admite ciudadela=" + biomeHasCitadel
+                + " | terreno apto=" + terrain
+                + " | espaciado=" + spacing
+                + " | activo=" + enabled
+                + " | Overworld=" + overworld), false);
+        if (!overworld || !enabled || !spacing || !biomeHasCitadel || !terrain) {
+            source.sendFailure(new StringTextComponent(
+                    "[Kryzorae] Al menos una condicion local falla. "
+                    + "Busca otro bioma terrestre o revisa configuracion. "
+                    + "Este comando NO genera ni modifica chunks."));
+            return 0;
+        }
+        source.sendSuccess(new StringTextComponent(
+                "[Kryzorae] Esta columna supera las condiciones locales. "
+                + "La aparicion real requiere ademas un chunk candidato de la cuadricula "
+                + "y terreno NUEVO. Prueba /locate aetherium:citadel."), false);
         return 1;
     }
 
