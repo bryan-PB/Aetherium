@@ -271,6 +271,11 @@ def design_room(room, put):
                     lantern(x,11,z,bright=True)
 
     elif kind=="tower":
+        # The side-door clearance removes low lights at Z4..6; put entrance
+        # lights at Z2 and Z8 so the ground floor is visible without night vision.
+        for x in (1,w-2):
+            for z in (2,d-3):
+                lantern(x,3,z,bright=True)
         # Real walkable storeys, ladder supported by solid blackstone at x3,z2.
         for floor in (8,15,21):
             if floor>=h-1: continue
