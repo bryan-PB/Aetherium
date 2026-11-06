@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "MMM",
+    "M M",
+    "M M"
+  ],
+  "key": {
+    "M": {
+      "item": "aetherium:brumacero_ingot"
+    }
+  },
+  "result": {
+    "item": "aetherium:brumacero_leggings"
+  }
+}
