@@ -58,7 +58,7 @@ for material in ("brumacero","umbracita"):
         path=assets/"textures/item"/(id+".png")
         raw=path.read_bytes()
         assert raw[:8]==bytes([137,80,78,71,13,10,26,10]), id
-        assert unpack(">II",raw[16:24])==((64,64) if part=="sword" else (32,32)), id
+        assert unpack(">II",raw[16:24])==((64,64) if part in parts[4:] else (32,32)), id
         d=json.loads((data/(id+".json")).read_text(encoding="utf-8"))
         assert d["type"]=="minecraft:crafting_shaped"
         assert d["pattern"]==patterns[part],id
@@ -88,8 +88,43 @@ shade=(assets/"textures/item/umbracita_sword.png").read_bytes()
 assert steel != shade, "Different materials require different silhouettes"
 assert len(steel) > 400 and len(shade) > 400, "Sword art seems truncated"
 art_generator=Path("tools/generate_intermediate_equipment_art.py").read_text(encoding="utf-8")
-assert 'for piece in ("pickaxe","axe","shovel","hoe"):' in art_generator
+assert 'for piece in ("pickaxe","axe","shovel","hoe"):' not in art_generator
 assert 'for piece in ("sword","pickaxe"' not in art_generator
+assert "10 source-controlled 64px weapon/tool PNGs preserved" in art_generator
+
+# Inspect actual committed images, not a mock concept poster. Ensure every
+# PNG has a valid zlib stream and CRC, transparency, and distinct per-part art.
+import hashlib
+import zlib
+def validate_rgba_png(path):
+    raw=path.read_bytes()
+    cursor=8
+    compressed=bytearray()
+    while cursor < len(raw):
+        length=unpack(">I",raw[cursor:cursor+4])[0]
+        tag=raw[cursor+4:cursor+8]
+        payload=raw[cursor+8:cursor+8+length]
+        assert zlib.crc32(tag+payload) & 0xffffffff == unpack(">I",raw[cursor+8+length:cursor+12+length])[0], path
+        if tag == b"IDAT":
+            compressed.extend(payload)
+        cursor += 12+length
+        if tag == b"IEND": break
+    pixels=zlib.decompress(compressed)
+    assert len(pixels)==64*(1+64*4), path
+    alpha=[pixels[y*(1+64*4)+1+x*4+3] for y in range(64) for x in range(64)]
+    assert 200 < sum(a!=0 for a in alpha) < 3000, path
+    assert 0 in alpha and 255 in alpha
+    return hashlib.sha256(raw).hexdigest()
+
+all_tool_hashes=set()
+for material in ("brumacero","umbracita"):
+    for part in ("sword","pickaxe","axe","shovel","hoe"):
+        path=assets/"textures/item"/f"{material}_{part}.png"
+        digest=validate_rgba_png(path)
+        assert digest not in all_tool_hashes, "Duplicate tool sprite: "+str(path)
+        all_tool_hashes.add(digest)
+assert len(all_tool_hashes)==10
+
 
 # Do not change the items and resource identity of the approved endgame sets.
 assert 'ITEMS.register("aetherium_sword"' in reg
@@ -190,4 +225,4 @@ for loc in ("en_us", "es_es", "es_cl", "es_mx", "es_ar"):
 icon_generator=Path("tools/generate_custom_armor_art.py").read_text(encoding="utf-8")
 assert "Miniature of the actual wide-brimmed" in icon_generator
 assert "[(9,15),(10,10),(14,8),(22,8),(25,11),(24,16)]" in icon_generator
-print("18 registered crafted items, 18 original sprite textures, four fitted 256x128 worn atlases, five languages and server-light set bonuses validated.")
+print("18 registered crafted items, 10 distinct 64px weapons/tools, eight armor sprites, four fitted 256x128 worn atlases, five languages and server-light set bonuses validated.")

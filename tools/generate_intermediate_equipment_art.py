@@ -251,15 +251,13 @@ def main():
         for piece in ("helmet","chestplate","leggings","boots"):
             armor_icon(piece,pal,name=="umbracita").png(
                 ASSETS/"item"/(name+"_"+piece+".png"))
-        # Sword textures are hand-drawn 64x64 PNGs committed to source;
-        # never overwrite them with the obsolete 32px tool sprite.
-        for piece in ("pickaxe","axe","shovel","hoe"):
-            tool_icon(piece,pal,name=="umbracita").png(
-                ASSETS/"item"/(name+"_"+piece+".png"))
+        # All five weapons/tools now use their original committed 64x64 PNGs.
+        # NEVER overwrite approved swords, picks, axes, shovels or hoes.
+        # The static sprite files are the exact source of the inventory art.
         for layer in (1,2):
             worn_layer(name,pal,layer==2).png(
                 ASSETS/"models"/"armor"/(name+"_layer_"+str(layer)+".png"))
-    print("Generated 16 tool/armor icons (2 source swords preserved) and 4 worn armor atlases (no rendering hooks).")
+    print("Generated 8 armor icons; 10 source-controlled 64px weapon/tool PNGs preserved and 4 worn armor atlases.")
 
 
 if __name__=="__main__":
