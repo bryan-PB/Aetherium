@@ -57,10 +57,10 @@ public final class CitadelCommands {
                 .structureConfig().containsKey(CitadelWorldGen.CITADEL.get());
         boolean overworld = World.OVERWORLD.equals(world.dimension());
         TemplateManager manager = world.getServer().getStructureManager();
-        String[] names = {"gateway","corridor","guardhouse","archive","arena_shell","crypt","forge"};
         int found = 0;
-        for (String name : names) {
-            if (manager.get(new ResourceLocation(AetheriumMod.MOD_ID, "citadel/" + name)) != null) {
+        for (CitadelLayout.RoomSpec room : CitadelLayout.rooms()) {
+            if (manager.get(new ResourceLocation(
+                    AetheriumMod.MOD_ID, "citadel/" + room.template)) != null) {
                 found++;
             }
         }
@@ -70,8 +70,8 @@ public final class CitadelCommands {
                 + " | estructura=" + registered
                 + " | configurada=" + configured
                 + " | espaciado=" + spacing
-                + " | NBT=" + found + "/7"), false);
-        if (!enabled || !overworld || !registered || !configured || !spacing || found != 7) {
+                + " | NBT=" + found + "/" + CitadelLayout.rooms().size()), false);
+        if (!enabled || !overworld || !registered || !configured || !spacing || found != CitadelLayout.rooms().size()) {
             source.sendFailure(new StringTextComponent(
                     "[Kryzorae] Falta algun componente. Copia estas lineas o revisa latest.log."));
             return 0;
@@ -150,7 +150,8 @@ public final class CitadelCommands {
 
         // Manual opt-in, never triggered by worldgen. Spawn the same layout
         // as natural generation, near the operator, in a disposable test world.
-        // Important: this command replaces terrain/builds in a ~60x100 area.
+        // Important: this command replaces terrain/builds in a ~65x200 area.
+        // It is intentionally operator-only and not triggered by chunk ticks.
         BlockPos player = new BlockPos(
                 source.getPosition().x, source.getPosition().y, source.getPosition().z);
         int x = player.getX() - 9;
@@ -164,12 +165,13 @@ public final class CitadelCommands {
         }
         BlockPos base = new BlockPos(x, y, z);
         for (int i = 0; i < CitadelLayout.rooms().size(); i++) {
+            CitadelLayout.RoomSpec room = CitadelLayout.rooms().get(i);
             PlacementSettings placement = new PlacementSettings()
-                    .setRotation(Rotation.NONE)
-                    .setMirror(Mirror.NONE)
+                    .setRotation(room.rotation)
+                    .setMirror(room.mirror)
                     .addProcessor(JigsawReplacementStructureProcessor.INSTANCE)
                     .setIgnoreEntities(true);
-            BlockPos roomOrigin = CitadelLayout.rooms().get(i).position(base);
+            BlockPos roomOrigin = room.position(base);
             if (!templates.get(i).placeInWorld(
                     world, roomOrigin, roomOrigin, placement, world.random, 2)) {
                 source.sendFailure(new StringTextComponent(
@@ -180,9 +182,10 @@ public final class CitadelCommands {
             }
         }
         source.sendSuccess(new StringTextComponent(
-                "[Kryzorae] Ciudadela de prueba de 7 salas construida cerca de X="
+                "[Kryzorae] Ciudadela de prueba de " + CitadelLayout.rooms().size()
+                + " modulos construidos cerca de X="
                 + (x+9) + " Y=" + y + " Z=" + z
                 + ". Este comando modifica el terreno: usalo solo en mundo de pruebas."), true);
-        return 7;
+        return CitadelLayout.rooms().size();
     }
 }
