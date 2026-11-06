@@ -40,7 +40,11 @@ assert recipe["result"]["item"] == "aetherium:guide_book"
 assert {x["item"] for x in recipe["ingredients"]} == {"minecraft:book", "minecraft:lapis_lazuli"}
 
 model = json.loads((assets / "models/item/guide_book.json").read_text(encoding="utf-8"))
-assert model["textures"]["layer0"] == "minecraft:item/written_book"
+assert model["textures"]["layer0"] == "aetherium:item/guide_book"
+icon = (assets / "textures/item/guide_book.png").read_bytes()
+assert icon[:8] == bytes.fromhex("89504e470d0a1a0a")
+assert int.from_bytes(icon[16:20], "big") == 32
+assert int.from_bytes(icon[20:24], "big") == 32
 
 for locale in ("en_us", "es_es", "es_cl", "es_mx", "es_ar"):
     d = json.loads((assets / f"lang/{locale}.json").read_text(encoding="utf-8"))
