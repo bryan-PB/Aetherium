@@ -4,6 +4,8 @@ import com.aetherium.aetherium.AetheriumMod;
 import com.aetherium.aetherium.content.armor.AetheriumArmorMaterial;
 import com.aetherium.aetherium.content.armor.AstralArmorMaterial;
 import com.aetherium.aetherium.content.armor.KryzoraeArmorItem;
+import com.aetherium.aetherium.content.armor.IntermediateArmorMaterial;
+import com.aetherium.aetherium.content.item.IntermediateItemTier;
 import com.aetherium.aetherium.content.item.AetheriumAccessoryItem;
 import com.aetherium.aetherium.content.item.AetheriumItemTier;
 import com.aetherium.aetherium.content.item.AstralItemTier;
@@ -30,7 +32,10 @@ import net.minecraft.potion.Effect;
 import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraft.item.BlockItem;
 import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.item.ArmorItem;
 import net.minecraft.item.SwordItem;
+import net.minecraft.item.ShovelItem;
+import net.minecraft.item.HoeItem;
 import net.minecraft.item.PickaxeItem;
 import net.minecraft.item.AxeItem;
 import net.minecraft.item.Item;
@@ -210,6 +215,64 @@ public final class RegistryHandler {
             () -> new Item(new Item.Properties().tab(ItemGroup.TAB_MATERIALS)));
     public static final RegistryObject<Item> PRISMALITA_SHARD = ITEMS.register("prismalita_shard",
             () -> new Item(new Item.Properties().tab(ItemGroup.TAB_MATERIALS)));
+
+    // BRUMACERO — first two distinct intermediate sets. Uses standard biped armor geometry.
+    public static final RegistryObject<Item> BRUMACERO_SWORD =
+            ITEMS.register("brumacero_sword", () -> new SwordItem(IntermediateItemTier.BRUMACERO, 3, -2.4F,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> BRUMACERO_PICKAXE =
+            ITEMS.register("brumacero_pickaxe", () -> new PickaxeItem(IntermediateItemTier.BRUMACERO, 1, -2.8F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> BRUMACERO_AXE =
+            ITEMS.register("brumacero_axe", () -> new AxeItem(IntermediateItemTier.BRUMACERO, 5.5F, -3.1F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> BRUMACERO_SHOVEL =
+            ITEMS.register("brumacero_shovel", () -> new ShovelItem(IntermediateItemTier.BRUMACERO, 1.5F, -3.0F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> BRUMACERO_HOE =
+            ITEMS.register("brumacero_hoe", () -> new HoeItem(IntermediateItemTier.BRUMACERO, -2, -1.0F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> BRUMACERO_HELMET =
+            ITEMS.register("brumacero_helmet", () -> new ArmorItem(IntermediateArmorMaterial.BRUMACERO,
+                    EquipmentSlotType.HEAD, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> BRUMACERO_CHESTPLATE =
+            ITEMS.register("brumacero_chestplate", () -> new ArmorItem(IntermediateArmorMaterial.BRUMACERO,
+                    EquipmentSlotType.CHEST, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> BRUMACERO_LEGGINGS =
+            ITEMS.register("brumacero_leggings", () -> new ArmorItem(IntermediateArmorMaterial.BRUMACERO,
+                    EquipmentSlotType.LEGS, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> BRUMACERO_BOOTS =
+            ITEMS.register("brumacero_boots", () -> new ArmorItem(IntermediateArmorMaterial.BRUMACERO,
+                    EquipmentSlotType.FEET, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+
+    // UMBRACITA — first two distinct intermediate sets. Uses standard biped armor geometry.
+    public static final RegistryObject<Item> UMBRACITA_SWORD =
+            ITEMS.register("umbracita_sword", () -> new SwordItem(IntermediateItemTier.UMBRACITA, 3, -2.4F,
+                    new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> UMBRACITA_PICKAXE =
+            ITEMS.register("umbracita_pickaxe", () -> new PickaxeItem(IntermediateItemTier.UMBRACITA, 1, -2.8F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> UMBRACITA_AXE =
+            ITEMS.register("umbracita_axe", () -> new AxeItem(IntermediateItemTier.UMBRACITA, 5.5F, -3.1F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> UMBRACITA_SHOVEL =
+            ITEMS.register("umbracita_shovel", () -> new ShovelItem(IntermediateItemTier.UMBRACITA, 1.5F, -3.0F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> UMBRACITA_HOE =
+            ITEMS.register("umbracita_hoe", () -> new HoeItem(IntermediateItemTier.UMBRACITA, -2, -1.0F,
+                    new Item.Properties().tab(ItemGroup.TAB_TOOLS)));
+    public static final RegistryObject<Item> UMBRACITA_HELMET =
+            ITEMS.register("umbracita_helmet", () -> new ArmorItem(IntermediateArmorMaterial.UMBRACITA,
+                    EquipmentSlotType.HEAD, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> UMBRACITA_CHESTPLATE =
+            ITEMS.register("umbracita_chestplate", () -> new ArmorItem(IntermediateArmorMaterial.UMBRACITA,
+                    EquipmentSlotType.CHEST, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> UMBRACITA_LEGGINGS =
+            ITEMS.register("umbracita_leggings", () -> new ArmorItem(IntermediateArmorMaterial.UMBRACITA,
+                    EquipmentSlotType.LEGS, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
+    public static final RegistryObject<Item> UMBRACITA_BOOTS =
+            ITEMS.register("umbracita_boots", () -> new ArmorItem(IntermediateArmorMaterial.UMBRACITA,
+                    EquipmentSlotType.FEET, new Item.Properties().tab(ItemGroup.TAB_COMBAT)));
 
     // Materials
     public static final RegistryObject<Item> RAW_AETHERIUM = ITEMS.register("raw_aetherium",
