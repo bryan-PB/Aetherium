@@ -1,59 +1,26 @@
-# Kryzorae — Ciudadela de la Grieta · Prueba de la corrección de generación
-**Versión de Minecraft:** Java 1.16.5, Forge 36.2.42. **Mod ID:** `aetherium`.
+# Kryzorae — Ciudadela de la Grieta · Megaestructura modular de 17 salas
 
-## Qué se corrigió
-La versión anterior tenía dos problemas que podían hacer que no apareciera la Ciudadela:
+**Minecraft Java 1.16.5 / Forge 36.2.42.** Mod ID: `aetherium`. Consulta la [guía técnica completa](MEGAESTRUCTURA_FORGE_1_16_5.md) para el árbol de archivos, reglas de ensamblaje, NBT, spawners y tablas de botín.
 
-- Rechazaba alturas menores de Y=65, habituales en llanuras y bosques. Ahora acepta terreno firme entre Y=60 y 126.
-- Admitía solo cuatro categorías de bioma y descartaba lugares comunes como sabanas y desiertos. Ahora acepta muchos biomas terrestres y excluye océanos, ríos, playas, pantanos y otras dimensiones.
+## Encontrarla en el mundo
 
-Además, la Ciudadela ya **no depende de un ensamblaje jigsaw aleatorio**. Las siete salas se distribuyen en posiciones fijas y comprobadas, usando piezas NBT auténticas de Minecraft; las conexiones se alinean y no hay salas solapadas. Conservamos los mismos recursos V3 y las tres tablas de botín.
+1. Sustituye el JAR antiguo: debe haber **un solo Kryzorae** en la carpeta `mods`.
+2. Crea un mundo NUEVO normal (no superplano), Overworld, comandos habilitados. Los chunks antiguos no se regeneran.
+3. Ejecuta `/kryzorae citadel status`: los recursos deben mostrar **NBT=17/17**.
+4. Ejecuta `/kryzorae citadel probe` sobre suelo firme. El comando es de solo lectura y muestra bioma, terreno y registro.
+5. Ejecuta `/locate aetherium:citadel`, visita las coordenadas y revisa también los niveles enterrados.
 
-## Cómo probar su aparición natural
-1. Elimina el JAR antiguo de la carpeta `mods` y deja **solo uno de Kryzorae**.
-2. Para probar generación, crea un **mundo normal NUEVO del Overworld**, con comandos activos. No uses un mundo superplano.
-3. Escribe `/locate aetherium:citadel`. Si el juego devuelve coordenadas, usa `/tp @s X 95 Z` y busca la ciudadela también por debajo de tu altura, cerca del lugar indicado.
-4. La distribución debe incluir portón, corredor, cuartel, archivo y arena, más cripta y forja laterales. Comprueba las puertas y abre los cofres.
+El plano ocupa aproximadamente 56 bloques en X por 174 en Z, con 17 módulos: portón, corredor, cuartel, patio, archivo, arena, umbral, santuario, cripta, forja, dos torres, barracones, prisión, galería y dos cámaras subterráneas. Contiene 19 cofres, tres spawners vanilla limitados y peligros visibles. Los bosses nuevos aún no están implementados.
 
-**Importante:** los chunks ya generados en partidas antiguas no se regeneran; `/locate` encuentra la estructura como candidato de generación, pero no remodela terreno viejo. En un mundo nuevo la prueba es mucho más fiable.
+## Vista previa SOLO en mundo descartable
 
-## Si no aparece todavía: diagnóstico real
-Con permisos de operador (trucos activados), escribe:
+`/kryzorae citadel preview` coloca todas las piezas de una vez usando el mismo plano y rotaciones que la generación natural. **Destruye/sobrescribe un área aproximada de 65×200 bloques, incluidos niveles bajo tierra**, y puede causar una pausa puntual; jamás usarlo en tu mundo principal ni cerca de construcciones. La vista previa no comprueba los soportes de terreno como la generación por chunks.
 
-\`/kryzorae citadel status\`
+## Diagnóstico si algo falla
 
-Obtendrás información de: habilitación, dimensión, registro, estructura configurada, espaciado y **7/7 NBT**. Comparte una captura del mensaje si alguno aparece en \`false\`.
+- `status`: verificar activo, Overworld, estructura configurada, espaciado y NBT 17/17.
+- `probe`: verificar el bioma y la altura donde estás (no garantiza que sea un chunk candidato).
+- `locate`: candidato según las reglas nativas y el mapa mundial.
+- Si una sala no se coloca en `preview`, el comando señala su ID y puede dejar terreno parcialmente cambiado.
 
-**Prueba adicional (sin modificar bloques ni generar chunks):**
-
-\`/kryzorae citadel probe\`
-
-Este comando examina la columna **donde estás parado** y muestra la altura calculada por el generador, el bloque del suelo, si el bioma realmente incluye \`aetherium:citadel\` en sus estructuras y si la columna acepta los filtros de altura y líquidos. Usa la misma función de elegibilidad del terreno que la generación real. Una lectura \`bioma admite ciudadela=false\` en un bosque o llanura nueva apunta a un fallo de inyección del bioma; \`terreno apto=false\` indica altura o superficie no válida. En una playa, río o pantano es normal que la primera condición sea falsa.
-
-**Importante:** que un bioma y terreno sean válidos no significa que el chunk actual sea el candidato de la cuadrícula ni prueba que la estructura se haya colocado; para eso sigue siendo necesario \`/locate aetherium:citadel\` en un mundo nuevo y visitar las coordenadas. El comando \`probe\` no escanea regiones, no fuerza chunks ni garantiza una ubicación.
-
-Para comprobar que los edificios realmente se pueden colocar, en un **mundo vacío de pruebas**, puedes escribir:
-
-`/kryzorae citadel preview`
-
-Este comando genera **una vez** las siete salas cerca del jugador, usando exactamente los archivos NBT del JAR. **SOBRESCRIBE un área aproximada de 50×95 bloques**: úsalo solamente en un mundo creativo descartable. La vista previa es una herramienta de diagnóstico; **no sustituye** a la generación natural.
-
-
-## Revisión de coherencia entre vista previa y generación natural
-
-Las siete posiciones de salas se definen ahora en `CitadelLayout.java`. Tanto la estructura nativa como `/kryzorae citadel preview` utilizan exactamente el mismo orden y desplazamientos. No se ha cambiado el plano, la frecuencia, los minerales, los jefes ni los botines.
-
-Se corrigió también un desfase de **un bloque en altura** exclusivo de la vista previa: `WORLD_SURFACE` ya devuelve la primera posición libre encima del suelo, por lo que no hay que sumar otra unidad. Si una sala de la vista previa no puede colocarse, el comando ahora informa qué sala falló; **el terreno de prueba puede quedar parcialmente modificado** y por eso debe usarse únicamente en un mundo descartable.
-
-Las pruebas automatizadas validan la igualdad del plano, la continuidad de las siete salas, sus límites sin solapamientos y los NBT reales incluidos en el JAR. La colocación natural y el aspecto visual todavía requieren una comprobación en Minecraft.
-
-## Configuración
-- Archivo: `config/aetherium-common.toml`
-- `citadelEnabled = true`
-- `citadelSpacingChunks = 26` (distancia media por cuadrícula, en chunks)
-- `citadelMinSeparationChunks = 10`
-
-## Calidad y rendimiento
-Generación limitada por el sistema nativo de estructuras y exclusivamente en nuevos chunks; ninguna entidad nueva, efectos visuales permanentes, bloque con tick personalizado ni búsqueda cada tick. Los comandos de diagnóstico solo se ejecutan cuando el jugador los invoca.
-
-**Estado:** pruebas de compilación y arranque de registros automatizadas; generación visual real del cliente Minecraft requiere verificación en juego.
+Config por defecto: `config/aetherium-common.toml` (`citadelEnabled=true`, `citadelSpacingChunks=26`, `citadelMinSeparationChunks=10`). La estructura admite zonas terrestres variadas y pantanos secos; no océanos, ríos, playas, Nether o End. La generación de la megaestructura **todavía requiere prueba en juego** y no debe calificarse de versión final únicamente por pasar la CI.
