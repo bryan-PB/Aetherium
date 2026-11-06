@@ -40,3 +40,7 @@ Antes de entregar cada compilación:
 - Mantener cambios de diseño separados de cambios de mecánicas. Una vista previa no demuestra que el modelo se vea igual en primera/tercera persona.
 
 *Estado:* revisadas las dos hachas y la colección de materiales; recursos naturales V3 preservados. Las demás familias se mantienen hasta que una revisión visual justifique reemplazarlas.
+
+## Reproducibilidad de compilación
+
+Las 22 texturas V3 de objetos y bloques que antes se superponían manualmente al JAR ahora se guardan como PNG reales en el repositorio; las 2 hachas nuevas están allí también. El control `tools/check_approved_visual_assets.py` compara firmas, tamaños y hashes **tanto en los recursos como dentro del JAR generado por GitHub Actions**. Así, una compilación que cambie inadvertidamente diseños aprobados falla antes de distribuirse. No hay dependencia adicional ni lógica de ejecución añadida.

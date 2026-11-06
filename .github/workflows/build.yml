@@ -181,6 +181,7 @@ jobs:
           python3 tools/check_crimson_combo_resistance.py
           python3 tools/check_boss_stability.py
           python3 tools/check_first_minerals.py
+          python3 tools/check_approved_visual_assets.py
           python3 tools/check_intermediate_equipment.py
           python3 tools/check_guide_book.py
           python3 - <<'PY'
