@@ -138,18 +138,32 @@ def hood_icon(which):
     purple=p["plate"][1]; light=p["light"][0]
     fold=p["fabric"][1]; orange=p["accent"][0]; ochre=p["gold"][1]
     if which=="helmet":
-        a.polygon([(3,10),(7,4),(13,2),(21,3),(27,8),(30,15),
-                   (28,24),(23,29),(8,29),(4,24)],black)
-        a.polygon([(5,11),(8,5),(14,4),(21,5),(25,9),(28,14),
-                   (27,21),(22,26),(9,26),(6,22)],purple)
-        a.polygon([(7,11),(10,5),(18,4),(25,10),(23,12),(11,12)],light)
-        a.polygon([(6,13),(11,11),(23,11),(26,14),(24,23),
-                   (20,26),(11,26),(8,22)],dark)
-        a.rect(11,16,22,21,black)
-        a.rect(12,17,15,18,orange);a.rect(19,17,22,18,orange)
-        a.rect(8,23,24,26,purple);a.rect(11,24,21,26,fold)
-        a.rect(6,21,9,25,ochre);a.rect(25,21,28,25,ochre)
-        a.line(8,9,21,9,light,1)
+        # Miniature of the actual wide-brimmed wizard/traveller hat:
+        # separate low black scarf and very wide, low brim, with an
+        # asymmetric tapered crown and orange buckle, not a hood icon.
+        a.polygon([(10,16),(22,16),(25,24),(23,29),(8,29),(6,24)],black)
+        a.polygon([(9,20),(23,20),(22,27),(10,27)],dark)
+        a.rect(9,23,23,26,fold)
+        a.rect(11,21,14,22,orange)
+        a.rect(19,21,22,22,orange)
+        a.line(9,27,23,27,light,1)
+
+        # Dark high crown, distinct top and diagonal folds.
+        a.polygon([(9,15),(10,7),(14,3),(22,4),(25,8),(24,16)],black)
+        a.polygon([(10,14),(12,7),(16,5),(22,6),(24,10),(23,16)],purple)
+        a.polygon([(12,9),(15,5),(21,6),(22,8),(19,9)],light)
+        a.polygon([(21,6),(24,9),(23,15),(21,13)],fold)
+        a.line(12,13,23,13,ochre,2)
+        a.rect(17,12,19,15,orange)
+
+        # Broad, thin brim with low outer wings and violet piping.
+        a.polygon([(1,17),(7,14),(24,14),(31,17),(30,20),
+                   (25,21),(6,21),(2,20)],black)
+        a.polygon([(2,17),(8,15),(24,15),(30,17),(27,18),
+                   (5,18)],purple)
+        a.line(3,18,29,18,light,1)
+        a.line(7,20,25,20,fold,1)
+        a.put(16,14,orange)
     elif which=="chestplate":
         a.polygon([(3,7),(12,6),(16,9),(20,6),(29,7),(30,16),
                    (26,19),(26,29),(6,29),(6,19),(2,16)],black)
