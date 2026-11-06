@@ -6,6 +6,9 @@ import net.minecraftforge.common.ForgeConfigSpec;
 public final class AetheriumConfig {
     public static final ForgeConfigSpec COMMON_SPEC;
 
+    public static final ForgeConfigSpec.BooleanValue CITADEL_ENABLED;
+    public static final ForgeConfigSpec.IntValue CITADEL_SPACING;
+    public static final ForgeConfigSpec.IntValue CITADEL_SEPARATION;
     public static final ForgeConfigSpec.IntValue ORE_VEIN_SIZE;
     public static final ForgeConfigSpec.IntValue ORE_VEINS_PER_CHUNK;
     public static final ForgeConfigSpec.IntValue ORE_MIN_Y;
@@ -99,6 +102,15 @@ public final class AetheriumConfig {
                 .comment("PRISMALITA maximum spawn height (1.16.5 Overworld).")
                 .defineInRange("prismalitaMaxY", 42, 1, 255);
 
+        CITADEL_ENABLED = builder
+                .comment("Natural Citadel in newly generated Overworld chunks only; no chunk tick scanning.")
+                .define("citadelEnabled", true);
+        CITADEL_SPACING = builder
+                .comment("Average grid spacing in chunks (not blocks): smaller values mean more Citadels.")
+                .defineInRange("citadelSpacingChunks", 26, 16, 128);
+        CITADEL_SEPARATION = builder
+                .comment("Minimum separation between Citadel candidates in chunks; always clamped below spacing.")
+                .defineInRange("citadelMinSeparationChunks", 10, 4, 16);
         builder.pop();
 
         builder.comment("Creature spawn settings. Set a weight to 0 to disable natural spawning.").push("spawning");
