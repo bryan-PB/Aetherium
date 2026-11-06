@@ -172,6 +172,7 @@ jobs:
           cd "$AETHERIUM_PROJECT_DIR"
           gradle --version
           python3 tools/generate_intermediate_equipment_art.py
+          python3 tools/generate_custom_armor_art.py
           gradle build --no-daemon
           python3 tools/check_armor_arm_coverage.py
           python3 tools/check_sword_combat.py
