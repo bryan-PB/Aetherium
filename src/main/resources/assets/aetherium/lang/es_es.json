@@ -145,5 +145,21 @@
   "guide.aetherium.chapter.5": "Guardián de Grieta",
   "guide.aetherium.chapter.6": "Verdugo Alado",
   "guide.aetherium.chapter.7": "Artefactos",
-  "guide.aetherium.chapter.8": "Futuro de Kryzorae"
+  "guide.aetherium.chapter.8": "Futuro de Kryzorae",
+  "block.aetherium.brumacero_ore": "Mineral de Brumacero",
+  "block.aetherium.umbracita_ore": "Mineral de Umbracita",
+  "block.aetherium.prismalita_ore": "Mineral de Prismalita",
+  "item.aetherium.raw_brumacero": "Brumacero en bruto",
+  "item.aetherium.brumacero_ingot": "Lingote de Brumacero",
+  "item.aetherium.raw_umbracita": "Umbracita en bruto",
+  "item.aetherium.umbracita_ingot": "Lingote de Umbracita",
+  "item.aetherium.prismalita_shard": "Fragmento de Prismalita",
+  "tooltip.aetherium.item.brumacero_ore": "Y=20–64. Requiere un pico de piedra o superior.",
+  "tooltip.aetherium.item.umbracita_ore": "Y=8–36. Requiere un pico de hierro o superior.",
+  "tooltip.aetherium.item.prismalita_ore": "Y=12–42. Requiere un pico de hierro o superior.",
+  "tooltip.aetherium.item.raw_brumacero": "Se puede fundir para obtener lingotes.",
+  "tooltip.aetherium.item.brumacero_ingot": "Metal temprano. Su equipo llegará en la próxima expansión.",
+  "tooltip.aetherium.item.raw_umbracita": "Se puede fundir para obtener lingotes.",
+  "tooltip.aetherium.item.umbracita_ingot": "Metal profundo. Su equipo llegará en la próxima expansión.",
+  "tooltip.aetherium.item.prismalita_shard": "Cristal para futuros catalizadores y accesorios."
 }

@@ -145,5 +145,21 @@
   "guide.aetherium.chapter.5": "Rift Guardian",
   "guide.aetherium.chapter.6": "Winged Executioner",
   "guide.aetherium.chapter.7": "Artifacts",
-  "guide.aetherium.chapter.8": "Coming next"
+  "guide.aetherium.chapter.8": "Coming next",
+  "block.aetherium.brumacero_ore": "Brumacero Ore",
+  "block.aetherium.umbracita_ore": "Umbracita Ore",
+  "block.aetherium.prismalita_ore": "Prismalita Ore",
+  "item.aetherium.raw_brumacero": "Raw Brumacero",
+  "item.aetherium.brumacero_ingot": "Brumacero Ingot",
+  "item.aetherium.raw_umbracita": "Raw Umbracita",
+  "item.aetherium.umbracita_ingot": "Umbracita Ingot",
+  "item.aetherium.prismalita_shard": "Prismalita Shard",
+  "tooltip.aetherium.item.brumacero_ore": "Y=20–64. Requires a stone pickaxe or better.",
+  "tooltip.aetherium.item.umbracita_ore": "Y=8–36. Requires an iron pickaxe or better.",
+  "tooltip.aetherium.item.prismalita_ore": "Y=12–42. Requires an iron pickaxe or better.",
+  "tooltip.aetherium.item.raw_brumacero": "Smelt into a refined metal ingot.",
+  "tooltip.aetherium.item.brumacero_ingot": "Early metal. Its equipment is coming in the next expansion.",
+  "tooltip.aetherium.item.raw_umbracita": "Smelt into a refined metal ingot.",
+  "tooltip.aetherium.item.umbracita_ingot": "Deep metal. Its equipment is coming in the next expansion.",
+  "tooltip.aetherium.item.prismalita_shard": "Crystal for future catalysts and accessories."
 }

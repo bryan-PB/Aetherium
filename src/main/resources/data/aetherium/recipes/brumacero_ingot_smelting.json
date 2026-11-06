@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": {
+    "item": "aetherium:raw_brumacero"
+  },
+  "result": "aetherium:brumacero_ingot",
+  "experience": 0.45,
+  "cookingtime": 200
+}
