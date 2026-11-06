@@ -11,6 +11,9 @@
 
 - Los dos conjuntos tienen 4 piezas de armadura y espada, pico, hacha, pala y azada.
 - **Brumacero** conserva el casco cerrado blanco, dorado y rojo; **Umbracita** sustituye la antigua capucha por un **sombrero de ala ancha**, copa escalonada, cinta violeta con broche anaranjado, rostro abierto a la altura de los ojos y bufanda que cubre la boca. El ID del ítem sigue siendo `aetherium:umbracita_helmet` para mantener compatibilidad de partidas.
+- **Umbracita — v5 de vestimenta:** el peto ya no parece coraza pesada. Ahora tiene túnica/abrigo violeta oscuro abierto, solapas y ribetes lavanda, camisa interior oscura, correa de cuero diagonal, hebillas, insignia ámbar, funda utilitaria y faldones delanteros separados y traseros. Los pantalones pasan a ser piezas de tela estrechas con pliegues y una correa en un solo muslo. Las botas son de aventurero con puños, hebilla, puntera reforzada y tacón. También cambiaron los iconos de inventario de las tres piezas y los atlas 256×128.
+- Las telas del abrigo no tienen simulación física: las extensiones se fijan a los pivotes del personaje para evitar entidades, capas de render adicionales o trabajo constante. Es una aproximación pixel-art deliberadamente compacta, no el dibujo de referencia convertido automáticamente en modelo.
+
 - Todas las piezas se fabrican con los lingotes de su mineral y palos (cuando corresponda). Los patrones siguen Minecraft vanilla; el peto consume **8 lingotes**, nunca 9.
 - Cada conjunto completo de armadura requiere **24 lingotes**. Juego completo de todas las herramientas: **11 lingotes** adicionales.
 - Cada mineral está disponible en el Overworld, sin añadir contenido en The End ni nuevos minerales.
@@ -23,7 +26,7 @@
 ## Verificaciones manuales sugeridas
 
 1. Sustituir JAR anterior por la nueva versión (solo un JAR de Kryzorae).
-2. En creativo, buscar las 18 piezas y comprobar iconos y los dos conjuntos **puestos en un personaje**. Para Umbracita, comprobar sobre todo la **anchura del ala del sombrero**, el ángulo de la copa, el rostro visible y la bufanda frontal desde F5, tanto de frente como de lado y de espaldas.
+2. En creativo, buscar las 18 piezas y comprobar iconos y ambos conjuntos **puestos en un personaje**. Para Umbracita comprobar con F5: sombrero, abrigo con correa diagonal y faldones, pantalón más ceñido, botas con puños y punteras. Mirar por detrás y de lado, caminando, corriendo, saltando y agachándose; señalar si los faldones atraviesan demasiado las piernas.
 3. En supervivencia, obtener lingotes de Brumacero/Umbracita y comprobar las 18 recetas en mesa y JEI.
 4. Equipo incompleto: no debe conceder bonificación de conjunto; equipo completo sí.
 5. Brumacero: comprobar con golpes de zombie (daño reducido cerca de 10%, antes de otras reducciones).
