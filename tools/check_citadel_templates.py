@@ -238,7 +238,9 @@ def validate_room(room, read):
     details=sum(v in ("minecraft:polished_blackstone_brick_slab",
                       "minecraft:polished_blackstone_brick_stairs",
                       "minecraft:bookshelf","minecraft:iron_bars",
-                      "minecraft:polished_basalt") for v in coords.values())
+                      "minecraft:polished_basalt",
+                      "minecraft:sea_lantern",
+                      "minecraft:ladder") for v in coords.values())
     assert details>=8, (room["id"], "insufficient architecture",details)
     if room["id"] in ("crypt","archive"):
         assert coords[(4,0,4)]=="minecraft:ladder", (
