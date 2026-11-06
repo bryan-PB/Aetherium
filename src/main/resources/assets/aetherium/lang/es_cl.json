@@ -128,13 +128,13 @@
   "item.aetherium.guide_book": "Códice de Kryzorae",
   "tooltip.aetherium.guide_book": "Clic derecho: abre la guía de Kryzorae.",
   "guide.aetherium.page.1": "§5CÓDICE DE KRYZORAE§r\n\nGuía de exploración, equipo y jefes.\n\nEsta edición describe el contenido disponible. Las futuras expansiones traerán nuevos capítulos.",
-  "guide.aetherium.page.2": "§5PRIMEROS MINERALES§r\n\nBrumacero: Y20–64, pico de piedra.\nUmbracita: Y8–36, pico de hierro.\nPrismalita: Y12–42, pico de hierro.\n\nFunde el metal bruto. Prismalita deja fragmentos.\nLas nuevas armaduras llegarán en otra fase.",
+  "guide.aetherium.page.2": "§5PRIMEROS MINERALES§r\n\nBrumacero: Y20–64, pico de piedra.\nUmbracita: Y8–36, pico de hierro.\nPrismalita: Y12–42, pico de hierro.\n\nFunde los metales en bruto para fabricar armaduras, armas y herramientas. Prismalita deja fragmentos.",
   "guide.aetherium.page.3": "§5ESPADA VIOLETA§r\n\nAl blandirla dispara un corte de energía que avanza unos 5 bloques.\n\nCada onda tiene una espera de 0,45 s. Se detiene en bloques sólidos.",
   "guide.aetherium.page.4": "§4ESPADA CARMESÍ§r\n\nLos golpes aplican Sangrado. Hasta 3 cargas infligen 2, 4 o 6 puntos de salud por segundo.\n\nContra jefes, las cargas no pueden acumularse sin límite.",
   "guide.aetherium.page.5": "§5GUARDIÁN DE LA GRIETA§r\n\nEl Sigilo del Guardián lo invoca al usarlo en un bloque sólido.\n\nEsquiva sus embestidas y ondas. Su Núcleo de Grieta permite crear el siguiente sello.",
   "guide.aetherium.page.6": "§4VERDUGO ALADO§r\n\nEl Sello Astral requiere materiales del Guardián.\n\nEl Verdugo combate con embestidas, plumas y espejismos. Su botín permite crear equipo astral.",
   "guide.aetherium.page.7": "§5ARTEFACTOS§r\n\nEl imán atrae objetos cuando está activado.\n\nLa bengala revela enemigos cercanos y da visión nocturna. Algunos accesorios admiten Curios opcionalmente.",
-  "guide.aetherium.page.8": "§5FUTURAS EXPANSIONES§r\n\nEste libro crecerá con nuevos minerales, forjas, armaduras y criaturas cuando existan en el juego.\n\nConsulta las recetas en Minecraft o JEI si lo tienes.",
+  "guide.aetherium.page.8": "§5EQUIPAMIENTO INICIAL§r\n\nBrumacero: protección robusta y herramientas fiables. Conjunto completo: -10 % de daño de monstruos.\n\nUmbracita: equipo más ligero. Conjunto completo: +10 % de velocidad y +5 % de impulso de salto.\n\nAmbos se fabrican con sus lingotes.",
   "guide.aetherium.ui.codex": "ARCHIVOS DE LA GRIETA",
   "guide.aetherium.ui.chapter": "CAPÍTULO",
   "guide.aetherium.ui.hint": "FLECHAS: NAVEGAR",
@@ -145,7 +145,7 @@
   "guide.aetherium.chapter.5": "Guardián de Grieta",
   "guide.aetherium.chapter.6": "Verdugo Alado",
   "guide.aetherium.chapter.7": "Artefactos",
-  "guide.aetherium.chapter.8": "Futuro de Kryzorae",
+  "guide.aetherium.chapter.8": "Equipamiento inicial",
   "block.aetherium.brumacero_ore": "Mineral de Brumacero",
   "block.aetherium.umbracita_ore": "Mineral de Umbracita",
   "block.aetherium.prismalita_ore": "Mineral de Prismalita",
@@ -181,5 +181,7 @@
   "item.aetherium.umbracita_leggings": "Grebas de Umbracita",
   "item.aetherium.umbracita_boots": "Botas de Umbracita",
   "tooltip.aetherium.brumacero_set": "Conjunto completo: reduce un 10 % el daño recibido de criaturas hostiles.",
-  "tooltip.aetherium.umbracita_set": "Conjunto completo: +10 % de velocidad de movimiento y +5 % de impulso al saltar."
+  "tooltip.aetherium.umbracita_set": "Conjunto completo: +10 % de velocidad de movimiento y +5 % de impulso al saltar.",
+  "tooltip.aetherium.brumacero_tool": "Equipo inicial de metal resistente. Se repara con lingotes de Brumacero.",
+  "tooltip.aetherium.umbracita_tool": "Equipo ligero de exploración. Se repara con lingotes de Umbracita."
 }

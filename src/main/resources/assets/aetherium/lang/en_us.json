@@ -128,13 +128,13 @@
   "item.aetherium.guide_book": "Kryzorae Codex",
   "tooltip.aetherium.guide_book": "Right-click to open the Kryzorae guide.",
   "guide.aetherium.page.1": "§5KRYZORAE CODEX§r\n\nA guide to exploration, equipment and bosses.\n\nThis edition describes content already available. Future expansions will add more chapters.",
-  "guide.aetherium.page.2": "§5FIRST ORES§r\n\nBrumacero: Y20–64, stone pickaxe.\nUmbracita: Y8–36, iron pickaxe.\nPrismalita: Y12–42, iron pickaxe.\n\nSmelt raw metals. Prismalita drops shards.\nNew armor will arrive in a later phase.",
+  "guide.aetherium.page.2": "§5FIRST ORES§r\n\nBrumacero: Y20–64, stone pickaxe.\nUmbracita: Y8–36, iron pickaxe.\nPrismalita: Y12–42, iron pickaxe.\n\nSmelt raw metals to craft armor, weapons and tools. Prismalita drops shards.",
   "guide.aetherium.page.3": "§5VIOLET SWORD§r\n\nSwing to release an energy slash travelling about 5 blocks.\n\nSlashes have a 0.45 s cooldown and stop when they reach solid blocks.",
   "guide.aetherium.page.4": "§4CRIMSON SWORD§r\n\nSuccessful hits apply Bleeding. Up to 3 stacks deal 2, 4 or 6 health points per second.\n\nBleeding stacks are rate-limited against bosses.",
   "guide.aetherium.page.5": "§5RIFT GUARDIAN§r\n\nUse the Guardian Sigil on a solid block to summon the boss.\n\nDodge its charges and shockwaves. Its Rift Core helps craft the next summon.",
   "guide.aetherium.page.6": "§4WINGED EXECUTIONER§r\n\nThe Astral Seal needs materials from the Guardian.\n\nThe Executioner uses charges, iron feathers and mirages. Its drops help forge astral gear.",
   "guide.aetherium.page.7": "§5USEFUL TOOLS§r\n\nThe magnet pulls nearby items when enabled.\n\nThe flare highlights nearby enemies and grants night vision. Some accessories support optional Curios.",
-  "guide.aetherium.page.8": "§5FUTURE EXPANSIONS§r\n\nThis book will grow as new ores, forges, armor and creatures are added to the game.\n\nCheck recipes in Minecraft or JEI if installed.",
+  "guide.aetherium.page.8": "§5EARLY EQUIPMENT§r\n\nBrumacero: sturdy armor and reliable tools. A full set reduces damage from hostile mobs by 10%.\n\nUmbracita: lighter armor and tools. A full set gives +10% movement speed and +5% jump impulse.\n\nBoth can be crafted with their matching ingots.",
   "guide.aetherium.ui.codex": "RIFT ARCHIVES",
   "guide.aetherium.ui.chapter": "CHAPTER",
   "guide.aetherium.ui.hint": "ARROWS: NAVIGATE",
@@ -145,7 +145,7 @@
   "guide.aetherium.chapter.5": "Rift Guardian",
   "guide.aetherium.chapter.6": "Winged Executioner",
   "guide.aetherium.chapter.7": "Artifacts",
-  "guide.aetherium.chapter.8": "Coming next",
+  "guide.aetherium.chapter.8": "Early equipment",
   "block.aetherium.brumacero_ore": "Brumacero Ore",
   "block.aetherium.umbracita_ore": "Umbracita Ore",
   "block.aetherium.prismalita_ore": "Prismalita Ore",
@@ -181,5 +181,7 @@
   "item.aetherium.umbracita_leggings": "Leggings of Umbracita",
   "item.aetherium.umbracita_boots": "Boots of Umbracita",
   "tooltip.aetherium.brumacero_set": "Full set: reduces damage from hostile monsters by 10%.",
-  "tooltip.aetherium.umbracita_set": "Full set: +10% movement speed and +5% jump impulse."
+  "tooltip.aetherium.umbracita_set": "Full set: +10% movement speed and +5% jump impulse.",
+  "tooltip.aetherium.brumacero_tool": "Reliable early-game metal equipment. Repair with Brumacero ingots.",
+  "tooltip.aetherium.umbracita_tool": "Lightweight exploration equipment. Repair with Umbracita ingots."
 }
