@@ -107,9 +107,10 @@ def room_blocks(room):
                     material = "minecraft:air"
                 put(x,y,z,material)
 
-    # Two 3x4 connected entrances, independent of the surrounding wall type.
+    # Open only declared 3x4 exits; no doorway leading into a hillside.
     center = w//2
-    for z in (0,d-1):
+    for z in [side for direction,side in (("north",0),("south",d-1))
+              if direction in room.get("doors", {})]:
         for x in range(center-1,center+2):
             for y in range(1,5):
                 put(x,y,z,"minecraft:air")
@@ -216,66 +217,44 @@ def room_blocks(room):
                 put(x,2,z,"minecraft:crying_obsidian")
         # Arena is empty on purpose. No boss or spawner is installed yet.
 
-    # Branch rooms and the final arena have sealed north/south dead ends,
-    # so players never find a doorway into an unloaded cliff or wall.
-    if room["id"] in ("crypt", "forge"):
-        for z in (0,d-1):
-            for x in range(center-1,center+2):
-                for y in range(1,5):
-                    put(x,y,z,"minecraft:stone_bricks")
-    if room["id"] == "arena_shell":
-        for x in range(center-1,center+2):
-            for y in range(1,5):
-                put(x,y,d-1,"minecraft:polished_blackstone_bricks")
-
-    # Optional wings attach to the eastern corridor and western guardhouse.
-    if room["id"] in ("corridor","guardhouse","crypt","forge"):
-        if room["id"]=="corridor":
-            side_x, side_orientation, pool, mode = w-1, "east_up", "crypt", "out"
-        elif room["id"]=="guardhouse":
-            side_x, side_orientation, pool, mode = 0, "west_up", "forge", "out"
-        elif room["id"]=="crypt":
-            side_x, side_orientation, pool, mode = 0, "west_up", "empty", "in"
+    # The connector metadata is preserved in the NBT for future real jigsaw
+    # expansion, but the current Forge 1.16.5 structure uses a deterministic
+    # prechecked layout rather than allowing jigsaw to overlap neighbor chunks.
+    for direction, target in room.get("doors", {}).items():
+        outgoing = direction in ("south", "east")
+        info = {
+            "id": "minecraft:jigsaw",
+            "name": "aetherium:citadel/" + ("exit" if outgoing else "entry"),
+            "target": "aetherium:citadel/" + ("entry" if outgoing else "exit"),
+            "pool": "aetherium:citadel/" + target if outgoing else "minecraft:empty",
+            "final_state": "minecraft:air",
+            "joint": "aligned",
+        }
+        if direction in ("north","south"):
+            z = 0 if direction=="north" else d-1
+            put(center,2,z,"minecraft:jigsaw",{"orientation":direction+"_up"},info)
         else:
-            side_x, side_orientation, pool, mode = w-1, "east_up", "empty", "in"
-        for z in range(d//2-1,d//2+2):
-            for y in range(1,5):
-                put(side_x,y,z,"minecraft:air")
-        for z in range(d//2-2,d//2+3):
-            put(side_x,5,z,"minecraft:chiseled_stone_bricks")
-        put(side_x,2,d//2,"minecraft:jigsaw",
-            {"orientation":side_orientation},
-            {"id":"minecraft:jigsaw",
-             "name":"aetherium:citadel/"+("exit" if mode=="out" else "entry"),
-             "target":"aetherium:citadel/"+("entry" if mode=="out" else "exit"),
-             "pool":"aetherium:citadel/"+pool if mode=="out" else "minecraft:empty",
-             "final_state":"minecraft:air",
-             "joint":"aligned"})
+            x = 0 if direction=="west" else w-1
+            for z in range(d//2-1,d//2+2):
+                for y in range(1,5):
+                    put(x,y,z,"minecraft:air")
+            for z in range(d//2-2,d//2+3):
+                put(x,5,z,"minecraft:chiseled_stone_bricks")
+            put(x,2,d//2,"minecraft:jigsaw",
+                {"orientation":direction+"_up"},info)
 
-    # Jigsaw blocks only exist as connectors during world generation;
-    # the vanilla jigsaw processor replaces both with final_state AIR.
-    links = ["corridor", "guardhouse", "archive", "arena_shell", None]
-    ordering = ["gateway", "corridor", "guardhouse", "archive", "arena_shell"]
-    index = ordering.index(room["id"]) if room["id"] in ordering else -1
-    if index > 0:
-        put(center,2,0,"minecraft:jigsaw",
-            {"orientation":"north_up"},
-            {"id":"minecraft:jigsaw",
-             "name":"aetherium:citadel/entry",
-             "target":"aetherium:citadel/exit",
-             "pool":"minecraft:empty",
-             "final_state":"minecraft:air",
-             "joint":"aligned"})
-    if index >= 0 and links[index]:
-        target_pool = "arena" if links[index] == "arena_shell" else links[index]
-        put(center,2,d-1,"minecraft:jigsaw",
-            {"orientation":"south_up"},
-            {"id":"minecraft:jigsaw",
-             "name":"aetherium:citadel/exit",
-             "target":"aetherium:citadel/entry",
-             "pool":"aetherium:citadel/"+target_pool,
-             "final_state":"minecraft:air",
-             "joint":"aligned"})
+    # Two interior stairwells share X/Z footprints with their upper room.
+    # Removing a single floor and roof cell creates a genuine vertical access
+    # without ever making a solid-volume NBT overlap another NBT.
+    if room["id"] in ("crypt","archive"):
+        put(4,0,4,"minecraft:air")
+        for y in range(1,min(h-2,7)):
+            put(4,y,4,"minecraft:ladder",{"facing":"north","waterlogged":"false"})
+            put(4,y,3,"minecraft:stone_bricks")
+    if room["id"] in ("catacombs","archive_vault"):
+        for y in range(1,h):
+            put(4,y,3,"minecraft:stone_bricks")
+            put(4,y,4,"minecraft:ladder",{"facing":"north","waterlogged":"false"})
 
     chest_specs = []
     if room["chest"]:
