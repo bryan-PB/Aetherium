@@ -144,11 +144,23 @@ def validate_room(room, read):
     expected.extend((entry["pos"],entry["loot"])
                     for entry in room.get("extraChests",[]))
     assert sorted(chests)==sorted(expected),(room["id"],chests,expected)
+    # Tower stair ladders occupy the entire (3, y, 3) vertical run.
+    # A chest at that position previously cut the climb in half.
+    if room["kind"]=="tower":
+        assert all(x!=3 or z!=3 for (x,y,z),_ in chests), (
+            room["id"], "tower chest obstructs ladder")
+        assert all(coords[(3,y,3)]=="minecraft:ladder"
+                   for y in range(1, room["size"][1]-1)), (
+            room["id"], "tower stairs incomplete")
     expect_spawners=[]
     if room.get("spawner"):
         info=room["spawner"]
         expect_spawners.append((info["pos"],info["mob"]))
     assert spawners==expect_spawners,(room["id"],spawners,expect_spawners)
+    # Main corridors must stay three blocks wide: the spawner belongs in
+    # a side alcove, never in the center (including rotated annexes).
+    assert all(x not in (w//2-1,w//2,w//2+1) for (x,y,z),mob in spawners), (
+        room["id"], "spawner blocks central walkway")
     # Every declared door is exactly 3 wide x 4 high; the center is a
     # processed Jigsaw block. No undeclared exit can expose a cliff.
     doors=room.get("doors",{})
@@ -198,7 +210,10 @@ def validate_room(room, read):
             assert all(coords[p] not in ("minecraft:air","minecraft:jigsaw")
                        for p in border), (room["id"],side,"dangling door")
     if room["id"] in ("crypt","archive"):
-        assert coords[(4,0,4)]=="minecraft:air", "Upper ladder has no entry"
+        assert coords[(4,0,4)]=="minecraft:ladder", (
+            room["id"], "ladder missing at floor connection")
+        assert coords[(4,1,4)]=="minecraft:ladder", (
+            room["id"], "upper ladder has a disconnected gap")
     if room["id"] in ("catacombs","archive_vault"):
         assert coords[(4,h-1,4)]=="minecraft:ladder", "Underground shaft sealed"
     mid=w//2
