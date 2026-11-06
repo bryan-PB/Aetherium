@@ -22,6 +22,11 @@ VALID = {
     "minecraft:bookshelf", "minecraft:dark_oak_planks", "minecraft:jigsaw",
     "minecraft:iron_block", "minecraft:iron_bars", "minecraft:spawner",
     "minecraft:magma_block", "minecraft:cobweb", "minecraft:ladder",
+    # 1.16.5 architectural palette: stairs, real upper/lower half slabs,
+    # warmer readable room lighting, cohesive basalt and blackstone trim.
+    "minecraft:polished_blackstone", "minecraft:polished_blackstone_brick_slab",
+    "minecraft:polished_blackstone_brick_stairs", "minecraft:polished_basalt",
+    "minecraft:polished_blackstone_brick_wall", "minecraft:sea_lantern",
 }
 
 
@@ -157,6 +162,9 @@ def validate_room(room, read):
         info=room["spawner"]
         expect_spawners.append((info["pos"],info["mob"]))
     assert spawners==expect_spawners,(room["id"],spawners,expect_spawners)
+    if room["spawner"] and ("east" in room["doors"] or "west" in room["doors"]):
+        assert not (d//2-1<=spawners[0][0][2]<=d//2+1), (
+            room["id"], "mob spawner blocks the east/west connection")
     # Main corridors must stay three blocks wide: the spawner belongs in
     # a side alcove, never in the center (including rotated annexes).
     assert all(x not in (w//2-1,w//2,w//2+1) for (x,y,z),mob in spawners), (
@@ -209,6 +217,29 @@ def validate_room(room, read):
         else:
             assert all(coords[p] not in ("minecraft:air","minecraft:jigsaw")
                        for p in border), (room["id"],side,"dangling door")
+    # Screenshot regressions: a roofed module must be navigable through a
+    # 3-block aisle with >=4 blocks of headroom, not an empty low-ceiling box
+    # crossed by a random pedestal, bar or spawner.
+    for z in range(1,d-1):
+        for x in range(w//2-1,w//2+2):
+            for y in range(1,min(h-2,5)+1):
+                assert coords[(x,y,z)]=="minecraft:air", (
+                    room["id"], "main aisle blocked",x,y,z,coords[(x,y,z)])
+    if "east" in doors or "west" in doors:
+        for x in range(1,w-1):
+            for z in range(d//2-1,d//2+2):
+                for y in range(1,min(h-2,5)+1):
+                    assert coords[(x,y,z)]=="minecraft:air", (
+                        room["id"], "side doorway aisle blocked",x,y,z)
+    floor_tiles={coords[(x,0,z)] for x in range(1,w-1) for z in range(1,d-1)}
+    assert len(floor_tiles)>=3, (room["id"], "featureless giant floor")
+    lights=sum(v=="minecraft:sea_lantern" for v in coords.values())
+    assert lights>=2, (room["id"], "dark featureless room")
+    details=sum(v in ("minecraft:polished_blackstone_brick_slab",
+                      "minecraft:polished_blackstone_brick_stairs",
+                      "minecraft:bookshelf","minecraft:iron_bars",
+                      "minecraft:polished_basalt") for v in coords.values())
+    assert details>=8, (room["id"], "insufficient architecture",details)
     if room["id"] in ("crypt","archive"):
         assert coords[(4,0,4)]=="minecraft:ladder", (
             room["id"], "ladder missing at floor connection")
