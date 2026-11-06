@@ -117,15 +117,16 @@ public final class IntermediateArmorModel extends BipedModel<LivingEntity> {
         cube(head, FABRIC, ROW, -8.08F, -7.79F, -4.10F, 1.30F, 0.36F, 8.20F);
         cube(head, FABRIC, ROW, 6.88F, -7.86F, -3.65F, 1.20F, 0.36F, 7.30F);
 
-        // Crown: broad dark lower ring, narrower upper section, asymmetrical
-        // tapered top. It protrudes ABOVE the head, never encases the face.
+        // Compact, stepped hat crown: 1.75 model pixels lower than the tall
+        // first version, but still distinct above the generously wide brim.
+        // Band, eye opening, scarf and other armor geometry stay unchanged.
         cube(head, VOID, 0, -3.95F, -9.18F, -3.85F, 7.90F, 1.50F, 7.70F);
-        cube(head, FABRIC, ROW, -3.65F, -13.45F, -3.55F, 7.30F, 4.90F, 7.10F);
-        cube(head, SHADOW, 0, -3.25F, -14.65F, -3.30F, 6.20F, 1.58F, 6.60F);
-        cube(head, FABRIC, ROW, -2.80F, -15.45F, -3.05F, 5.50F, 0.95F, 6.05F);
+        cube(head, FABRIC, ROW, -3.65F, -12.35F, -3.55F, 7.30F, 3.80F, 7.10F);
+        cube(head, SHADOW, 0, -3.25F, -13.25F, -3.30F, 6.20F, 1.30F, 6.60F);
+        cube(head, FABRIC, ROW, -2.80F, -13.75F, -3.05F, 5.50F, 0.85F, 6.05F);
         // Purple crown crease and folded-back top, rather than a sharp horn.
-        cube(head, LIGHT, ROW, -2.10F, -15.65F, -2.55F, 4.35F, 0.45F, 5.10F);
-        cube(head, SHADOW, 0, -3.05F, -14.10F, 2.95F, 6.10F, 2.40F, 0.70F);
+        cube(head, LIGHT, ROW, -2.10F, -13.90F, -2.55F, 4.35F, 0.45F, 5.10F);
+        cube(head, SHADOW, 0, -3.05F, -12.70F, 2.95F, 6.10F, 2.00F, 0.70F);
 
         // Ribbon immediately above the brim and its single orange medallion.
         cube(head, SHADOW, 0, -3.92F, -9.74F, -3.92F, 7.84F, 1.26F, 7.84F);
