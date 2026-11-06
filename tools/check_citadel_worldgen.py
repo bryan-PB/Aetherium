@@ -22,7 +22,7 @@ for text in (
     "world.getChunkSource().generator.getSettings().structureConfig",
     "World.OVERWORLD.equals(world.dimension())",
     "instanceof FlatChunkGenerator",
-    "CitadelWorldGen.onBiomeLoading",
+    "CitadelWorldGen::onBiomeLoading",
 ):
     assert text in gen or text in main, "Missing Forge 1.16.5 structure wiring: " + text
 for text in (
