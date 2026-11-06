@@ -45,8 +45,15 @@ public final class CitadelStructure extends Structure<NoFeatureConfig> {
     protected boolean isFeatureChunk(ChunkGenerator generator, BiomeProvider biomes,
                                      long seed, SharedSeedRandom random, int chunkX, int chunkZ,
                                      Biome biome, ChunkPos chunkPos, NoFeatureConfig config) {
-        int x = chunkX * 16 + 8;
-        int z = chunkZ * 16 + 8;
+        return canGenerateOnColumn(generator, chunkX * 16 + 8, chunkZ * 16 + 8);
+    }
+
+    /**
+     * Identical, side-effect-free terrain test for both native structure starts
+     * and /kryzorae citadel probe. No chunks are generated and no world blocks
+     * are changed when this method is called.
+     */
+    public static boolean canGenerateOnColumn(ChunkGenerator generator, int x, int z) {
         int height = generator.getFirstOccupiedHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG);
 
         // Plains and many vanilla forests are at Y=62..64; the old Y>=65
