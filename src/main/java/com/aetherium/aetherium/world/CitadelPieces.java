@@ -93,11 +93,14 @@ public final class CitadelPieces {
         }
 
         /**
-         * After the normal chunk-clipped template placement, build four short
-         * foundations beneath each above-ground module. The depth is strictly
-         * capped; this never queries or writes outside the current chunk box,
-         * never invokes neighbor chunk generation, and never touches the two
-         * underground rooms. This prevents floating corners in shallow relief.
+         * Chunk-local, one-time foundation. Four corner posts were not enough
+         * for a 27x27 courtyard or the large sanctum: the walls and entire
+         * floor often appeared to float above hillsides. We now continue the
+         * OUTER WALL down to dry ground, and place sparse interior supports.
+         *
+         * Existing solid ground ends each column immediately. The maximum
+         * depth is 20 and all writes stay inside Minecraft's supplied chunk
+         * bounding box, so nothing generates adjoining chunks.
          */
         @Override
         public boolean postProcess(ISeedReader world, StructureManager structures,
@@ -107,25 +110,47 @@ public final class CitadelPieces {
             if (!super.postProcess(world, structures, generator, random, chunkBox, chunk, pivot)) {
                 return false;
             }
+
+            // Upper crypt/archive have a SAME-FOOTPRINT undercroft. Supports
+            // here would invade and block the underground ladders and halls.
             String id = templateId.getPath();
-            if (id.endsWith("/catacombs") || id.endsWith("/archive_vault")) {
+            if (id.endsWith("/catacombs") || id.endsWith("/archive_vault")
+                    || id.endsWith("/crypt") || id.endsWith("/archive")) {
                 return true;
             }
-            MutableBoundingBox room = this.getBoundingBox();
-            int[] xPoints = {room.x0 + 2, room.x1 - 2};
-            int[] zPoints = {room.z0 + 2, room.z1 - 2};
-            for (int x : xPoints) {
-                for (int z : zPoints) {
-                    for (int y = room.y0 - 1; y >= Math.max(1, room.y0 - SUPPORT_DEPTH); y--) {
-                        BlockPos pos = new BlockPos(x, y, z);
-                        if (!chunkBox.isInside(pos)) break;
-                        BlockState existing = world.getBlockState(pos);
-                        if (!existing.isAir() && existing.getFluidState().isEmpty()) break;
-                        world.setBlock(pos, Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState(), 2);
+
+            MutableBoundingBox bounds = this.getBoundingBox();
+            int y = bounds.y0;
+            for (int x = bounds.x0; x <= bounds.x1; x++) {
+                supportColumn(world, chunkBox, x, bounds.z0, y);
+                supportColumn(world, chunkBox, x, bounds.z1, y);
+            }
+            for (int z = bounds.z0 + 1; z < bounds.z1; z++) {
+                supportColumn(world, chunkBox, bounds.x0, z, y);
+                supportColumn(world, chunkBox, bounds.x1, z, y);
+            }
+
+            // Sparse interior piers on broad open plazas avoid a solid 27x27
+            // foundation that would cause excessive worldgen block updates.
+            if (bounds.x1 - bounds.x0 >= 22 || bounds.z1 - bounds.z0 >= 22) {
+                for (int x = bounds.x0 + 5; x <= bounds.x1 - 5; x += 7) {
+                    for (int z = bounds.z0 + 5; z <= bounds.z1 - 5; z += 7) {
+                        supportColumn(world, chunkBox, x, z, y);
                     }
                 }
             }
             return true;
+        }
+
+        private static void supportColumn(ISeedReader world, MutableBoundingBox chunkBox,
+                                          int x, int z, int floorY) {
+            for (int y = floorY - 1; y >= Math.max(1, floorY - SUPPORT_DEPTH); y--) {
+                BlockPos below = new BlockPos(x, y, z);
+                if (!chunkBox.isInside(below)) return;
+                BlockState existing = world.getBlockState(below);
+                if (!existing.isAir() && existing.getFluidState().isEmpty()) return;
+                world.setBlock(below, Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState(), 2);
+            }
         }
 
         @Override
