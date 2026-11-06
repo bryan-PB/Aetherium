@@ -344,8 +344,28 @@ jobs:
         run: |
           set -euo pipefail
           cd "$AETHERIUM_PROJECT_DIR"
-          # Loads mod registries and configured worldgen without starting a server.
-          gradle runData --no-daemon --console=plain
+          # Loads mod registries and configured worldgen without a Minecraft server.
+          # Limit the Gradle single-use daemon to 1 GiB and the separate Forge
+          # data JVM (configured in build.gradle) to 1 GiB. This avoids two
+          # potentially multi-gigabyte Java processes on the same CI worker.
+          echo "Available memory before Forge smoke test:"
+          free -h || true
+          set +e
+          gradle runData --no-daemon --no-parallel --max-workers=1 --console=plain --stacktrace \
+            '-Dorg.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=384m -Dfile.encoding=UTF-8'
+          result=$?
+          set -e
+          if (( result != 0 )); then
+            echo "::error::Forge data registry startup exited with status $result"
+            echo "Memory after failure:"
+            free -h || true
+            echo "Processes:"
+            ps -eo pid,ppid,rss,args --sort=-rss | head -25 || true
+            echo "JVM crash files (if any):"
+            find "$AETHERIUM_PROJECT_DIR" "$HOME/.gradle" -name 'hs_err_pid*.log' -print -exec head -70 {} \; 2>/dev/null || true
+            exit "$result"
+          fi
+          echo "Forge runData completed with exit code 0."
 
       - name: Informar resultado real de prueba de arranque
         if: always()
