@@ -51,6 +51,12 @@ commands=(root/"world/CitadelCommands.java").read_text()
 assert 'Commands.literal("kryzorae")' in commands
 assert 'Commands.literal("citadel")' in commands
 assert 'Commands.literal("status")' in commands
+assert 'Commands.literal("probe")' in commands
+assert "biome.getGenerationSettings()" in commands
+assert ".isValidStart(CitadelWorldGen.CITADEL.get())" in commands
+assert "CitadelStructure.canGenerateOnColumn(" in commands
+assert "public static boolean canGenerateOnColumn(" in structure
+assert "return canGenerateOnColumn(generator," in structure
 assert 'Commands.literal("preview")' in commands
 assert 'source.hasPermission(2)' in commands
 assert 'new CitadelPieces.Room(' in structure
