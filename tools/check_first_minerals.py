@@ -34,6 +34,19 @@ for name in ("brumacero","umbracita"):
 assert 'ITEMS.register("prismalita_shard"' in reg
 assert "Biome.Category.THEEND" in gen and "Biome.Category.NETHER" in gen
 assert 'configuredAetheriumOre = registerOre("aetherium_ore"' in gen
+# All three new deposits become easier to find in newly generated chunks.
+# Default 6x multiplier upgrades old configs transparently (2/1/1 -> 12/6/6).
+assert 'NEW_ORE_DENSITY_MULTIPLIER' in conf
+assert 'defineInRange("newOreDensityMultiplier", 6, 1, 8)' in conf
+assert 'return Math.min(24, Math.max(0, configuredBase)' in gen
+assert 'private static int expandedAttemptCount(int configuredBase)' in gen
+for material in ("BRUMACERO", "UMBRACITA", "PRISMALITA"):
+    expected = f"expandedAttemptCount(AetheriumConfig.{material}_VEINS_PER_CHUNK.get())"
+    assert expected in gen, expected
+assert "expandedAttemptCount(AetheriumConfig.ORE_VEINS_PER_CHUNK" not in gen, "Aetherium must stay rare"
+for old, expected in ((2, 12), (1, 6), (0, 0), (6, 24)):
+    assert min(24, max(0, old) * 6) == expected
+
 for name in ["brumacero_ore","umbracita_ore","prismalita_ore","raw_brumacero","raw_umbracita","brumacero_ingot","umbracita_ingot","prismalita_shard"]:
     folder="block" if name.endswith("_ore") else "item"
     tex=r/"assets/aetherium/textures"/folder/(name+".png")
@@ -46,4 +59,4 @@ for loc in ("en_us","es_es","es_cl","es_mx","es_ar"):
         assert d[f"block.aetherium.{name}_ore"]
     for name in ["raw_brumacero","brumacero_ingot","raw_umbracita","umbracita_ingot","prismalita_shard"]:
         assert d[f"item.aetherium.{name}"]
-print("First mineral expansion verified: registry, tool level, worldgen, loot, textures, smelting and locales.")
+print("First mineral expansion verified: registry, tier, worldgen, density, drops, textures and locales.")
