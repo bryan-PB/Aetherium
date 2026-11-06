@@ -46,7 +46,7 @@ for material in ("brumacero","umbracita"):
         path=assets/"textures/item"/(id+".png")
         raw=path.read_bytes()
         assert raw[:8]==bytes([137,80,78,71,13,10,26,10]), id
-        assert unpack(">II",raw[16:24])==(32,32), id
+        assert unpack(">II",raw[16:24])==((64,64) if part=="sword" else (32,32)), id
         d=json.loads((data/(id+".json")).read_text(encoding="utf-8"))
         assert d["type"]=="minecraft:crafting_shaped"
         assert d["pattern"]==patterns[part],id
@@ -66,6 +66,16 @@ for material in ("brumacero","umbracita"):
         for part in parts:
             assert lang["item.aetherium."+material+"_"+part]
         assert lang["tooltip.aetherium."+material+"_set"]
+
+# The source sprites of both swords must remain truly distinct 64x64 PNGs.
+# The build must NOT replace them with the earlier generic 32x32 swords.
+steel=(assets/"textures/item/brumacero_sword.png").read_bytes()
+shade=(assets/"textures/item/umbracita_sword.png").read_bytes()
+assert steel != shade, "Different materials require different silhouettes"
+assert len(steel) > 400 and len(shade) > 400, "Sword art seems truncated"
+art_generator=Path("tools/generate_intermediate_equipment_art.py").read_text(encoding="utf-8")
+assert 'for piece in ("pickaxe","axe","shovel","hoe"):' in art_generator
+assert 'for piece in ("sword","pickaxe"' not in art_generator
 
 # Do not change the items and resource identity of the approved endgame sets.
 assert 'ITEMS.register("aetherium_sword"' in reg
