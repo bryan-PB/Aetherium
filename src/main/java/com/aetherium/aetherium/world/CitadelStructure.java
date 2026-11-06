@@ -45,7 +45,27 @@ public final class CitadelStructure extends Structure<NoFeatureConfig> {
     protected boolean isFeatureChunk(ChunkGenerator generator, BiomeProvider biomes,
                                      long seed, SharedSeedRandom random, int chunkX, int chunkZ,
                                      Biome biome, ChunkPos chunkPos, NoFeatureConfig config) {
-        return canGenerateOnColumn(generator, chunkX * 16 + 8, chunkZ * 16 + 8);
+        int x = chunkX * 16 + 8;
+        int z = chunkZ * 16 + 8;
+        return canGenerateMegaSite(generator, x, z);
+    }
+
+    /**
+     * Sample five main-axis points using WORLD_SURFACE_WG without generating
+     * neighbor chunks. A 170-block building should not start across a sheer
+     * cliff or an open water channel; foundations bridge at most 20 blocks.
+     * This check runs only for candidate structure starts, never on ticks.
+     */
+    public static boolean canGenerateMegaSite(ChunkGenerator generator, int x, int z) {
+        if (!canGenerateOnColumn(generator, x, z)) return false;
+        int reference = generator.getFirstOccupiedHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG);
+        for (int dz : new int[] {32, 72, 112, 152}) {
+            int height = generator.getFirstOccupiedHeight(x, z + dz, Heightmap.Type.WORLD_SURFACE_WG);
+            if (height < 60 || height > 126 || Math.abs(height - reference) > 20) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -79,18 +99,25 @@ public final class CitadelStructure extends Structure<NoFeatureConfig> {
                     chunkX * 16 + 8, chunkZ * 16 + 8, Heightmap.Type.WORLD_SURFACE_WG);
             if (y < 60 || y > 126) return;
 
-            // No random attachment/retry: all room offsets come from the
-            // same shared layout used by the operator preview. The boxes only
-            // meet at their 3x4 doors and share a common floor Y.
+            // The central gateway determines the shared ground-floor Y.
+            // Undercrypts are separate, strictly nonoverlapping Y ranges.
+            if (!canGenerateMegaSite(generator, cx, cz)) return;
             BlockPos origin = CitadelLayout.originForChunk(chunkX, chunkZ, y);
             try {
                 for (CitadelLayout.RoomSpec room : CitadelLayout.rooms()) {
-                    this.pieces.add(new CitadelPieces.Room(
-                            templates, room.template, room.position(origin)));
+                    CitadelPieces.Room candidate = new CitadelPieces.Room(templates, room, origin);
+                    for (net.minecraft.world.gen.feature.structure.StructurePiece existing : this.pieces) {
+                        if (existing.getBoundingBox().intersects(candidate.getBoundingBox())) {
+                            throw new IllegalStateException(
+                                    "Overlapping Citadel rooms: " + room.template);
+                        }
+                    }
+                    this.pieces.add(candidate);
                 }
-            } catch (IllegalStateException missingTemplate) {
+            } catch (IllegalStateException invalidLayout) {
                 this.pieces.clear();
-                AetheriumMod.LOGGER.error("Citadel templates missing; cannot generate", missingTemplate);
+                AetheriumMod.LOGGER.error("Citadel templates/layout invalid; cannot generate",
+                        invalidLayout);
                 return;
             }
             this.calculateBoundingBox();
