@@ -1,7 +1,7 @@
 # Kryzorae — Documento maestro: Ciudadela de la Grieta
 **Versión del diseño:** 1.0 · **Objetivo:** Minecraft Java 1.16.5 / Forge 36.2.42 / Java 8 · **ID heredado del mod:** `aetherium`
 
-> **Estado:** especificación aprobada; **fase 0 implementada y compilada en CI #248**: cinco plantillas NBT de estructuras de Minecraft Java 1.16.5 y tres cofres con tablas de botín verificadas. **Todavía no existe una ciudadela generándose naturalmente en los mundos de jugadores**, ni entidades nuevas o una batalla con el Custodio hasta que sus respectivas fases se implementen y prueben en Forge. Los valores de combate aquí son objetivos de balance, no estadísticas ya registradas.
+> **Estado:** **fase 1 implementada en código: registro nativo de estructura Forge 1.16.5, generación natural en chunks nuevos del Overworld, siete plantillas conectadas por jigsaw y tres tablas de botín**. Compila en CI; falta probar la aparición y el diseño en Minecraft. Los tres enemigos, minijefe y Custodio **aún no están implementados**. Los valores de combate del documento son objetivos de balance, no estadísticas registradas. Los valores de combate aquí son objetivos de balance, no estadísticas ya registradas.
 
 ## 1. Identidad y papel en el mod
 
@@ -36,19 +36,19 @@ No depender de encontrar al azar una llave: **el sello es un drop garantizado de
 
 ## 3. Módulos espaciales
 
-El generador de prototipos tiene 5 piezas iniciales. Más adelante la ruta final usa hasta 12 tipos, con máximo **9 módulos físicos por ciudadela** de una selección ponderada; no se intenta colocar los 12 en una sola estructura.
+El generador incluye 7 piezas conectadas actualmente. Más adelante la ruta final usa hasta 12 tipos, con máximo **9 módulos físicos por ciudadela** de una selección ponderada; no se intenta colocar los 12 en una sola estructura.
 
 | Identificador de plantilla | Dimensiones X×Y×Z | Función | Estado de implementación |
 |---|---:|---|---|
-| `citadel/gateway` | 19×11×15 | Portón, bienvenida y botín pequeño | Fase 0: plantilla |
-| `citadel/corridor` | 11×9×17 | Conector, bifurcaciones posteriores | Fase 0: plantilla |
-| `citadel/guardhouse` | 17×10×17 | Cuartel, botín de equipo | Fase 0: plantilla |
-| `citadel/archive` | 17×11×17 | Libros, prismalita y pistas | Fase 0: plantilla |
-| `citadel/arena_shell` | 27×15×27 | Espacio de prueba para miniboss/boss, inicialmente vacío | Fase 0: plantilla |
+| `citadel/gateway` | 19×11×15 | Portón, bienvenida y botín pequeño | **Generación natural** |
+| `citadel/corridor` | 11×9×17 | Corredor y desvío oriental a cripta | **Generación natural** |
+| `citadel/guardhouse` | 17×10×17 | Cuartel y desvío occidental a forja | **Generación natural** |
+| `citadel/archive` | 17×11×17 | Libros, prismalita y pistas | **Generación natural** |
+| `citadel/arena_shell` | 27×15×27 | Arena descubierta, aún sin minijefe ni boss | **Generación natural** |
 | `citadel/courtyard` | 27×12×27 | Nodo de rutas, grupos pequeños | Fase 1 |
-| `citadel/crypt` | 17×11×17 | Cámara ritual opcional | Fase 1 |
+| `citadel/crypt` | 17×11×17 | Ala ritual conectada al corredor | **Generación natural** |
 | `citadel/watchtower` | 11×24×11 | Visibilidad, arquero | Fase 1 |
-| `citadel/forge` | 17×10×17 | Forja y materiales | Fase 1 |
+| `citadel/forge` | 17×10×17 | Ala de herrería conectada al cuartel | **Generación natural** |
 | `citadel/prison` | 17×10×17 | Enemigo Eco, exploración | Fase 2 |
 | `citadel/threshold` | 23×15×23 | Minijefe Centinela | Fase 3 |
 | `citadel/sanctum` | 31×19×31 | Arena del Custodio | Fase 4 |
@@ -61,9 +61,9 @@ El generador de prototipos tiene 5 piezas iniciales. Más adelante la ruta final
 
 - **Overworld** exclusivamente: sin Nether ni End; excluir océanos, ríos y bordes de bioma peligrosos inicialmente.
 - Biomas candidatos: taiga, bosque, bosque oscuro, colinas templadas. Filtrado configurable, no invasivo.
-- Rareza de partida **orientativa**, pendiente de prueba: separación por estructura de **56 chunks** (no 56 bloques), distancia mínima dentro de región de **32 chunks**. Debe medirse en semillas repetibles, nunca presentarse como frecuencia ya operativa.
+- Frecuencia **implementada y configurable**: separación por cuadrícula de **26 chunks** (no 26 bloques), separación mínima de **10 chunks**; usa un `StructureSeparationSettings` nativo en Forge 1.16.5. Es un candidato por región, no garantiza una ciudadela en cada cuadrícula. Datos TOML: `citadelEnabled`, `citadelSpacingChunks`, `citadelMinSeparationChunks`.
 - Altura: adaptar al terreno con soporte visible, sin destruir aldeas, portales ni estructuras de otros mods. Evitar cascadas al intentar colocar múltiples chunks fuera del área generada.
-- Implementar y registrar como **estructura auténtica** de Forge 1.16.5, no como mina `Feature.ORE` ni en `PlayerTickEvent`. Respetar los registros de `WorldGenRegistries`, `Structure.STRUCTURES_REGISTRY`, `FlatGenerationSettings.STRUCTURES` y la configuración de biomas/espaciado pertinentes a 1.16.5.
+- **Implementado:** estructura auténtica de Forge 1.16.5 registrada en `ForgeRegistries.STRUCTURE_FEATURES`, `WorldGenRegistries.CONFIGURED_STRUCTURE_FEATURE`, `Structure.STRUCTURES_REGISTRY`, `FlatGenerationSettings.STRUCTURE_FEATURES` y `DimensionStructuresSettings`; ensamblaje con `JigsawManager`, siete plantillas NBT originales y siete pools JSON. Ningún `PlayerTickEvent`.
 - Mundo existente: solo terreno **nuevo**; ningún escaneo retroactivo, inserción forzada o migración de chunks. Opción para desactivar la ciudadela sin alterar minerales existentes.
 
 ## 5. Enemigos, telegráficos y dificultad objetivo
@@ -137,8 +137,8 @@ Prohibido introducir mediante cofres comunes `rift_core`, `astral_heart`, `astra
 
 | Hito | Entregable mínimo | Cómo se prueba | Estado |
 |---|---|---|---|
-| **0. Documento y piezas NBT** | Documento, 5 plantillas reales en JAR y 3 loot tables; generación automática y checks CI | CI #248 pasó; lectura NBT, registros y cofres verificados; carga manual pendiente en Minecraft | **Implementado; falta test in-game** |
-| **1. Generación natural** | Estructura registrable `/locate`, conectores, rareza configurable, 4+ salas | 15 semillas, 200+ chunks de exploración y compatibilidad | Pendiente |
+| **0. Documento y piezas NBT** | Documento, 7 plantillas reales en JAR y 3 loot tables; generación automática y checks CI | CI comprobó NBT, archivos JSON, cofres, firma y espacio disponible | **Implementado** |
+| **1. Generación natural** | Estructura registrable `/locate aetherium:citadel`, conectores, rareza configurable, 7 salas | CI #254 compiló y verificó pools y NBT; faltan semillas, terrenos y prueba real con mods | **Código completo, falta prueba in-game** |
 | **2. Primeros enemigos** | Vigía, Arquero, Eco, iconos y render visible | Arena creativa, pruebas de agua, tiro y límite de proyectiles | Pendiente |
 | **3. Puerta y minijefe** | Centinela, sello garantizado, estado de apertura | Morir/reentrar, multijugador, reinicio del servidor | Pendiente |
 | **4. Custodio** | 2–3 fases, animaciones, sonido y drops | 20 enfrentamientos, balance con tres tiers y telegráficos | Pendiente |
@@ -152,3 +152,7 @@ Prohibido introducir mediante cofres comunes `rift_core`, `astral_heart`, `astra
 - [Primer técnico de NeoForged para 1.16.5](https://github.com/neoforged/.github/blob/main/primers/1.16.5/index.md) — precauciones de registro de estructuras.
 - Las plantillas reutilizables siguen el formato de NBT de bloques de estructura de Java Edition 1.16.5. **No** emplear el formato `mcstructure` de Bedrock ni registros de estructuras 1.19+.
 - La configuración de biomas del mod reside en `src/main/java/com/aetherium/aetherium/world/AetheriumWorldGen.java` y las opciones comunes en `AetheriumConfig.java`. No se extenderán con funciones de estructuras hasta que las piezas sean verificables y se planifique el registro apropiado.
+
+## 10. Estado de implementación del sistema de estructuras
+
+Los 7 módulos comparten un camino principal de 5 habitaciones, con dos desvíos: cripta al este del corredor y forja al oeste del cuartel. Dos conectores (entrada/salida) se sustituyen por aire durante la generación. La entrada usa torres de piedra negra y almenas; el interior tiene detalles estáticos. La estructura se genera únicamente en bosques, llanuras, taigas y colinas terrestres de nuevas regiones del Overworld, sin modificar chunks previos. La dificultad final (enemigos, puertas selladas y Custodio) pertenece a los siguientes hitos, no a la versión actual.
